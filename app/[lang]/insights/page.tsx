@@ -1,0 +1,6 @@
+import {Info} from "lucide-react";
+import {getDictionary} from "@/lib/i18n/get-dictionary";
+import {Section} from "@/components/SectionHeading";
+import {InsightsCard} from "@/components/InsightsCard";
+import {LegalDisclaimer} from "@/components/LegalDisclaimer";
+export default function InsightsPage({params:{lang}}:{params:{lang:"fr"|"en"}}){const dict=getDictionary(lang);return <><Section className="bg-gradient-to-b from-parchment to-white !pb-10"><p className="eyebrow">{dict.insights.eyebrow}</p><h1 className="h-serif mt-4 max-w-3xl text-4xl leading-tight sm:text-5xl">{dict.insights.pageTitle}</h1><p className="body-lead mt-6 max-w-2xl">{dict.insights.pageIntro}</p></Section><Section className="!pt-8"><div className="mb-8 flex items-start gap-3 rounded-xl border border-line bg-parchment p-5"><Info className="mt-.5 h-4 w-4 shrink-0 text-navy"/><p className="text-xs leading-relaxed text-muted">{dict.insights.cmsNote}</p></div><div className="grid gap-6 md:grid-cols-3">{dict.insights.items.map(article=><InsightsCard key={article.slug} article={article} locale={lang} readMore={dict.insights.readMore} cmsNote={dict.insights.cmsNote}/>)}</div><LegalDisclaimer dict={dict} className="mt-12"/></Section></>}
