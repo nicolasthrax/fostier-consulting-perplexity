@@ -1,0 +1,5 @@
+import {Section} from "./SectionHeading";
+import {LegalDisclaimer} from "./LegalDisclaimer";
+import type {Dictionary} from "@/lib/i18n/get-dictionary";
+type LegalPage={title:string;updated:string;sections:{heading:string;body:string}[]};
+export function LegalArticle({page,dict}:{page:LegalPage;dict:Dictionary}){return <Section className="bg-gradient-to-b from-parchment to-white"><div className="max-w-3xl"><h1 className="h-serif text-4xl leading-tight sm:text-5xl">{page.title}</h1><p className="mt-4 text-xs uppercase tracking-[.18em] text-muted">{page.updated}</p><div className="mt-10 space-y-10">{page.sections.map((section,i)=><section key={section.heading}><h2 className="font-serif text-xl font-medium text-ink"><span className="mr-3 font-sans text-xs font-semibold text-fred">{String(i+1).padStart(2,"0")}</span>{section.heading}</h2><p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">{section.body}</p></section>)}</div><div className="rule-fine mt-14"/><LegalDisclaimer dict={dict} className="mt-8"/></div></Section>}
