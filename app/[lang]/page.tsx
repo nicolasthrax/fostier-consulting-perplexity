@@ -1,176 +1,54 @@
-import type { Metadata } from "next";
-import { Check, Users } from "lucide-react";
-import type { Locale } from "@/lib/i18n/config";
+import Link from "next/link";
+import { ArrowRight, Check, Phone } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { localizedMetadata } from "@/lib/metadata";
-import { Hero } from "@/components/Hero";
-import { Reveal } from "@/components/Reveal";
-import { Section, SectionHeading } from "@/components/SectionHeading";
-import { ServiceCard } from "@/components/ServiceCard";
-import { ProcessTimeline } from "@/components/ProcessTimeline";
-import { FAQAccordion } from "@/components/FAQAccordion";
-import { InsightsCard } from "@/components/InsightsCard";
-import { HkMapElement } from "@/components/HkMapElement";
-import { LegalDisclaimer } from "@/components/LegalDisclaimer";
-import { WhatsAppButton, CallButton } from "@/components/ContactActions";
+import { site, whatsappUrl } from "@/lib/site";
 
-export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
-  const dict = getDictionary(params.lang);
-  return localizedMetadata({
-    locale: params.lang,
-    path: "",
-    title: dict.meta.siteTitle,
-    description: dict.meta.siteDescription,
-  });
-}
-
-export default function HomePage({ params: { lang } }: { params: { lang: Locale } }) {
+export default function HomePage({ params: { lang } }: { params: { lang: "fr" | "en" } }) {
   const dict = getDictionary(lang);
-
   return (
     <>
-      <Hero locale={lang} dict={dict} />
-
-      {/* Trust strip */}
-      <Section className="border-y border-line bg-white !py-10">
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {dict.trust.items.map((item, i) => (
-            <Reveal key={item.title} delay={i * 0.06}>
-              <li className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-navy-50">
-                  <Check className="h-3.5 w-3.5 text-navy" aria-hidden="true" />
-                </span>
-                <span className="text-sm font-semibold text-slate">{item.title}</span>
-              </li>
-            </Reveal>
-          ))}
-        </ul>
-      </Section>
-
-      {/* Intro */}
-      <Section className="bg-white">
-        <div className="grid items-center gap-14 lg:grid-cols-2">
-          <Reveal>
-            <p className="eyebrow">{dict.intro.eyebrow}</p>
-            <h2 className="h-serif mt-4 text-3xl leading-tight sm:text-4xl">{dict.intro.title}</h2>
-            {dict.intro.paragraphs.map((p) => (
-              <p key={p.slice(0, 24)} className="body-lead mt-5">{p}</p>
-            ))}
-          </Reveal>
-          <Reveal delay={0.15}>
-            {/* Editorial placeholder — replace with a quiet architectural image via next/image */}
-            <div
-              role="img"
-              aria-label={dict.intro.imageAlt}
-              className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-navy-50 via-white to-parchment shadow-soft"
-            >
-              <svg viewBox="0 0 400 300" className="absolute inset-0 h-full w-full" aria-hidden="true">
-                <g stroke="#002395" strokeOpacity="0.14" strokeWidth="1" fill="none">
-                  <path d="M60 300V90l40-22v232" />
-                  <path d="M130 300V40l52 26v234" />
-                  <path d="M212 300V120l44-18v198" />
-                  <path d="M286 300V60l54 30v210" />
-                </g>
-                <path d="M0 250 C 120 228, 280 270, 400 238" stroke="#ED2939" strokeOpacity="0.5" strokeWidth="1.2" fill="none" className="map-line" strokeDasharray="4 8" />
-              </svg>
+      <section className="relative overflow-hidden bg-gradient-to-b from-parchment via-white to-white">
+        <div className="h-[3px] bg-gradient-to-r from-navy via-navy-100 to-fred/70" />
+        <div className="container-site grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-2 lg:py-24">
+          <div>
+            <p className="eyebrow">{dict.hero.eyebrow}</p>
+            <h1 className="h-serif mt-6 text-4xl leading-[1.12] sm:text-5xl lg:text-6xl">{dict.hero.title}</h1>
+            <p className="body-lead mt-6 max-w-xl">{dict.hero.subtitle}</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <a href={whatsappUrl(dict.actions.whatsappMessage)} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center justify-center rounded-full bg-navy px-6 py-4 text-center text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-800">{dict.actions.whatsappAdvisor}</a>
+              <a href={site.phoneHref} className="focus-ring inline-flex items-center justify-center gap-2 rounded-full border border-navy/25 bg-white px-6 py-4 text-center text-sm font-semibold text-navy transition-colors hover:border-navy/50"><Phone className="h-4 w-4" />{dict.actions.callLabel}</a>
+              <Link href={`/${lang}/services`} className="focus-ring inline-flex items-center justify-center gap-1.5 py-2 text-sm font-semibold text-navy underline-offset-4 hover:underline">{dict.actions.discoverServices}<ArrowRight className="h-4 w-4" /></Link>
             </div>
-          </Reveal>
+          </div>
+          <figure className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-white via-parchment to-navy-50 p-6 shadow-soft sm:p-10">
+            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-navy/10 blur-3xl" aria-hidden="true" />
+            <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-fred/[.08] blur-3xl" aria-hidden="true" />
+            <svg viewBox="0 0 500 320" className="relative h-auto w-full" aria-hidden="true">
+              <defs><pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0v24" fill="none" stroke="#E5E7EB" strokeWidth=".7" /></pattern><linearGradient id="route" x1="0" x2="1"><stop offset="0" stopColor="#002395" /><stop offset="1" stopColor="#ED2939" /></linearGradient></defs>
+              <rect width="500" height="320" fill="url(#grid)" />
+              <path d="M95 95 C190 24 340 62 408 222" fill="none" stroke="url(#route)" strokeWidth="2" strokeDasharray="5 9" />
+              <path d="M95 95 C230 176 306 198 408 222" fill="none" stroke="#002395" strokeOpacity=".25" strokeWidth="1" />
+              <circle cx="95" cy="95" r="6" fill="#002395" /><circle cx="95" cy="95" r="16" fill="none" stroke="#002395" strokeOpacity=".25" />
+              <circle cx="408" cy="222" r="7" fill="#ED2939" /><circle cx="408" cy="222" r="20" fill="none" stroke="#ED2939" strokeOpacity=".3" />
+              <text x="62" y="65" fill="#002395" fontSize="13" fontFamily="sans-serif" fontWeight="600" letterSpacing="2">FRANCE</text>
+              <text x="365" y="260" fill="#111827" fontSize="13" fontFamily="sans-serif" fontWeight="600" letterSpacing="1.5">HONG KONG</text>
+            </svg>
+            <figcaption className="relative mt-5 text-xs leading-relaxed text-muted">{dict.hero.visualCaption}</figcaption>
+          </figure>
         </div>
-      </Section>
+      </section>
 
-      {/* Services */}
-      <Section className="bg-parchment">
-        <SectionHeading eyebrow={dict.services.eyebrow} title={dict.services.title} subtitle={dict.services.subtitle} />
-        <div className="grid gap-6 sm:grid-cols-2">
-          {dict.services.items.map((service, i) => (
-            <Reveal key={service.slug} delay={i * 0.08} className="h-full">
-              <ServiceCard service={service} locale={lang} learnMore={dict.actions.learnMore} />
-            </Reveal>
-          ))}
-        </div>
-        <LegalDisclaimer dict={dict} className="mt-10" />
-      </Section>
+      <section className="border-y border-line bg-white"><div className="container-site grid gap-5 py-8 sm:grid-cols-2 lg:grid-cols-4">{dict.trust.items.map((item: { title: string }) => <div key={item.title} className="flex items-center gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy-50"><Check className="h-3.5 w-3.5 text-navy" /></span><span className="text-sm font-semibold text-slate">{item.title}</span></div>)}</div></section>
 
-      {/* Who we serve */}
-      <Section className="bg-white">
-        <SectionHeading eyebrow={dict.serve.eyebrow} title={dict.serve.title} subtitle={dict.serve.subtitle} />
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {dict.serve.items.map((item, i) => (
-            <Reveal key={item.title} delay={i * 0.06} className="h-full">
-              <div className="card-base h-full p-7 transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lift">
-                <Users className="h-5 w-5 text-fred" aria-hidden="true" />
-                <h3 className="mt-4 font-serif text-lg font-medium text-ink">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{item.text}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </Section>
+      <section className="bg-white py-20 sm:py-28"><div className="container-site grid gap-12 lg:grid-cols-[.85fr_1.15fr]"><div><p className="eyebrow">{dict.intro.eyebrow}</p><h2 className="h-serif mt-4 text-3xl leading-tight sm:text-4xl">{dict.intro.title}</h2></div><div>{dict.intro.paragraphs.map((p: string) => <p key={p} className="body-lead mb-5">{p}</p>)}</div></div></section>
 
-      {/* Approach / process */}
-      <Section id="approche" className="border-y border-line bg-parchment">
-        <SectionHeading eyebrow={dict.process.eyebrow} title={dict.process.title} />
-        <ProcessTimeline steps={dict.process.steps} />
-        <Reveal className="mt-14 flex justify-center">
-          <WhatsAppButton label={dict.actions.whatsappCta} message={dict.actions.whatsappMessage} />
-        </Reveal>
-      </Section>
+      <section className="bg-parchment py-20 sm:py-28"><div className="container-site"><p className="eyebrow">{dict.services.eyebrow}</p><h2 className="h-serif mt-4 max-w-2xl text-3xl leading-tight sm:text-4xl">{dict.services.title}</h2><p className="body-lead mt-4 max-w-2xl">{dict.services.subtitle}</p><div className="mt-12 grid gap-5 sm:grid-cols-2">{dict.services.items.map((service: { slug: string; title: string; benefit: string }) => <Link key={service.slug} href={`/${lang}/services#${service.slug}`} className="accent-line card-base focus-ring group flex min-h-[180px] flex-col p-7 transition-all hover:-translate-y-[2px] hover:border-navy/25 hover:shadow-lift"><h3 className="font-serif text-xl font-medium text-ink">{service.title}</h3><p className="mt-3 text-sm leading-relaxed text-muted">{service.benefit}</p><span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-navy">{dict.actions.learnMore}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span></Link>)}</div></div></section>
 
-      {/* Hong Kong expertise */}
-      <Section className="bg-white">
-        <div className="grid items-center gap-14 lg:grid-cols-2">
-          <Reveal>
-            <p className="eyebrow">{dict.hongkong.eyebrow}</p>
-            <h2 className="h-serif mt-4 text-3xl leading-tight sm:text-4xl">{dict.hongkong.title}</h2>
-            {dict.hongkong.paragraphs.map((p) => (
-              <p key={p.slice(0, 24)} className="body-lead mt-5">{p}</p>
-            ))}
-          </Reveal>
-          <Reveal delay={0.15}>
-            <HkMapElement label={dict.hongkong.mapLabel} />
-          </Reveal>
-        </div>
-      </Section>
+      <section id="approche" className="border-y border-line bg-white py-20 sm:py-28"><div className="container-site"><p className="eyebrow">{dict.process.eyebrow}</p><h2 className="h-serif mt-4 text-3xl leading-tight sm:text-4xl">{dict.process.title}</h2><ol className="mt-12 grid gap-8 md:grid-cols-4">{dict.process.steps.map((step: { title: string; text: string }, index: number) => <li key={step.title} className="border-l border-line pl-5 md:border-l-0 md:border-t md:pl-0 md:pt-5"><span className="font-serif text-sm font-semibold text-fred">0{index + 1}</span><h3 className="mt-2 font-serif text-lg font-medium text-ink">{step.title}</h3><p className="mt-2 text-sm leading-relaxed text-muted">{step.text}</p></li>)}</ol><div className="mt-12"><a href={whatsappUrl(dict.actions.whatsappMessage)} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white hover:bg-navy-800">{dict.actions.whatsappCta}</a></div></div></section>
 
-      {/* Insights */}
-      <Section className="bg-parchment">
-        <SectionHeading eyebrow={dict.insights.eyebrow} title={dict.insights.title} subtitle={dict.insights.subtitle} />
-        <div className="grid gap-6 md:grid-cols-3">
-          {dict.insights.items.map((article, i) => (
-            <Reveal key={article.slug} delay={i * 0.08} className="h-full">
-              <InsightsCard article={article} locale={lang} readMore={dict.insights.readMore} cmsNote={dict.insights.cmsNote} />
-            </Reveal>
-          ))}
-        </div>
-      </Section>
+      <section className="bg-white py-20 sm:py-28"><div className="container-site grid items-center gap-12 lg:grid-cols-2"><div><p className="eyebrow">{dict.hongkong.eyebrow}</p><h2 className="h-serif mt-4 text-3xl leading-tight sm:text-4xl">{dict.hongkong.title}</h2>{dict.hongkong.paragraphs.map((p: string) => <p key={p} className="body-lead mt-5">{p}</p>)}</div><div className="rounded-3xl bg-navy-900 p-10 text-white"><p className="text-xs font-semibold uppercase tracking-[.22em] text-white/60">{dict.hongkong.mapLabel}</p><p className="mt-8 font-serif text-3xl leading-tight">France<br /><span className="text-fred">×</span><br />Hong Kong</p></div></div></section>
 
-      {/* FAQ */}
-      <Section className="bg-white">
-        <SectionHeading eyebrow={dict.faq.eyebrow} title={dict.faq.title} />
-        <FAQAccordion items={dict.faq.items} />
-      </Section>
-
-      {/* Final contact */}
-      <Section className="relative overflow-hidden bg-navy-900 text-white">
-        <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-navy/40 blur-3xl" aria-hidden="true" />
-        <div className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-fred/15 blur-3xl" aria-hidden="true" />
-        <div className="container-site relative text-center">
-          <Reveal>
-            <p className="eyebrow !text-white/70">{dict.contact.eyebrow}</p>
-            <h2 className="mt-4 font-serif text-3xl font-medium leading-tight text-white sm:text-4xl">
-              {dict.contact.title}
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/75">
-              {dict.contact.subtitle}
-            </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <WhatsAppButton label={dict.actions.startWhatsapp} message={dict.actions.whatsappMessage} variant="primary" large className="!bg-white !text-navy hover:!bg-parchment" />
-              <CallButton label={dict.actions.callLabel} large className="!border-white/30 !bg-transparent !text-white hover:!border-white/60" />
-            </div>
-            <LegalDisclaimer dict={dict} className="mx-auto mt-10 !text-white/50" />
-          </Reveal>
-        </div>
-      </Section>
+      <section className="bg-navy-900 py-20 text-white sm:py-28"><div className="container-site text-center"><p className="text-xs font-semibold uppercase tracking-[.22em] text-white/60">{dict.contact.eyebrow}</p><h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">{dict.contact.title}</h2><p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/75">{dict.contact.subtitle}</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><a href={whatsappUrl(dict.actions.whatsappMessage)} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex justify-center rounded-full bg-white px-7 py-4 text-sm font-semibold text-navy hover:bg-parchment">{dict.actions.startWhatsapp}</a><a href={site.phoneHref} className="focus-ring inline-flex justify-center rounded-full border border-white/30 px-7 py-4 text-sm font-semibold text-white hover:border-white/60">{dict.actions.callLabel}</a></div></div></section>
     </>
   );
 }
