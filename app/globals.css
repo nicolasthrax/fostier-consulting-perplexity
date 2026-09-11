@@ -16,7 +16,7 @@ body { @apply bg-white text-ink antialiased; }
 .focus-ring { @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy; }
 .accent-line { position:relative; }
 .accent-line::after { content:""; position:absolute; left:0; bottom:-1px; height:2px; width:0; background:var(--fred); transition:width .35s cubic-bezier(.22,1,.36,1); }
-.accent-line:hover::after,.accent-line:focus-within::after { width:2.5rem; }
+.accent-line:hover::after,.accent-line:focus-within::after { width:100%; }
 @keyframes dash-flow { to { stroke-dashoffset:-240; } }
 @keyframes point-pulse { 0%,100% { opacity:.35; r:3; } 50% { opacity:1; r:4.5; } }
 @keyframes drifting { 0%,100% { transform:translate3d(0,0,0); } 50% { transform:translate3d(0,-10px,0); } }
