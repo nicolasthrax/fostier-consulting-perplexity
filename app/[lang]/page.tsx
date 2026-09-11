@@ -11,7 +11,6 @@ export default function HomePage({ params: { lang } }: { params: { lang: "fr" | 
         <div className="h-[3px] bg-gradient-to-r from-navy via-navy-100 to-fred/70" />
         <div className="container-site grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-2 lg:py-24">
           <div>
-            <p className="eyebrow">{dict.hero.eyebrow}</p>
             <h1 className="h-serif mt-6 text-4xl leading-[1.12] sm:text-5xl lg:text-6xl">{dict.hero.title}</h1>
             <p className="body-lead mt-6 max-w-xl">{dict.hero.subtitle}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
