@@ -8,7 +8,7 @@ export function Logo({ locale }: { locale: string }) {
       aria-label="Fostier Consulting"
     >
       <Image
-        src="/brand/FOSTIER-consulting.jpg"
+        src="/brand/FOSTIER consulting.jpg"
         alt="Fostier Consulting"
         width={760}
         height={760}
