@@ -1,2 +1,20 @@
-/** Drop final SVG/PNG at /public/brand/logo.svg and replace this placeholder only; layout supports transparent artwork. */
-export function Logo({locale}:{locale:string}){return <a href={`/${locale}`} className="focus-ring flex items-center gap-3 rounded-md" aria-label="Fostier Consulting"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy font-serif text-base font-semibold text-white">F</span><span className="leading-tight"><span className="block font-serif text-lg font-medium tracking-tight text-ink">Fostier</span><span className="block text-[10px] font-semibold uppercase tracking-[.28em] text-muted">Consulting</span></span></a>}
+import Image from "next/image";
+
+export function Logo({ locale }: { locale: string }) {
+  return (
+    <a
+      href={`/${locale}`}
+      className="focus-ring flex items-center rounded-md"
+      aria-label="Fostier Consulting"
+    >
+      <Image
+        src="/brand/FOSTIER-consulting.jpg"
+        alt="Fostier Consulting"
+        width={760}
+        height={760}
+        priority
+        className="h-12 w-auto object-contain sm:h-14"
+      />
+    </a>
+  );
+}
