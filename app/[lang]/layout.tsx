@@ -4,7 +4,6 @@ import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { MobileContactBar } from "@/components/MobileContactBar";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { organisationJsonLd } from "@/lib/structured-data";
 import { playfair, inter } from "@/lib/fonts";
@@ -47,23 +46,14 @@ export default function LocaleLayout({
   return (
     <html lang={dict.htmlLang} className={`${playfair.variable} ${inter.variable} font-sans`}>
       <body className="flex min-h-screen flex-col">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-navy focus:px-5 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
-        >
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-navy focus:px-5 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
           {lang === "fr" ? "Aller au contenu" : "Skip to content"}
         </a>
         <Header locale={lang} dict={dict} />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
+        <main id="main" className="flex-1">{children}</main>
         <Footer locale={lang} dict={dict} />
         <FloatingWhatsApp dict={dict} />
-        <MobileContactBar dict={dict} />
       </body>
     </html>
   );
