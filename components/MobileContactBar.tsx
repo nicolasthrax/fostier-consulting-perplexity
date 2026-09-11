@@ -1,0 +1,5 @@
+import {Phone} from "lucide-react";
+import {WhatsAppIcon} from "./WhatsAppIcon";
+import {site,whatsappUrl} from "@/lib/site";
+import type {Dictionary} from "@/lib/i18n/get-dictionary";
+export function MobileContactBar({dict}:{dict:Dictionary}){return <div className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-3 border-t border-line bg-white/90 px-4 pt-3 backdrop-blur-md md:hidden" role="region" aria-label={dict.nav.contact}><a href={whatsappUrl(dict.actions.whatsappMessage)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center justify-center gap-2 rounded-full bg-navy py-3 text-sm font-semibold text-white shadow-soft active:scale-[.98]"><WhatsAppIcon className="h-5 w-5"/>{dict.actions.whatsapp}</a><a href={site.phoneHref} className="focus-ring flex items-center justify-center gap-2 rounded-full border border-navy/25 bg-white py-3 text-sm font-semibold text-navy active:scale-[.98]"><Phone className="h-4 w-4" aria-hidden="true"/>{dict.actions.callUs}</a></div>}

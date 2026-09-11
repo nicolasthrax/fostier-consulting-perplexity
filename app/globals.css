@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --navy:#002395; --fred:#ED2939; --ink:#111827; --slate:#1f2937; --parchment:#f8f8f6; --line:#e5e7eb; --muted:#6b7280; }
+html { scroll-behavior:smooth; }
+body { @apply bg-white text-ink antialiased; }
+::selection { background:rgba(0,35,149,.12); color:#000d38; }
+.container-site { @apply mx-auto w-full max-w-site px-5 sm:px-8 lg:px-10; }
+.eyebrow { @apply font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-navy; }
+.eyebrow::before { content:""; @apply mr-3 inline-block h-px w-8 bg-fred align-middle; }
+.h-serif { @apply font-serif font-medium tracking-[-0.01em] text-ink; }
+.body-lead { @apply text-base leading-relaxed text-slate/90 sm:text-lg; }
+.rule-fine { @apply h-px w-full bg-line; }
+.card-base { @apply rounded-2xl border border-line bg-white shadow-soft; }
+.focus-ring { @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy; }
+.accent-line { position:relative; }
+.accent-line::after { content:""; position:absolute; left:0; bottom:-1px; height:2px; width:0; background:var(--fred); transition:width .35s cubic-bezier(.22,1,.36,1); }
+.accent-line:hover::after,.accent-line:focus-within::after { width:2.5rem; }
+@keyframes dash-flow { to { stroke-dashoffset:-240; } }
+@keyframes point-pulse { 0%,100% { opacity:.35; r:3; } 50% { opacity:1; r:4.5; } }
+@keyframes drifting { 0%,100% { transform:translate3d(0,0,0); } 50% { transform:translate3d(0,-10px,0); } }
+.map-line { stroke-dasharray:6 10; animation:dash-flow 14s linear infinite; }
+.map-point { animation:point-pulse 3.6s ease-in-out infinite; }
+.float-slow { animation:drifting 9s ease-in-out infinite; }
+.header-shell { transition:background-color .3s ease,box-shadow .3s ease,border-color .3s ease,backdrop-filter .3s ease; border-bottom:1px solid transparent; }
+.header-shell[data-scrolled="true"] { background:rgba(255,255,255,.82); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border-bottom-color:rgba(229,231,235,.9); box-shadow:0 6px 24px rgba(17,24,39,.05); }
+.safe-bottom { padding-bottom:calc(env(safe-area-inset-bottom,0px) + .75rem); }
+@media (max-width:767px) { body { padding-bottom:4.75rem; } }
+.faq-panel { display:grid; grid-template-rows:0fr; transition:grid-template-rows .32s cubic-bezier(.22,1,.36,1); }
+.faq-panel[data-open="true"] { grid-template-rows:1fr; }
+.faq-panel > div { overflow:hidden; }
+@media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }

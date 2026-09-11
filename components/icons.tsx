@@ -1,0 +1,3 @@
+import type {SVGProps} from "react";
+const paths:Record<string,JSX.Element>={chart:<><path d="M3 20h18"/><path d="M6 16l4-6 3.5 3.5L18 7"/><path d="M18 7h-3.2M18 7v3.2"/></>,document:<><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 8h6M9 12h6M9 16h4"/></>,bank:<><path d="M3 9.5L12 4l9 5.5"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 20h18"/></>,shield:<><path d="M12 3l7 2.8v5.4c0 4.6-3 8-7 9.8-4-1.8-7-5.2-7-9.8V5.8L12 3Z"/><path d="M9 12l2.2 2.2L15.5 10"/></>};
+export function ServiceIcon({name,...props}:{name:string}&SVGProps<SVGSVGElement>){return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>{paths[name]??paths.document}</svg>}

@@ -1,0 +1,4 @@
+import {WhatsAppIcon} from "./WhatsAppIcon";
+import {whatsappUrl} from "@/lib/site";
+import type {Dictionary} from "@/lib/i18n/get-dictionary";
+export function FloatingWhatsApp({dict}:{dict:Dictionary}){return <a href={whatsappUrl(dict.actions.whatsappMessage)} target="_blank" rel="noopener noreferrer" aria-label={dict.actions.whatsappAdvisor} className="focus-ring group fixed bottom-6 right-6 z-40 hidden items-center gap-2 rounded-full bg-navy py-3.5 pl-4 pr-5 text-sm font-semibold text-white shadow-lift transition-all duration-200 hover:bg-navy-800 md:inline-flex"><span className="absolute -left-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-fred" aria-hidden="true"/><WhatsAppIcon className="h-5 w-5"/><span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[10rem] group-hover:opacity-100">{dict.actions.whatsapp}</span></a>}
