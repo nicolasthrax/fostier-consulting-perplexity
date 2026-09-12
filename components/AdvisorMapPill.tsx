@@ -48,9 +48,10 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
 
     const animate = (now: number) => {
       const elapsed = now - idleStart;
-      const idling = sweepStart === null;
-      const duration = idling ? IDLE_DURATION : HOVER_SWEEP;
-      const progress = ((idling ? elapsed : now - sweepStart) % duration) / duration;
+      const activeIdling = sweepStart === null;
+      const activeStart = sweepStart ?? now;
+      const duration = activeIdling ? IDLE_DURATION : HOVER_SWEEP;
+      const progress = (((activeIdling ? elapsed : now - activeStart) % duration) + duration) % duration / duration;
       const strength = 0.5 + 0.5 * Math.sin((elapsed / 420) * Math.PI * 2);
 
       pulsePath.style.strokeDashoffset = String(-100 * progress);
