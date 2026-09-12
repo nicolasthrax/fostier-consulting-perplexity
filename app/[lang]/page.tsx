@@ -31,11 +31,10 @@ export default function HomePage({ params: { lang } }: { params: { lang: "fr" | 
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#0A84FF]/15 blur-3xl" aria-hidden="true" />
             <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-fred/10 blur-3xl" aria-hidden="true" />
             <svg viewBox="0 0 500 320" className="relative h-auto w-full" aria-hidden="true"><defs><linearGradient id="route" x1="0" x2="1"><stop offset="0" stopColor="#0A84FF" /><stop offset="1" stopColor="#ED2939" /></linearGradient></defs><path d={MAP_LAND} fill="#23262E" stroke="#3E8E52" strokeOpacity=".55" strokeWidth=".8" /><path d="M95 95 C190 24 340 62 408 222" fill="none" stroke="url(#route)" strokeWidth="2" strokeDasharray="5 9" /><path d="M95 95 C230 176 306 198 408 222" fill="none" stroke="#0A84FF" strokeOpacity=".3" strokeWidth="1" /><circle cx="95" cy="95" r="6" fill="#0A84FF" /><circle cx="95" cy="95" r="16" fill="none" stroke="#0A84FF" strokeOpacity=".3" /><circle cx="408" cy="222" r="7" fill="#ED2939" /><circle cx="408" cy="222" r="20" fill="none" stroke="#ED2939" strokeOpacity=".35" /><text x="62" y="65" fill="#FFFFFF" fontSize="13" fontFamily="sans-serif" fontWeight="600" letterSpacing="2">PARIS</text><text x="365" y="260" fill="#FFFFFF" fontSize="13" fontFamily="sans-serif" fontWeight="600" letterSpacing="1.5">HONG KONG</text></svg>
-            <figcaption className="relative mt-5 text-xs leading-relaxed text-white/70">
-              {dict.hero.visualCaption}
+            <figcaption className="relative mt-5 text-xs leading-relaxed">
               <Link
                 href={`/${lang}/about`}
-                className="focus-ring group mt-2 inline-flex items-center gap-1.5 rounded-sm font-medium text-white/90 hover:text-white"
+                className="focus-ring group inline-flex items-center gap-1.5 rounded-sm font-medium text-white/90 hover:text-white"
               >
                 {heroAboutCaption[lang] ?? heroAboutCaption.en}
                 <ArrowRight className="h-3.5 w-3.5 text-fred transition-transform group-hover:translate-x-1" />
