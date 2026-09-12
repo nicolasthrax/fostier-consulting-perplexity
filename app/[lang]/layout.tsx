@@ -4,7 +4,6 @@ import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { organisationJsonLd } from "@/lib/structured-data";
 import { playfair, inter } from "@/lib/fonts";
 import { site } from "@/lib/site";
@@ -53,7 +52,6 @@ export default function LocaleLayout({
         <Header locale={lang} dict={dict} />
         <main id="main" className="flex-1">{children}</main>
         <Footer locale={lang} dict={dict} />
-        <FloatingWhatsApp dict={dict} />
       </body>
     </html>
   );
