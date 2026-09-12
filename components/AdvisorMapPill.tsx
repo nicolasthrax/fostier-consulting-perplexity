@@ -50,8 +50,8 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
       const progress = (elapsed % DURATION) / DURATION;
       const pulse = 0.5 + 0.5 * Math.sin((elapsed / 700) * Math.PI * 2);
       bluePath.style.strokeDashoffset = String(-100 * progress);
-      bluePath.style.opacity = String(0.45 + 0.3 * pulse);
-      bluePath.style.filter = `url(#${glowId}) opacity(${0.65 + 0.35 * pulse})`;
+      bluePath.style.strokeWidth = String(BORDER + 0.25 + 0.35 * pulse);
+      bluePath.style.opacity = String(0.82 + 0.18 * pulse);
       frame = requestAnimationFrame(animate);
     };
 
@@ -64,7 +64,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [glowId]);
+  }, []);
 
   return (
     <Link
@@ -81,7 +81,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
         >
           <defs>
             <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="1.5" result="blur" />
+              <feGaussianBlur stdDeviation="1.35" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -99,7 +99,6 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
             ref={bluePathRef}
             fill="none"
             stroke="#0A84FF"
-            strokeWidth={BORDER + 0.25}
             strokeLinecap="round"
             strokeDasharray={`${PULSE_LENGTH} ${100 - PULSE_LENGTH}`}
             pathLength="100"
