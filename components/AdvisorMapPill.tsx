@@ -12,7 +12,7 @@ const labels: Record<string, string> = {
 
 const BORDER = 1.5;
 const PULSE_LENGTH = 17;
-const DURATION = 5600;
+const DURATION = 4200;
 
 export function AdvisorMapPill({ locale }: { locale: string }) {
   const pillRef = useRef<HTMLSpanElement>(null);
@@ -50,8 +50,8 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
       const progress = (elapsed % DURATION) / DURATION;
       const pulse = 0.5 + 0.5 * Math.sin((elapsed / 700) * Math.PI * 2);
       bluePath.style.strokeDashoffset = String(-100 * progress);
-      bluePath.style.strokeWidth = String(BORDER + 0.25 + 0.35 * pulse);
-      bluePath.style.opacity = String(0.82 + 0.18 * pulse);
+      bluePath.style.strokeWidth = String(BORDER + 0.15 + 0.3 * pulse);
+      bluePath.style.opacity = String(0.58 + 0.14 * pulse);
       frame = requestAnimationFrame(animate);
     };
 
@@ -73,7 +73,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
     >
       <span
         ref={pillRef}
-        className="relative inline-flex items-center gap-2 rounded-full bg-black/70 px-5 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-colors hover:bg-black/60"
+        className="relative inline-flex items-center gap-2 rounded-full bg-black/70 px-5 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-colors duration-300 hover:bg-black/60"
       >
         <svg
           aria-hidden="true"
@@ -81,7 +81,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
         >
           <defs>
             <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="1.35" result="blur" />
+              <feGaussianBlur stdDeviation="1.15" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -94,6 +94,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
             stroke="#ED2939"
             strokeOpacity=".62"
             strokeWidth={BORDER}
+            className="transition-all duration-500 ease-out group-hover:stroke-[#0A84FF] group-hover:stroke-opacity-75"
           />
           <rect
             ref={bluePathRef}
@@ -103,10 +104,11 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
             strokeDasharray={`${PULSE_LENGTH} ${100 - PULSE_LENGTH}`}
             pathLength="100"
             filter={`url(#${glowId})`}
+            className="transition-opacity duration-300 group-hover:opacity-0"
           />
         </svg>
         {labels[locale] ?? labels.en}
-        <ArrowRight className="h-3.5 w-3.5 text-fred transition-transform group-hover:translate-x-0.5" />
+        <ArrowRight className="h-3.5 w-3.5 text-fred transition-[color,transform] duration-500 group-hover:translate-x-0.5 group-hover:text-[#0A84FF]" />
       </span>
     </Link>
   );
