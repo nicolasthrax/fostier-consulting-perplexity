@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, Phone } from "lucide-react";
+import { ArrowRight, Phone } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { site, whatsappUrl } from "@/lib/site";
 import { WeChatContactButton } from "@/components/WeChatContact";
@@ -123,19 +123,6 @@ export default function HomePage({ params: { lang } }: { params: { lang: "fr" | 
 
             <AdvisorMapPill locale={lang} />
           </figure>
-        </div>
-      </section>
-
-      <section className="border-y border-line bg-white">
-        <div className="container-site grid gap-5 py-8 sm:grid-cols-2 lg:grid-cols-4">
-          {dict.trust.items.map((item: { title: string }) => (
-            <div key={item.title} className="flex items-center gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy-50">
-                <Check className="h-3.5 w-3.5 text-navy" />
-              </span>
-              <span className="text-sm font-semibold text-slate">{item.title}</span>
-            </div>
-          ))}
         </div>
       </section>
 
