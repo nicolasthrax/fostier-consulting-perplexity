@@ -12,7 +12,7 @@ const labels: Record<string, string> = {
 
 const BORDER = 1.5;
 const PULSE_LENGTH = 17;
-const DURATION = 2800;
+const DURATION = 5600;
 
 export function AdvisorMapPill({ locale }: { locale: string }) {
   const pillRef = useRef<HTMLSpanElement>(null);
@@ -48,10 +48,10 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
       if (!start) start = now;
       const elapsed = now - start;
       const progress = (elapsed % DURATION) / DURATION;
-      const pulse = 0.5 + 0.5 * Math.sin((elapsed / 620) * Math.PI * 2);
+      const pulse = 0.5 + 0.5 * Math.sin((elapsed / 700) * Math.PI * 2);
       bluePath.style.strokeDashoffset = String(-100 * progress);
-      bluePath.style.opacity = String(0.2 + 0.55 * pulse);
-      bluePath.style.filter = `url(#${glowId}) opacity(${0.35 + 0.65 * pulse})`;
+      bluePath.style.opacity = String(0.45 + 0.3 * pulse);
+      bluePath.style.filter = `url(#${glowId}) opacity(${0.65 + 0.35 * pulse})`;
       frame = requestAnimationFrame(animate);
     };
 
@@ -92,6 +92,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
             ref={redPathRef}
             fill="none"
             stroke="#ED2939"
+            strokeOpacity=".62"
             strokeWidth={BORDER}
           />
           <rect
