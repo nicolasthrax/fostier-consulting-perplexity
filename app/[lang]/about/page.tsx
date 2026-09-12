@@ -55,16 +55,6 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
                   <MapPin className="h-4 w-4 text-fred" />
                   {f.location}
                 </p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {f.highlights.map((h) => (
-                    <span
-                      key={h}
-                      className="rounded-full border border-line bg-parchment px-3 py-1 text-xs font-medium text-slate"
-                    >
-                      {h}
-                    </span>
-                  ))}
-                </div>
               </div>
 
               <div>
