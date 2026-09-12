@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 export type ExplorerService = {
@@ -34,22 +34,43 @@ function ServiceTitle({
   title: string;
   active: boolean;
 }) {
-  const words = title.split(" ");
-  const firstLine = words.slice(0, Math.max(1, Math.ceil(words.length / 2))).join(" ");
-  const remainder = words.slice(Math.max(1, Math.ceil(words.length / 2))).join(" ");
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [firstLineWidth, setFirstLineWidth] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const element = textRef.current;
+    if (!element) return;
+
+    const updateWidth = () => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const rects = Array.from(range.getClientRects());
+      if (rects.length > 0) setFirstLineWidth(rects[0].width);
+    };
+
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [title]);
 
   return (
-    <span className="font-serif text-lg font-medium leading-snug lg:text-2xl">
+    <span className="relative inline-block pb-1.5 font-serif text-lg font-medium leading-snug lg:text-2xl">
       <span
-        className={`inline bg-[linear-gradient(#ED2939,#ED2939)] bg-left-bottom bg-no-repeat pb-1.5 transition-[background-size,color] duration-300 ${
-          active
-            ? "bg-[length:100%_2px] text-navy"
-            : "bg-[length:0%_2px] text-ink group-hover:bg-[length:100%_2px] group-hover:text-navy"
+        ref={textRef}
+        className={`transition-colors duration-300 ${
+          active ? "text-navy" : "text-ink group-hover:text-navy"
         }`}
       >
-        {firstLine}
+        {title}
       </span>
-      {remainder && <span className="block pt-1.5">{remainder}</span>}
+      <span
+        aria-hidden="true"
+        className={`absolute bottom-0 left-0 h-[2px] bg-fred transition-[width] duration-300 ${
+          active ? "opacity-100" : "w-0 opacity-100 group-hover:opacity-100"
+        }`}
+        style={{ width: active ? firstLineWidth ?? 0 : undefined }}
+      />
     </span>
   );
 }
