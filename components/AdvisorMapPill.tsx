@@ -12,6 +12,7 @@ const labels: Record<string, string> = {
 
 const BORDER = 1.5;
 const SWEEP_DURATION = 620;
+const FADE_DURATION = 340;
 const BLENDED_BLUE = "#1a75ff";
 
 export function AdvisorMapPill({ locale }: { locale: string }) {
@@ -26,8 +27,9 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
     const sweepPath = sweepPathRef.current;
     if (!pill || !basePath || !sweepPath) return;
 
-    let redStart = performance.now();
+    let neutralStart = performance.now();
     let sweepStart: number | null = null;
+    let fadeStart: number | null = null;
     let frame = 0;
 
     const draw = () => {
@@ -46,16 +48,25 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
     };
 
     const animate = (now: number) => {
-      const redElapsed = now - redStart;
-      const redStrength = 0.5 + 0.5 * Math.sin((redElapsed / 900) * Math.PI * 2);
-      basePath.style.strokeOpacity = sweepStart === null ? String(0.48 + 0.24 * redStrength) : "";
+      const neutralElapsed = now - neutralStart;
+      const neutralStrength = 0.5 + 0.5 * Math.sin((neutralElapsed / 900) * Math.PI * 2);
+      basePath.style.strokeOpacity = sweepStart === null ? String(0.28 + 0.18 * neutralStrength) : "";
 
       if (sweepStart !== null) {
         const progress = Math.min(1, (now - sweepStart) / SWEEP_DURATION);
         const eased = 0.5 - Math.cos(Math.PI * progress) / 2;
         sweepPath.style.strokeDashoffset = String(-100 * eased);
-        sweepPath.style.opacity = progress >= 1 ? "0" : ".94";
-        if (progress >= 1) sweepStart = null;
+        sweepPath.style.opacity = ".94";
+        if (progress >= 1) {
+          sweepStart = null;
+          fadeStart = now;
+        }
+      }
+
+      if (fadeStart !== null) {
+        const progress = Math.min(1, (now - fadeStart) / FADE_DURATION);
+        sweepPath.style.opacity = String(0.94 * Math.pow(1 - progress, 2));
+        if (progress >= 1) fadeStart = null;
       }
 
       frame = requestAnimationFrame(animate);
@@ -63,7 +74,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
 
     const onMouseEnter = () => {
       sweepStart = performance.now();
-      sweepPath.style.transition = "opacity 120ms ease-out";
+      fadeStart = null;
       sweepPath.style.opacity = ".94";
       sweepPath.style.strokeDashoffset = "0";
       basePath.style.transition = "stroke 520ms ease-out, stroke-opacity 520ms ease-out, stroke-width 520ms ease-out";
@@ -74,13 +85,14 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
 
     const onMouseLeave = () => {
       sweepStart = null;
+      fadeStart = null;
       sweepPath.style.opacity = "0";
       sweepPath.style.strokeDashoffset = "0";
       basePath.style.transition = "stroke 420ms ease-out, stroke-opacity 420ms ease-out, stroke-width 420ms ease-out";
-      basePath.style.stroke = "#ED2939";
-      basePath.style.strokeOpacity = ".62";
+      basePath.style.stroke = "#FFFFFF";
+      basePath.style.strokeOpacity = ".46";
       basePath.style.strokeWidth = String(BORDER);
-      redStart = performance.now();
+      neutralStart = performance.now();
     };
 
     const observer = new ResizeObserver(draw);
@@ -124,8 +136,8 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
           <rect
             ref={basePathRef}
             fill="none"
-            stroke="#ED2939"
-            strokeOpacity=".62"
+            stroke="#FFFFFF"
+            strokeOpacity=".46"
             strokeWidth={BORDER}
             className="transition-all duration-500 ease-out"
           />
@@ -143,7 +155,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
         </svg>
 
         {labels[locale] ?? labels.en}
-        <ArrowRight className="h-3.5 w-3.5 text-fred transition-[color,transform] duration-500 ease-out group-hover:translate-x-0.5 group-hover:text-[#0A84FF]" />
+        <ArrowRight className="h-3.5 w-3.5 text-white/60 transition-[color,transform] duration-500 ease-out group-hover:translate-x-0.5 group-hover:text-[#0A84FF]" />
       </span>
     </Link>
   );
