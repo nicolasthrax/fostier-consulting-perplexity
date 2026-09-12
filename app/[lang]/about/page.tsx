@@ -1,10 +1,11 @@
 import Image from "next/image";
-import { ArrowDown, Briefcase, ExternalLink, GraduationCap, MapPin, Newspaper } from "lucide-react";
+import { Briefcase, ExternalLink, GraduationCap, MapPin, Newspaper } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "@/lib/i18n/founder";
 import { Section } from "@/components/SectionHeading";
 import { Reveal } from "@/components/Reveal";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
+import { AdvisorArrow } from "@/components/AdvisorArrow";
 import type { Locale } from "@/lib/i18n/config";
 
 const advisorArrowLabel: Record<Locale, string> = {
@@ -24,16 +25,8 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
         <h1 className="h-serif max-w-3xl text-4xl leading-tight sm:text-5xl">
           {a.title}
         </h1>
-        <div className="mt-12 flex justify-center">
-          <a
-            href="#advisor"
-            aria-label={advisorArrowLabel[params.lang] ?? advisorArrowLabel.en}
-            className="focus-ring group inline-flex h-12 w-12 items-center justify-center rounded-full border border-line bg-white text-navy shadow-soft transition-all hover:border-navy/40 hover:shadow-lift"
-          >
-            <ArrowDown className="h-5 w-5 animate-bounce" aria-hidden="true" />
-          </a>
-        </div>
       </Section>
+      <AdvisorArrow label={advisorArrowLabel[params.lang] ?? advisorArrowLabel.en} />
       <Section className="!pt-0">
         <div className="grid gap-16">
           <Reveal className="max-w-3xl">
