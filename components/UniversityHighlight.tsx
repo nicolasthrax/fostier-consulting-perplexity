@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { UNIVERSITY_HIGHLIGHTS } from "@/lib/i18n/founder";
 import type { Locale } from "@/lib/i18n/config";
@@ -24,6 +24,42 @@ export function UniversityHighlight({
   const highlight =
     UNIVERSITY_HIGHLIGHTS[locale]?.[uniKey] ?? UNIVERSITY_HIGHLIGHTS.en[uniKey];
 
+  const [pos, setPos] = useState<{
+    tooltipLeft: number;
+    arrowLeft: number;
+    tooltipWidth: number;
+  }>({
+    tooltipLeft: 0,
+    arrowLeft: 0,
+    tooltipWidth: 280,
+  });
+
+  const updatePosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const triggerCenter = rect.left + rect.width / 2;
+    const viewportWidth =
+      document.documentElement.clientWidth || window.innerWidth;
+    const padding = 16;
+    const maxAllowedWidth = Math.min(280, viewportWidth - padding * 2);
+    const tooltipWidth = Math.max(200, maxAllowedWidth);
+
+    const idealTooltipLeft = triggerCenter - tooltipWidth / 2;
+    const clampedTooltipLeft = Math.max(
+      padding,
+      Math.min(idealTooltipLeft, viewportWidth - padding - tooltipWidth)
+    );
+
+    const tooltipLeft = clampedTooltipLeft - rect.left;
+    const rawArrowLeft = triggerCenter - clampedTooltipLeft;
+    const arrowLeft = Math.max(
+      16,
+      Math.min(rawArrowLeft, tooltipWidth - 16)
+    );
+
+    setPos({ tooltipLeft, arrowLeft, tooltipWidth });
+  }, []);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       isCoarsePointer.current =
@@ -34,6 +70,12 @@ export function UniversityHighlight({
 
   useEffect(() => {
     if (!open) return;
+    updatePosition();
+
+    const handleResizeOrScroll = () => {
+      updatePosition();
+    };
+
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
       if (
         containerRef.current &&
@@ -42,13 +84,19 @@ export function UniversityHighlight({
         setOpen(false);
       }
     };
+
+    window.addEventListener("resize", handleResizeOrScroll);
+    window.addEventListener("scroll", handleResizeOrScroll, true);
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("touchstart", handleOutsideClick);
+
     return () => {
+      window.removeEventListener("resize", handleResizeOrScroll);
+      window.removeEventListener("scroll", handleResizeOrScroll, true);
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("touchstart", handleOutsideClick);
     };
-  }, [open]);
+  }, [open, updatePosition]);
 
   return (
     <span
@@ -56,6 +104,7 @@ export function UniversityHighlight({
       className="relative inline-block"
       onMouseEnter={() => {
         if (!isCoarsePointer.current) {
+          updatePosition();
           setOpen(true);
         }
       }}
@@ -71,11 +120,13 @@ export function UniversityHighlight({
         aria-expanded={open}
         onClick={(e) => {
           e.stopPropagation();
+          updatePosition();
           setOpen((prev) => !prev);
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
+            updatePosition();
             setOpen((prev) => !prev);
           }
         }}
@@ -92,7 +143,11 @@ export function UniversityHighlight({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute bottom-full left-1/2 z-50 mb-3 w-[calc(100vw-3rem)] max-w-xs -translate-x-1/2 rounded-xl border border-navy-700 bg-navy p-4 text-xs text-white shadow-xl sm:w-72"
+            style={{
+              left: `${pos.tooltipLeft}px`,
+              width: `${pos.tooltipWidth}px`,
+            }}
+            className="absolute bottom-[calc(100%+8px)] z-50 rounded-xl border border-navy-700 bg-navy p-4 text-xs text-white shadow-xl"
           >
             <span className="block font-serif text-sm font-semibold text-white">
               {highlight.title}
@@ -102,7 +157,8 @@ export function UniversityHighlight({
             </span>
             <span
               aria-hidden="true"
-              className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-navy-700 bg-navy"
+              style={{ left: `${pos.arrowLeft}px` }}
+              className="absolute -bottom-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-navy-700 bg-navy"
             />
           </motion.span>
         )}
