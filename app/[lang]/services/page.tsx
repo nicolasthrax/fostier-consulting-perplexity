@@ -18,10 +18,7 @@ export default function ServicesPage({ params }: { params: { lang: Locale } }) {
       </Section>
 
       <Section className="!pt-6">
-        <ServicesExplorer
-          services={services}
-          includesLabel={dict.services.includesTitle}
-        />
+        <ServicesExplorer services={services} />
         <LegalDisclaimer dict={dict} className="mt-16" />
       </Section>
     </>
