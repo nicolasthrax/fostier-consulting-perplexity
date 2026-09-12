@@ -1,11 +1,6 @@
-/**
- * WeChat contact details + localized UI strings for the hero modal and footer chip.
- * Update WECHAT_ID here and every entry point follows.
- */
-
 import type { Locale } from "@/lib/i18n/config";
 
-export const WECHAT_ID = "igridhongkong";
+export const WECHAT_ID = "LucieFostier";
 
 /** Lucie's WeChat QR, uploaded to the site. */
 export const WECHAT_QR_SRC = "/brand/Screenshot 2026-09-12 at 12.39.24.png";
