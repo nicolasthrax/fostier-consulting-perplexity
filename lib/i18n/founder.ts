@@ -254,7 +254,7 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
   fr: {
     fudan: {
       title: "Université Fudan",
-      text: "Classée 30e au niveau mondial dans le classement QS World University Rankings 2026 — l'une des principales universités de recherche en Chine.",
+      text: "Classée 30e au niveau mondial dans le classement QS World University Rankings 2027 — l'une des principales universités de recherche en Chine.",
     },
     esg: {
       title: "Groupe ESG",
@@ -264,7 +264,7 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
   en: {
     fudan: {
       title: "Fudan University",
-      text: "Ranked #30 globally in the QS World University Rankings 2026 — one of China’s leading research universities.",
+      text: "Ranked #30 globally in the QS World University Rankings 2027 — one of China’s leading research universities.",
     },
     esg: {
       title: "ESG Group",
@@ -274,7 +274,7 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
   zh: {
     fudan: {
       title: "复旦大学",
-      text: "在 2026 年 QS 世界大学排名中位列全球第 30 位 —— 中国顶尖的研究型大学之一。",
+      text: "在 2027 年 QS 世界大学排名中位列全球第 30 位 —— 中国顶尖的研究型大学之一。",
     },
     esg: {
       title: "ESG 集团",

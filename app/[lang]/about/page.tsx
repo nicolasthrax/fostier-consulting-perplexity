@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ExternalLink, Newspaper } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "@/lib/i18n/founder";
 import { Section } from "@/components/SectionHeading";
@@ -157,8 +157,14 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
                     rel="noopener noreferrer"
                     className="focus-ring group mt-6 flex items-start gap-4 rounded-2xl border border-line bg-gradient-to-br from-white via-parchment to-navy-50 p-6 transition-all hover:-translate-y-[2px] hover:border-navy/25 hover:shadow-lift"
                   >
-                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-white text-navy">
-                      <Newspaper className="h-5 w-5" />
+                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-white p-1 shadow-xs">
+                      <Image
+                        src="/brand/ufe-logo.svg"
+                        alt="UFE"
+                        width={44}
+                        height={44}
+                        className="h-full w-full object-contain"
+                      />
                     </span>
                     <span>
                       <span className="block font-serif text-lg font-medium leading-snug text-ink">

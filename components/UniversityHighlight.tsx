@@ -19,9 +19,17 @@ export function UniversityHighlight({
 }: UniversityHighlightProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLSpanElement>(null);
-  const isTouchDevice = useRef<boolean>(false);
+  const isCoarsePointer = useRef<boolean>(false);
   const highlight =
     UNIVERSITY_HIGHLIGHTS[locale]?.[uniKey] ?? UNIVERSITY_HIGHLIGHTS.en[uniKey];
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      isCoarsePointer.current =
+        window.matchMedia("(pointer: coarse)").matches ||
+        "ontouchstart" in window;
+    }
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -46,12 +54,12 @@ export function UniversityHighlight({
       ref={containerRef}
       className="relative inline-block"
       onMouseEnter={() => {
-        if (!isTouchDevice.current) {
+        if (!isCoarsePointer.current) {
           setOpen(true);
         }
       }}
       onMouseLeave={() => {
-        if (!isTouchDevice.current) {
+        if (!isCoarsePointer.current) {
           setOpen(false);
         }
       }}
@@ -60,9 +68,6 @@ export function UniversityHighlight({
         tabIndex={0}
         role="button"
         aria-expanded={open}
-        onTouchStart={() => {
-          isTouchDevice.current = true;
-        }}
         onClick={(e) => {
           e.stopPropagation();
           setOpen((prev) => !prev);
@@ -81,7 +86,7 @@ export function UniversityHighlight({
       {open && (
         <span
           role="tooltip"
-          className="absolute bottom-full left-1/2 z-50 mb-2.5 w-72 -translate-x-1/2 rounded-xl border border-navy-700 bg-navy p-3.5 text-xs text-white shadow-xl transition-all"
+          className="absolute bottom-full left-1/2 z-50 mb-2.5 w-[calc(100vw-3rem)] max-w-xs -translate-x-1/2 rounded-xl border border-navy-700 bg-navy p-3.5 text-xs text-white shadow-xl transition-all sm:w-72"
         >
           <span className="block font-serif text-sm font-semibold text-white">
             {highlight.title}
