@@ -21,6 +21,13 @@ export interface FounderEducation {
   degree: string;
   school: string;
   location: string;
+  logo: string;
+  key: "esg" | "fudan";
+}
+
+export interface UniversityHighlight {
+  title: string;
+  text: string;
 }
 
 export interface FounderProfile {
@@ -57,7 +64,7 @@ const profiles: Record<Locale, FounderProfile> = {
     portraitAlt: "Portrait de Lucie Xiong, fondatrice de Fostier Consulting",
     bio: [
       "Fondatrice de Fostier Consulting, Lucie accompagne des particuliers exigeants — dont une clientèle fortunée — à Hong Kong, Macao et en Chine continentale : investissement, épargne, assurance santé et vie, retraite.",
-      "Économiste diplômée de l'université Fudan (Shanghai), formée en France (Groupe ESG) et passée par le siège parisien de HSBC, elle parle un français parfait. En février 2026, l'UFE Hong Kong l'a invitée à présenter les traditions du Nouvel An chinois à la communauté française.",
+      "Économiste diplômée de l'Université Fudan (Shanghai), formée au Groupe ESG (Paris) et passée par HSBC, elle parle un français parfait. En février 2026, l'UFE Hong Kong l'a invitée à présenter les traditions du Nouvel An chinois à la communauté française.",
     ],
     experienceTitle: "Expérience",
     experience: [
@@ -78,7 +85,7 @@ const profiles: Record<Locale, FounderProfile> = {
           "Gestion de patrimoine et assurance pour une clientèle privée et fortunée, à Hong Kong et Macao.",
       },
       {
-        role: "Gestion de patrimoine — siège de Paris",
+        role: "Gestion de patrimoine",
         company: "HSBC",
         location: "Paris, France",
         current: false,
@@ -89,14 +96,18 @@ const profiles: Record<Locale, FounderProfile> = {
     educationTitle: "Formation",
     education: [
       {
-        degree: "Diplôme de niveau Master (Bac+5)",
+        degree: "Diplôme de niveau Master",
         school: "Groupe ESG",
         location: "Paris, France",
+        logo: "/brand/esg-logo.svg",
+        key: "esg",
       },
       {
         degree: "Diplôme en économie",
         school: "Université Fudan",
         location: "Shanghai, Chine",
+        logo: "/brand/fudan-logo.svg",
+        key: "fudan",
       },
     ],
     pressTitle: "Dans la presse",
@@ -117,7 +128,7 @@ const profiles: Record<Locale, FounderProfile> = {
     portraitAlt: "Portrait of Lucie Xiong, founder of Fostier Consulting",
     bio: [
       "Founder of Fostier Consulting, Lucie advises discerning private clients — including high-net-worth individuals — across Hong Kong, Macau and mainland China on investment, savings, health and life insurance, and retirement planning.",
-      "An economics graduate of Fudan University (Shanghai), educated in France (ESG Group) and seasoned at HSBC's Paris head office, she speaks fluent French. In February 2026, UFE Hong Kong invited her to present Chinese New Year traditions to the French community.",
+      "An economics graduate of Fudan University (Shanghai), educated at ESG Group (Paris) and seasoned at HSBC, she speaks fluent French. In February 2026, UFE Hong Kong invited her to present Chinese New Year traditions to the French community.",
     ],
     experienceTitle: "Experience",
     experience: [
@@ -138,7 +149,7 @@ const profiles: Record<Locale, FounderProfile> = {
           "Wealth management and insurance for private and high-net-worth clients across Hong Kong and Macau.",
       },
       {
-        role: "Wealth management — Paris head office",
+        role: "Wealth management",
         company: "HSBC",
         location: "Paris, France",
         current: false,
@@ -149,14 +160,18 @@ const profiles: Record<Locale, FounderProfile> = {
     educationTitle: "Education",
     education: [
       {
-        degree: "Master's-level business degree (Bac+5)",
+        degree: "Master's-level business degree",
         school: "ESG Group",
         location: "Paris, France",
+        logo: "/brand/esg-logo.svg",
+        key: "esg",
       },
       {
         degree: "Degree in Economics",
         school: "Fudan University",
         location: "Shanghai, China",
+        logo: "/brand/fudan-logo.svg",
+        key: "fudan",
       },
     ],
     pressTitle: "In the press",
@@ -177,7 +192,7 @@ const profiles: Record<Locale, FounderProfile> = {
     portraitAlt: "Lucie Xiong（Fostier Consulting 创始人）的照片",
     bio: [
       "作为 Fostier Consulting 创始人，Lucie 为香港、澳门及中国内地的高要求个人客户（包括高净值人士）提供投资、储蓄、健康与人寿保险及退休规划咨询。",
-      "Lucie 毕业于上海复旦大学经济专业，曾赴法国深造（ESG 集团），并就职于汇丰银行巴黎总部，法语流利。2026 年 2 月，UFE Hong Kong 邀请她为在港法国社群讲解中国春节习俗。",
+      "Lucie 毕业于复旦大学（上海）经济学专业，曾就读于 ESG 集团（巴黎），并就职于汇丰银行，法语流利。2026 年 2 月，UFE Hong Kong 邀请她为在港法国社群讲解中国春节习俗。",
     ],
     experienceTitle: "职业经历",
     experience: [
@@ -198,7 +213,7 @@ const profiles: Record<Locale, FounderProfile> = {
           "在香港及澳门为私人及高净值客户提供财富管理与保险服务。",
       },
       {
-        role: "财富管理 —— 巴黎总部",
+        role: "财富管理",
         company: "汇丰银行（HSBC）",
         location: "法国巴黎",
         current: false,
@@ -212,11 +227,15 @@ const profiles: Record<Locale, FounderProfile> = {
         degree: "硕士阶段商科学位",
         school: "ESG 集团",
         location: "法国巴黎",
+        logo: "/brand/esg-logo.svg",
+        key: "esg",
       },
       {
         degree: "经济学学位",
         school: "复旦大学",
         location: "中国上海",
+        logo: "/brand/fudan-logo.svg",
+        key: "fudan",
       },
     ],
     pressTitle: "媒体报道",
@@ -227,6 +246,39 @@ const profiles: Record<Locale, FounderProfile> = {
       text: "受 UFE Hong Kong 文化艺术俱乐部的邀请，Lucie 在湾仔为法国社群主讲春节习俗讲座：红包的起源与礼仪、新钞讲究及春节传统。（原文为法语）",
       linkLabel: "阅读原文（法语）",
       url: UFE_ARTICLE_URL,
+    },
+  },
+};
+
+export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", UniversityHighlight>> = {
+  fr: {
+    fudan: {
+      title: "Université Fudan",
+      text: "Classée 26e au niveau mondial dans le classement QS World University Rankings 2027 — l'une des principales universités de recherche en Chine.",
+    },
+    esg: {
+      title: "Groupe ESG",
+      text: "Membre du réseau international Galileo Global Education. Les programmes ESG délivrent des titres RNCP de niveaux 6 et 7 reconnus par l'État français.",
+    },
+  },
+  en: {
+    fudan: {
+      title: "Fudan University",
+      text: "Ranked #26 globally in the QS World University Rankings 2027 — one of China’s leading research universities.",
+    },
+    esg: {
+      title: "ESG Group",
+      text: "Part of Galileo Global Education’s international network. ESG programmes award French state-recognised RNCP Level 6 and 7 qualifications.",
+    },
+  },
+  zh: {
+    fudan: {
+      title: "复旦大学",
+      text: "在 2027 年 QS 世界大学排名中位列全球第 26 位 —— 中国顶尖的研究型大学之一。",
+    },
+    esg: {
+      title: "ESG 集团",
+      text: "伽利利全球教育集团（Galileo Global Education）国际网络成员，ESG 课程颁发法国国家认可的 RNCP 6 级与 7 级文凭。",
     },
   },
 };

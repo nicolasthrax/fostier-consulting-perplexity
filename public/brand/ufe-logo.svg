@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" width="100%" height="100%">
+  <!-- Background -->
+  <rect width="300" height="120" rx="16" fill="#002395"/>
+  <!-- French Tricolor Accent Strip -->
+  <rect x="0" y="0" width="10" height="120" fill="#002395" rx="4"/>
+  <rect x="10" y="0" width="10" height="120" fill="#FFFFFF"/>
+  <rect x="20" y="0" width="10" height="120" fill="#ED2939"/>
+  <!-- Text UFE -->
+  <text x="50" y="75" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="52" fill="#FFFFFF" letter-spacing="2">UFE</text>
+  <!-- Subtext Monde -->
+  <text x="180" y="75" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="16" fill="#D9DFF5" letter-spacing="1">MONDE</text>
+</svg>

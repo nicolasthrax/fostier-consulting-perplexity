@@ -103,7 +103,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
 
   return (
     <Link
-      href={`/${locale}/about`}
+      href={`/${locale}/about#advisor`}
       className="focus-ring group absolute bottom-4 left-4 inline-flex rounded-full transition-transform duration-500 ease-out hover:scale-[1.05]"
     >
       <span
