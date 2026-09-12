@@ -22,7 +22,7 @@ export function AdvisorArrow({ label }: { label: string }) {
       }`}
     >
       <ArrowDown
-        className="h-7 w-7 animate-bounce drop-shadow-[0_0_10px_rgba(0,35,149,0.55)]"
+        className="h-7 w-7 drop-shadow-[0_0_10px_rgba(0,35,149,0.55)]"
         aria-hidden="true"
       />
     </a>
