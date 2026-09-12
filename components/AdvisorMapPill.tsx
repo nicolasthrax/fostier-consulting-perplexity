@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useEffect, useId, useRef } from "react";
 
 const labels: Record<string, string> = {
   fr: "Rencontrer votre conseillère",
@@ -9,29 +10,100 @@ const labels: Record<string, string> = {
   zh: "认识您的专属顾问",
 };
 
+const BORDER = 1.5;
+const PULSE_LENGTH = 28;
+const DURATION = 2800;
+
 export function AdvisorMapPill({ locale }: { locale: string }) {
+  const pillRef = useRef<HTMLSpanElement>(null);
+  const redPathRef = useRef<SVGRectElement>(null);
+  const bluePathRef = useRef<SVGRectElement>(null);
+  const glowId = useId().replace(/:/g, "");
+
+  useEffect(() => {
+    const pill = pillRef.current;
+    const redPath = redPathRef.current;
+    const bluePath = bluePathRef.current;
+    if (!pill || !redPath || !bluePath) return;
+
+    let frame = 0;
+    let start = 0;
+
+    const draw = () => {
+      const { width, height } = pill.getBoundingClientRect();
+      const inset = BORDER / 2;
+      const radius = Math.max(0, height / 2 - inset);
+
+      for (const path of [redPath, bluePath]) {
+        path.setAttribute("x", String(inset));
+        path.setAttribute("y", String(inset));
+        path.setAttribute("width", String(Math.max(0, width - BORDER)));
+        path.setAttribute("height", String(Math.max(0, height - BORDER)));
+        path.setAttribute("rx", String(radius));
+        path.setAttribute("ry", String(radius));
+      }
+    };
+
+    const animate = (now: number) => {
+      if (!start) start = now;
+      const progress = ((now - start) % DURATION) / DURATION;
+      bluePath.style.strokeDashoffset = String(-100 * progress);
+      bluePath.style.opacity = String(0.72 + 0.28 * (0.5 + 0.5 * Math.sin((now - start) / 150)));
+      frame = requestAnimationFrame(animate);
+    };
+
+    const observer = new ResizeObserver(draw);
+    draw();
+    observer.observe(pill);
+    frame = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <Link
       href={`/${locale}/about`}
-      className="focus-ring group absolute bottom-4 left-4 block rounded-full"
+      className="focus-ring group absolute bottom-4 left-4 inline-flex rounded-full"
     >
-      <span className="relative block overflow-hidden rounded-full bg-fred p-[1.5px]">
-        <span
+      <span
+        ref={pillRef}
+        className="relative inline-flex items-center gap-2 rounded-full bg-black/70 px-5 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-colors hover:bg-black/60"
+      >
+        <svg
           aria-hidden="true"
-          className="absolute inset-0 animate-[spin_2.8s_linear_infinite]"
-          style={{
-            background:
-              "conic-gradient(from 0deg, transparent 0deg 292deg, #0A84FF 304deg 330deg, transparent 342deg 360deg)",
-          }}
-        />
-        <span
-          aria-hidden="true"
-          className="absolute inset-[1.5px] rounded-full bg-black/70"
-        />
-        <span className="relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-colors group-hover:bg-white/[0.04]">
-          {labels[locale] ?? labels.en}
-          <ArrowRight className="h-3.5 w-3.5 text-fred transition-transform group-hover:translate-x-0.5" />
-        </span>
+          className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+        >
+          <defs>
+            <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="1.25" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <rect
+            ref={redPathRef}
+            fill="none"
+            stroke="#ED2939"
+            strokeWidth={BORDER}
+          />
+          <rect
+            ref={bluePathRef}
+            fill="none"
+            stroke="#0A84FF"
+            strokeWidth={BORDER + 0.4}
+            strokeLinecap="round"
+            strokeDasharray={`${PULSE_LENGTH} ${100 - PULSE_LENGTH}`}
+            pathLength="100"
+            filter={`url(#${glowId})`}
+          />
+        </svg>
+        {labels[locale] ?? labels.en}
+        <ArrowRight className="h-3.5 w-3.5 text-fred transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>
   );
