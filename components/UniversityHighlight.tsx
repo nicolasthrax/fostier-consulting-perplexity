@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UNIVERSITY_HIGHLIGHTS } from "@/lib/i18n/founder";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -18,22 +18,62 @@ export function UniversityHighlight({
   className = "",
 }: UniversityHighlightProps) {
   const [open, setOpen] = useState(false);
-  const highlight = UNIVERSITY_HIGHLIGHTS[locale]?.[uniKey] ?? UNIVERSITY_HIGHLIGHTS.en[uniKey];
+  const containerRef = useRef<HTMLSpanElement>(null);
+  const isTouchDevice = useRef<boolean>(false);
+  const highlight =
+    UNIVERSITY_HIGHLIGHTS[locale]?.[uniKey] ?? UNIVERSITY_HIGHLIGHTS.en[uniKey];
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [open]);
 
   return (
     <span
+      ref={containerRef}
       className="relative inline-block"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => {
+        if (!isTouchDevice.current) {
+          setOpen(true);
+        }
+      }}
+      onMouseLeave={() => {
+        if (!isTouchDevice.current) {
+          setOpen(false);
+        }
+      }}
     >
       <span
         tabIndex={0}
         role="button"
         aria-expanded={open}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onClick={() => setOpen((prev) => !prev)}
-        className={`cursor-pointer underline decoration-fred/80 decoration-2 underline-offset-4 transition-colors hover:text-navy hover:decoration-navy ${className}`}
+        onTouchStart={() => {
+          isTouchDevice.current = true;
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen((prev) => !prev);
+          }
+        }}
+        className={`cursor-pointer underline decoration-dotted decoration-navy decoration-2 underline-offset-4 transition-colors hover:text-navy hover:decoration-navy-700 ${className}`}
       >
         {children}
       </span>
