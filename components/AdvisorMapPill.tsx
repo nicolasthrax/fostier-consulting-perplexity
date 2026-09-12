@@ -11,7 +11,7 @@ const labels: Record<string, string> = {
 };
 
 const BORDER = 1.5;
-const PULSE_LENGTH = 28;
+const PULSE_LENGTH = 17;
 const DURATION = 2800;
 
 export function AdvisorMapPill({ locale }: { locale: string }) {
@@ -46,9 +46,12 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
 
     const animate = (now: number) => {
       if (!start) start = now;
-      const progress = ((now - start) % DURATION) / DURATION;
+      const elapsed = now - start;
+      const progress = (elapsed % DURATION) / DURATION;
+      const pulse = 0.5 + 0.5 * Math.sin((elapsed / 620) * Math.PI * 2);
       bluePath.style.strokeDashoffset = String(-100 * progress);
-      bluePath.style.opacity = String(0.72 + 0.28 * (0.5 + 0.5 * Math.sin((now - start) / 150)));
+      bluePath.style.opacity = String(0.2 + 0.55 * pulse);
+      bluePath.style.filter = `url(#${glowId}) opacity(${0.35 + 0.65 * pulse})`;
       frame = requestAnimationFrame(animate);
     };
 
@@ -61,7 +64,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, []);
+  }, [glowId]);
 
   return (
     <Link
@@ -78,7 +81,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
         >
           <defs>
             <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="1.25" result="blur" />
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -95,7 +98,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
             ref={bluePathRef}
             fill="none"
             stroke="#0A84FF"
-            strokeWidth={BORDER + 0.4}
+            strokeWidth={BORDER + 0.25}
             strokeLinecap="round"
             strokeDasharray={`${PULSE_LENGTH} ${100 - PULSE_LENGTH}`}
             pathLength="100"
