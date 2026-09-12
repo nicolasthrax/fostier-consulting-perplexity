@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 
 export type ExplorerService = {
   slug: string;
@@ -25,6 +24,33 @@ function ServiceDetail({ service }: { service: ExplorerService }) {
       <p className="mt-4 text-sm leading-relaxed text-muted">{service.short}</p>
       <p className="mt-6 text-xs leading-relaxed text-muted">{service.disclaimer}</p>
     </>
+  );
+}
+
+function ServiceTitle({
+  title,
+  active,
+}: {
+  title: string;
+  active: boolean;
+}) {
+  const words = title.split(" ");
+  const firstLine = words.slice(0, Math.max(1, Math.ceil(words.length / 2))).join(" ");
+  const remainder = words.slice(Math.max(1, Math.ceil(words.length / 2))).join(" ");
+
+  return (
+    <span className="font-serif text-lg font-medium leading-snug lg:text-2xl">
+      <span
+        className={`inline bg-[linear-gradient(#ED2939,#ED2939)] bg-left-bottom bg-no-repeat pb-1.5 transition-[background-size,color] duration-300 ${
+          active
+            ? "bg-[length:100%_2px] text-navy"
+            : "bg-[length:0%_2px] text-ink group-hover:bg-[length:100%_2px] group-hover:text-navy"
+        }`}
+      >
+        {firstLine}
+      </span>
+      {remainder && <span className="block pt-1.5">{remainder}</span>}
+    </span>
   );
 }
 
@@ -59,38 +85,13 @@ export function ServicesExplorer({ services }: { services: ExplorerService[] }) 
                 onMouseEnter={() => setActive(i)}
                 onFocus={() => setActive(i)}
                 aria-expanded={open}
-                className="focus-ring group flex w-full items-center gap-4 py-5 text-left transition-transform duration-300 hover:-translate-y-[3px] lg:gap-6 lg:py-7"
+                className="focus-ring group flex w-full py-5 text-left transition-transform duration-300 hover:-translate-y-[3px] lg:py-7"
               >
-                <span className="text-xs font-semibold tracking-[.18em] text-muted">
-                  0{i + 1}
-                </span>
-                <span
-                  className={`pb-1.5 font-serif text-lg font-medium leading-snug transition-[background-size,color] duration-300 [-webkit-box-decoration-break:clone] [box-decoration-break:clone] lg:text-2xl bg-[linear-gradient(#ED2939,#ED2939)] bg-left-bottom bg-no-repeat ${
-                    open
-                      ? "bg-[length:100%_2px] text-navy"
-                      : "bg-[length:0%_2px] text-ink group-hover:bg-[length:100%_2px] group-hover:text-navy"
-                  }`}
-                >
-                  {service.title}
-                </span>
-                <ArrowRight
-                  aria-hidden="true"
-                  className={`ml-auto h-4 w-4 shrink-0 text-navy transition-transform duration-300 lg:hidden ${
-                    open ? "rotate-90" : ""
-                  }`}
-                />
-                <ArrowRight
-                  aria-hidden="true"
-                  className={`ml-auto hidden h-5 w-5 shrink-0 text-navy transition-all duration-200 lg:block ${
-                    open
-                      ? "translate-x-0 opacity-100"
-                      : "-translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
-                  }`}
-                />
+                <ServiceTitle title={service.title} active={open} />
               </button>
               <div className="faq-panel lg:hidden" data-open={open}>
                 <div>
-                  <div className="pb-7 pl-9 pr-1">
+                  <div className="pb-7">
                     <ServiceDetail service={service} />
                   </div>
                 </div>
