@@ -50,7 +50,7 @@ const profiles: Record<Locale, FounderProfile> = {
   fr: {
     heading: "Votre conseillère",
     name: "Lucie Xiong",
-    role: "Fondatrice — Gestion de patrimoine et assurance",
+    role: "Fondatrice",
     location: "Hong Kong · Auparavant Paris",
     portraitAlt: "Portrait de Lucie Xiong — photo à fournir",
     highlights: [
@@ -60,19 +60,26 @@ const profiles: Record<Locale, FounderProfile> = {
       "Paris → Hong Kong",
     ],
     bio: [
-      "Conseillère en gestion de patrimoine et en assurance basée à Hong Kong, Lucie accompagne une clientèle de particuliers exigeants — dont de nombreux clients fortunés — à Hong Kong, à Macao et en Chine continentale. Investissement, épargne, protection santé, assurance vie, préparation de la retraite : elle construit des stratégies sur mesure, dans la langue de ses clients.",
-      "Sa culture financière est profondément française. Après un diplôme en économie à l'université Fudan de Shanghai, elle poursuit ses études en France et obtient un diplôme de niveau master au sein d'une école de commerce française (Groupe ESG). Elle rejoint ensuite le siège parisien de HSBC, où elle côtoie les standards de l'une des premières banques internationales au monde.",
-      "Chinoise parlant parfaitement le français, Lucie incarne la passerelle que Fostier Consulting veut être : en février 2026, l'UFE Hong Kong l'a choisie pour initier la communauté française aux traditions du Nouvel An chinois — étiquette des enveloppes rouges, billets neufs et coutumes associées.",
+      "Fondatrice de Fostier Consulting, Lucie accompagne des particuliers exigeants — dont une clientèle fortunée — à Hong Kong, Macao et en Chine continentale : investissement, épargne, assurance santé et vie, retraite.",
+      "Économiste diplômée de l'université Fudan (Shanghai), formée en France (Groupe ESG) et passée par le siège parisien de HSBC, elle parle un français parfait. En février 2026, l'UFE Hong Kong l'a invitée à présenter les traditions du Nouvel An chinois à la communauté française.",
     ],
     experienceTitle: "Expérience",
     experience: [
       {
-        role: "Fondatrice & conseillère en gestion de patrimoine",
+        role: "Fondatrice",
         company: "Fostier Consulting",
         location: "Hong Kong",
         current: true,
         detail:
-          "Conseil en investissement, épargne, assurance santé et vie, et planification de la retraite pour des particuliers — y compris une clientèle de hauts patrimoines — à Hong Kong, Macao et en Chine continentale. Expertise reconnue en investissement à l'international.",
+          "Conseil en investissement, épargne, assurance santé et vie, et planification de la retraite pour des particuliers à Hong Kong, Macao et en Chine continentale.",
+      },
+      {
+        role: "Senior Wealth Management Manager",
+        company: "AIA",
+        location: "Hong Kong & Macao",
+        current: false,
+        detail:
+          "Gestion de patrimoine et assurance pour une clientèle privée et fortunée, à Hong Kong et Macao.",
       },
       {
         role: "Gestion de patrimoine — siège de Paris",
@@ -80,14 +87,14 @@ const profiles: Record<Locale, FounderProfile> = {
         location: "Paris, France",
         current: false,
         detail:
-          "Expérience au siège parisien d'un leader mondial de la banque, au service d'une clientèle patrimoniale exigeante et d'enjeux d'investissement internationaux.",
+          "Expérience au siège parisien d'un leader mondial de la banque, au service d'une clientèle patrimoniale exigeante.",
       },
     ],
     educationTitle: "Formation",
     education: [
       {
         degree: "Diplôme de niveau Master (Bac+5)",
-        school: "École de commerce — Groupe ESG",
+        school: "Groupe ESG",
         location: "Paris, France",
       },
       {
@@ -109,7 +116,7 @@ const profiles: Record<Locale, FounderProfile> = {
   en: {
     heading: "Your adviser",
     name: "Lucie Xiong",
-    role: "Founder — Wealth management & insurance",
+    role: "Founder",
     location: "Hong Kong · Formerly Paris",
     portraitAlt: "Portrait of Lucie Xiong — photo to be supplied",
     highlights: [
@@ -119,19 +126,26 @@ const profiles: Record<Locale, FounderProfile> = {
       "Paris → Hong Kong",
     ],
     bio: [
-      "A Hong Kong–based wealth-management and insurance adviser, Lucie works with discerning private clients — including high-net-worth individuals — across Hong Kong, Macau and mainland China. Investment, savings, health cover, life insurance, retirement planning: she designs tailored strategies, in her clients' own language.",
-      "Her financial culture is deeply French. After an economics degree at Fudan University in Shanghai, she continued her studies in France, earning a master's-level qualification from a French business school (ESG Group), before joining HSBC's Paris head office — hands-on exposure to the standards of one of the world's leading international banks.",
-      "A Chinese professional fully fluent in French, Lucie embodies the bridge Fostier Consulting stands for: in February 2026, UFE Hong Kong invited her to introduce Chinese New Year traditions — red-envelope etiquette, brand-new banknotes and the customs behind them — to the French community.",
+      "Founder of Fostier Consulting, Lucie advises discerning private clients — including high-net-worth individuals — across Hong Kong, Macau and mainland China on investment, savings, health and life insurance, and retirement planning.",
+      "An economics graduate of Fudan University (Shanghai), educated in France (ESG Group) and seasoned at HSBC's Paris head office, she speaks fluent French. In February 2026, UFE Hong Kong invited her to present Chinese New Year traditions to the French community.",
     ],
     experienceTitle: "Experience",
     experience: [
       {
-        role: "Founder & wealth-management adviser",
+        role: "Founder",
         company: "Fostier Consulting",
         location: "Hong Kong",
         current: true,
         detail:
-          "Advice on investment, savings, health and life insurance, and retirement planning for private clients — including high-net-worth individuals — in Hong Kong, Macau and mainland China. Recognised expertise in international and cross-border investing.",
+          "Advice on investment, savings, health and life insurance, and retirement planning for private clients in Hong Kong, Macau and mainland China.",
+      },
+      {
+        role: "Senior Wealth Management Manager",
+        company: "AIA",
+        location: "Hong Kong & Macau",
+        current: false,
+        detail:
+          "Wealth management and insurance for private and high-net-worth clients across Hong Kong and Macau.",
       },
       {
         role: "Wealth management — Paris head office",
@@ -139,14 +153,14 @@ const profiles: Record<Locale, FounderProfile> = {
         location: "Paris, France",
         current: false,
         detail:
-          "Experience at the Paris head office of a global banking leader, serving demanding wealth clients and international investment needs.",
+          "Experience at the Paris head office of a global banking leader, serving demanding wealth clients.",
       },
     ],
     educationTitle: "Education",
     education: [
       {
         degree: "Master's-level business degree (Bac+5)",
-        school: "French business school — ESG Group",
+        school: "ESG Group",
         location: "Paris, France",
       },
       {
@@ -168,7 +182,7 @@ const profiles: Record<Locale, FounderProfile> = {
   zh: {
     heading: "您的专属顾问",
     name: "Lucie Xiong",
-    role: "创始人 —— 财富管理与保险顾问",
+    role: "创始人",
     location: "中国香港 · 曾常驻法国巴黎",
     portraitAlt: "Lucie Xiong 的照片 —— 待提供",
     highlights: [
@@ -178,19 +192,26 @@ const profiles: Record<Locale, FounderProfile> = {
       "巴黎 → 香港",
     ],
     bio: [
-      "Lucie 是常驻香港的财富管理与保险顾问，为香港、澳门及中国内地的高要求个人客户提供专业服务，其中包括众多高净值客户。业务涵盖投资、储蓄、健康保障、人寿保险及退休规划——她以客户最熟悉的语言，量身定制财富管理方案。",
-      "她的金融素养深耕于法国文化。Lucie 毕业于上海复旦大学经济专业，随后赴法国深造，获得法国高等商学院（ESG 集团）硕士阶段学位，并就职于汇丰银行（HSBC）巴黎总部——亲身历练于全球领先国际银行的专业标准。",
-      "作为精通法语的中国专业人士，Lucie 正是 Fostier Consulting 所倡导的中法桥梁：2026 年 2 月，法国海外侨民协会香港分会（UFE Hong Kong）特别邀请她，为在港法国社群讲解中国春节习俗——红包礼仪、新钞讲究及相关传统。",
+      "作为 Fostier Consulting 创始人，Lucie 为香港、澳门及中国内地的高要求个人客户（包括高净值人士）提供投资、储蓄、健康与人寿保险及退休规划咨询。",
+      "Lucie 毕业于上海复旦大学经济专业，曾赴法国深造（ESG 集团），并就职于汇丰银行巴黎总部，法语流利。2026 年 2 月，UFE Hong Kong 邀请她为在港法国社群讲解中国春节习俗。",
     ],
     experienceTitle: "职业经历",
     experience: [
       {
-        role: "创始人 & 财富管理顾问",
+        role: "创始人",
         company: "Fostier Consulting",
         location: "中国香港",
         current: true,
         detail:
-          "为香港、澳门及中国内地的个人客户（包括高净值人士）提供投资、储蓄、健康与人寿保险及退休规划咨询，在国际与跨境投资领域拥有公认的专业经验。",
+          "为香港、澳门及中国内地的个人客户提供投资、储蓄、健康与人寿保险及退休规划咨询。",
+      },
+      {
+        role: "Senior Wealth Management Manager",
+        company: "AIA（友邦保险）",
+        location: "香港及澳门",
+        current: false,
+        detail:
+          "在香港及澳门为私人及高净值客户提供财富管理与保险服务。",
       },
       {
         role: "财富管理 —— 巴黎总部",
@@ -198,14 +219,14 @@ const profiles: Record<Locale, FounderProfile> = {
         location: "法国巴黎",
         current: false,
         detail:
-          "任职于全球领先银行集团的巴黎总部，服务于要求严苛的财富客户及国际投资需求。",
+          "任职于全球领先银行集团的巴黎总部，服务于要求严苛的财富客户。",
       },
     ],
     educationTitle: "教育背景",
     education: [
       {
         degree: "硕士阶段商科学位",
-        school: "ESG 集团高等商学院",
+        school: "ESG 集团",
         location: "法国巴黎",
       },
       {
