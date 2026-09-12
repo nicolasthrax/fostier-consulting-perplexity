@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100" width="240" height="100">
+  <rect width="240" height="100" rx="12" fill="#0B1D3A" />
+  <text x="26" y="64" font-family="'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="900" fill="#FFFFFF" letter-spacing="2">ESG</text>
+  <rect x="150" y="24" width="7" height="42" fill="#E10600" rx="2" />
+  <text x="166" y="44" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" letter-spacing="1">GROUPE</text>
+  <text x="166" y="62" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="600" fill="#A0B2CE" letter-spacing="0.5">PARIS</text>
+</svg>

@@ -1,11 +1,12 @@
 import Image from "next/image";
-import { Briefcase, ExternalLink, GraduationCap, MapPin, Newspaper } from "lucide-react";
+import { ExternalLink, Newspaper } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "@/lib/i18n/founder";
 import { Section } from "@/components/SectionHeading";
 import { Reveal } from "@/components/Reveal";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import { AdvisorArrow } from "@/components/AdvisorArrow";
+import { UniversityHighlight, BioWithHighlights } from "@/components/UniversityHighlight";
 import type { Locale } from "@/lib/i18n/config";
 
 const advisorArrowLabel: Record<Locale, string> = {
@@ -62,26 +63,25 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
                     {f.name}
                   </h3>
                   <p className="mt-1 text-sm font-semibold text-navy">{f.role}</p>
-                  <p className="mt-3 flex items-center gap-2 text-sm text-muted">
-                    <MapPin className="h-4 w-4 text-fred" />
-                    {f.location}
-                  </p>
                 </div>
 
                 <div>
-                  {f.bio.map((p) => (
+                  {f.bio.map((p, idx) => (
                     <p
                       key={p}
                       className="mt-4 text-sm leading-relaxed text-muted first:mt-0 sm:text-[15px]"
                     >
-                      {p}
+                      {idx === 1 ? (
+                        <BioWithHighlights text={p} locale={params.lang} />
+                      ) : (
+                        p
+                      )}
                     </p>
                   ))}
 
                   <div className="rule-fine my-8" />
 
-                  <h3 className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[.18em] text-slate">
-                    <Briefcase className="h-4 w-4 text-navy" />
+                  <h3 className="text-xs font-semibold uppercase tracking-[.18em] text-slate">
                     {f.experienceTitle}
                   </h3>
                   <ol className="mt-6 space-y-8 border-l-2 border-line">
@@ -107,33 +107,48 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
 
                   <div className="rule-fine my-8" />
 
-                  <h3 className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[.18em] text-slate">
-                    <GraduationCap className="h-4 w-4 text-navy" />
+                  <h3 className="text-xs font-semibold uppercase tracking-[.18em] text-slate">
                     {f.educationTitle}
                   </h3>
                   <div className="mt-6 grid gap-4 sm:grid-cols-2">
                     {f.education.map((ed) => (
                       <div
                         key={ed.school}
-                        className="rounded-2xl border border-line bg-parchment p-5"
+                        className="relative rounded-2xl border border-line bg-parchment p-5"
                       >
-                        <p className="font-serif text-base font-medium leading-snug text-ink">
-                          {ed.degree}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-slate">
-                          {ed.school}
-                        </p>
-                        <p className="mt-1 text-xs uppercase tracking-[.14em] text-muted">
-                          {ed.location}
-                        </p>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-serif text-base font-medium leading-snug text-ink">
+                              {ed.degree}
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-slate">
+                              <UniversityHighlight uniKey={ed.key} locale={params.lang}>
+                                {ed.school}
+                              </UniversityHighlight>
+                            </p>
+                            <p className="mt-1 text-xs uppercase tracking-[.14em] text-muted">
+                              {ed.location}
+                            </p>
+                          </div>
+                          {ed.logo && (
+                            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-white p-1 border border-line shadow-xs">
+                              <Image
+                                src={ed.logo}
+                                alt={ed.school}
+                                width={40}
+                                height={40}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
 
                   <div className="rule-fine my-8" />
 
-                  <h3 className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[.18em] text-slate">
-                    <Newspaper className="h-4 w-4 text-navy" />
+                  <h3 className="text-xs font-semibold uppercase tracking-[.18em] text-slate">
                     {f.pressTitle}
                   </h3>
                   <a
