@@ -13,56 +13,25 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
   return (
     <Link
       href={`/${locale}/about`}
-      className="focus-ring group absolute bottom-4 left-4 inline-flex rounded-full"
+      className="focus-ring group absolute bottom-4 left-4 block rounded-full"
     >
-      <span className="relative inline-flex items-center gap-2 rounded-full border-[1.5px] border-fred bg-black/70 px-5 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-colors hover:bg-black/60">
-        <svg
+      <span className="relative block overflow-hidden rounded-full bg-fred p-[1.5px]">
+        <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
-          preserveAspectRatio="none"
-          viewBox="0 0 100 100"
-        >
-          <defs>
-            <filter id="advisor-blue-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="1.4" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <rect
-            x="1.5"
-            y="1.5"
-            width="97"
-            height="97"
-            rx="50"
-            ry="50"
-            pathLength="100"
-            fill="none"
-            stroke="#0A84FF"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray="9 91"
-            filter="url(#advisor-blue-glow)"
-          >
-            <animate
-              attributeName="stroke-dashoffset"
-              from="0"
-              to="-100"
-              dur="2.8s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="opacity"
-              values="0.72;1;0.72"
-              dur="1.1s"
-              repeatCount="indefinite"
-            />
-          </rect>
-        </svg>
-        {labels[locale] ?? labels.en}
-        <ArrowRight className="h-3.5 w-3.5 text-fred transition-transform group-hover:translate-x-0.5" />
+          className="absolute inset-0 animate-[spin_2.8s_linear_infinite]"
+          style={{
+            background:
+              "conic-gradient(from 0deg, transparent 0deg 292deg, #0A84FF 304deg 330deg, transparent 342deg 360deg)",
+          }}
+        />
+        <span
+          aria-hidden="true"
+          className="absolute inset-[1.5px] rounded-full bg-black/70"
+        />
+        <span className="relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-colors group-hover:bg-white/[0.04]">
+          {labels[locale] ?? labels.en}
+          <ArrowRight className="h-3.5 w-3.5 text-fred transition-transform group-hover:translate-x-0.5" />
+        </span>
       </span>
     </Link>
   );
