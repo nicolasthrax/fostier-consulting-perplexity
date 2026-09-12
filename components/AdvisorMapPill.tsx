@@ -11,32 +11,31 @@ const labels: Record<string, string> = {
 };
 
 const BORDER = 1.5;
-const IDLE_DURATION = 3000;
-const HOVER_SWEEP = 520;
+const SWEEP_DURATION = 520;
 const BLENDED_BLUE = "#1a75ff";
 
 export function AdvisorMapPill({ locale }: { locale: string }) {
   const pillRef = useRef<HTMLSpanElement>(null);
   const basePathRef = useRef<SVGRectElement>(null);
-  const pulsePathRef = useRef<SVGRectElement>(null);
+  const sweepPathRef = useRef<SVGRectElement>(null);
   const glowId = useId().replace(/:/g, "");
 
   useEffect(() => {
     const pill = pillRef.current;
     const basePath = basePathRef.current;
-    const pulsePath = pulsePathRef.current;
-    if (!pill || !basePath || !pulsePath) return;
+    const sweepPath = sweepPathRef.current;
+    if (!pill || !basePath || !sweepPath) return;
 
-    let frame = 0;
-    let idleStart = performance.now();
+    let redStart = performance.now();
     let sweepStart: number | null = null;
+    let frame = 0;
 
     const draw = () => {
       const { width, height } = pill.getBoundingClientRect();
       const inset = BORDER / 2;
       const radius = Math.max(0, height / 2 - inset);
 
-      for (const path of [basePath, pulsePath]) {
+      for (const path of [basePath, sweepPath]) {
         path.setAttribute("x", String(inset));
         path.setAttribute("y", String(inset));
         path.setAttribute("width", String(Math.max(0, width - BORDER)));
@@ -47,44 +46,54 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
     };
 
     const animate = (now: number) => {
-      const elapsed = now - idleStart;
-      const activeIdling = sweepStart === null;
-      const activeStart = sweepStart ?? now;
-      const duration = activeIdling ? IDLE_DURATION : HOVER_SWEEP;
-      const progress = (((activeIdling ? elapsed : now - activeStart) % duration) + duration) % duration / duration;
-      const strength = 0.5 + 0.5 * Math.sin((elapsed / 420) * Math.PI * 2);
+      const redElapsed = now - redStart;
+      const redStrength = 0.5 + 0.5 * Math.sin((redElapsed / 900) * Math.PI * 2);
+      basePath.style.strokeOpacity = sweepStart === null ? String(0.48 + 0.24 * redStrength) : "";
 
-      pulsePath.style.strokeDashoffset = String(-100 * progress);
-      pulsePath.style.strokeWidth = String(1.55 + 0.35 * strength);
-      pulsePath.style.opacity = String(0.68 + 0.14 * strength);
+      if (sweepStart !== null) {
+        const progress = Math.min(1, (now - sweepStart) / SWEEP_DURATION);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        sweepPath.style.strokeDashoffset = String(-100 * eased);
+        sweepPath.style.opacity = progress >= 1 ? "0" : "1";
+        if (progress >= 1) sweepStart = null;
+      }
+
       frame = requestAnimationFrame(animate);
     };
 
-    const beginHover = () => {
+    const onMouseEnter = () => {
       sweepStart = performance.now();
-      pulsePath.style.transition = "opacity 220ms ease-out";
-      pulsePath.style.opacity = "0";
+      sweepPath.style.transition = "opacity 120ms ease-out";
+      sweepPath.style.opacity = "1";
+      basePath.style.transition = "stroke 520ms ease-out, stroke-opacity 520ms ease-out, stroke-width 520ms ease-out";
+      basePath.style.stroke = "#0A84FF";
+      basePath.style.strokeOpacity = ".92";
+      basePath.style.strokeWidth = "1.65";
     };
 
-    const endHover = () => {
+    const onMouseLeave = () => {
       sweepStart = null;
-      idleStart = performance.now();
-      pulsePath.style.transition = "";
-      pulsePath.style.opacity = "";
+      sweepPath.style.opacity = "0";
+      sweepPath.style.strokeDashoffset = "0";
+      basePath.style.transition = "stroke 420ms ease-out, stroke-opacity 420ms ease-out, stroke-width 420ms ease-out";
+      basePath.style.stroke = "#ED2939";
+      basePath.style.strokeOpacity = ".62";
+      basePath.style.strokeWidth = String(BORDER);
+      redStart = performance.now();
     };
 
     const observer = new ResizeObserver(draw);
     draw();
     observer.observe(pill);
-    pill.addEventListener("mouseenter", beginHover);
-    pill.addEventListener("mouseleave", endHover);
+    pill.addEventListener("mouseenter", onMouseEnter);
+    pill.addEventListener("mouseleave", onMouseLeave);
     frame = requestAnimationFrame(animate);
 
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
-      pill.removeEventListener("mouseenter", beginHover);
-      pill.removeEventListener("mouseleave", endHover);
+      pill.removeEventListener("mouseenter", onMouseEnter);
+      pill.removeEventListener("mouseleave", onMouseLeave);
     };
   }, []);
 
@@ -117,18 +126,18 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
             stroke="#ED2939"
             strokeOpacity=".62"
             strokeWidth={BORDER}
-            className="transition-all duration-500 ease-out group-hover:stroke-[#0A84FF] group-hover:stroke-opacity-90"
+            className="transition-all duration-500 ease-out"
           />
 
           <rect
-            ref={pulsePathRef}
+            ref={sweepPathRef}
             fill="none"
             stroke={BLENDED_BLUE}
             strokeLinecap="round"
             strokeDasharray="23 77"
             pathLength="100"
             filter={`url(#${glowId})`}
-            className="group-hover:opacity-0"
+            className="opacity-0"
           />
         </svg>
 
