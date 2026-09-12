@@ -11,7 +11,7 @@ const labels: Record<string, string> = {
 };
 
 const BORDER = 1.5;
-const SWEEP_DURATION = 520;
+const SWEEP_DURATION = 620;
 const BLENDED_BLUE = "#1a75ff";
 
 export function AdvisorMapPill({ locale }: { locale: string }) {
@@ -52,9 +52,9 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
 
       if (sweepStart !== null) {
         const progress = Math.min(1, (now - sweepStart) / SWEEP_DURATION);
-        const eased = 1 - Math.pow(1 - progress, 3);
+        const eased = 0.5 - Math.cos(Math.PI * progress) / 2;
         sweepPath.style.strokeDashoffset = String(-100 * eased);
-        sweepPath.style.opacity = progress >= 1 ? "0" : "1";
+        sweepPath.style.opacity = progress >= 1 ? "0" : ".94";
         if (progress >= 1) sweepStart = null;
       }
 
@@ -64,10 +64,11 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
     const onMouseEnter = () => {
       sweepStart = performance.now();
       sweepPath.style.transition = "opacity 120ms ease-out";
-      sweepPath.style.opacity = "1";
+      sweepPath.style.opacity = ".94";
+      sweepPath.style.strokeDashoffset = "0";
       basePath.style.transition = "stroke 520ms ease-out, stroke-opacity 520ms ease-out, stroke-width 520ms ease-out";
       basePath.style.stroke = "#0A84FF";
-      basePath.style.strokeOpacity = ".92";
+      basePath.style.strokeOpacity = "1";
       basePath.style.strokeWidth = "1.65";
     };
 
