@@ -66,16 +66,12 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
                 </div>
 
                 <div>
-                  {f.bio.map((p, idx) => (
+                  {f.bio.map((p) => (
                     <p
                       key={p}
                       className="mt-4 text-sm leading-relaxed text-muted first:mt-0 sm:text-[15px]"
                     >
-                      {idx === 1 ? (
-                        <BioWithHighlights text={p} locale={params.lang} />
-                      ) : (
-                        p
-                      )}
+                      <BioWithHighlights text={p} locale={params.lang} />
                     </p>
                   ))}
 

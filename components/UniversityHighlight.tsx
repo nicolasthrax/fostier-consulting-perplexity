@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { UNIVERSITY_HIGHLIGHTS } from "@/lib/i18n/founder";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -83,23 +84,29 @@ export function UniversityHighlight({
         {children}
       </span>
 
-      {open && (
-        <span
-          role="tooltip"
-          className="animate-in fade-in zoom-in-95 duration-200 absolute bottom-full left-1/2 z-50 mb-2.5 w-[calc(100vw-3rem)] max-w-xs -translate-x-1/2 rounded-xl border border-navy-700/60 bg-navy/65 p-3.5 text-xs text-white shadow-xl backdrop-blur-md transition-all sm:w-72"
-        >
-          <span className="block font-serif text-sm font-semibold text-white">
-            {highlight.title}
-          </span>
-          <span className="mt-1 block leading-relaxed text-slate-100">
-            {highlight.text}
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-navy-700/60 bg-navy/65 backdrop-blur-md"
-          />
-        </span>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.span
+            role="tooltip"
+            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute bottom-full left-1/2 z-50 mb-2.5 w-[calc(100vw-3rem)] max-w-xs -translate-x-1/2 rounded-xl border border-white/20 bg-[#002395]/65 p-3.5 text-xs text-white shadow-xl backdrop-blur-md sm:w-72"
+          >
+            <span className="block font-serif text-sm font-semibold text-white">
+              {highlight.title}
+            </span>
+            <span className="mt-1 block leading-relaxed text-slate-100">
+              {highlight.text}
+            </span>
+            <span
+              aria-hidden="true"
+              className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-white/20 bg-[#002395]/65 backdrop-blur-md"
+            />
+          </motion.span>
+        )}
+      </AnimatePresence>
     </span>
   );
 }
@@ -168,7 +175,6 @@ export function BioWithHighlights({
     );
   }
 
-  // If styledText contains JSX for French flag Fostier Consulting
   const indexFudan = text.indexOf(fudanText);
   if (indexFudan !== -1) {
     const indexEsg = text.indexOf(esgText);
