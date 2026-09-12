@@ -92,43 +92,22 @@ export function UniversityHighlight({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute bottom-full left-1/2 z-50 mb-2.5 w-[calc(100vw-3rem)] max-w-xs -translate-x-1/2 rounded-xl border border-white/20 bg-[#002395]/65 p-3.5 text-xs text-white shadow-xl backdrop-blur-md sm:w-72"
+            className="absolute bottom-full left-1/2 z-50 mb-3 w-[calc(100vw-3rem)] max-w-xs -translate-x-1/2 rounded-xl border border-navy-700 bg-navy p-4 text-xs text-white shadow-xl sm:w-72"
           >
             <span className="block font-serif text-sm font-semibold text-white">
               {highlight.title}
             </span>
-            <span className="mt-1 block leading-relaxed text-slate-100">
+            <span className="mt-1 block leading-relaxed text-slate-200">
               {highlight.text}
             </span>
             <span
               aria-hidden="true"
-              className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-white/20 bg-[#002395]/65 backdrop-blur-md"
+              className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-navy-700 bg-navy"
             />
           </motion.span>
         )}
       </AnimatePresence>
     </span>
-  );
-}
-
-function renderFrenchFlagText(text: string) {
-  const target = "Fostier Consulting";
-  const index = text.indexOf(target);
-  if (index === -1) return text;
-
-  const before = text.slice(0, index);
-  const after = text.slice(index + target.length);
-
-  return (
-    <>
-      {before}
-      <span className="inline-flex items-baseline font-semibold">
-        <span className="text-navy">Fos</span>
-        <span className="text-slate-700">tier&nbsp;</span>
-        <span className="text-fred">Consulting</span>
-      </span>
-      {after}
-    </>
   );
 }
 
@@ -150,54 +129,24 @@ export function BioWithHighlights({
     esgText = "ESG 集团（巴黎）";
   }
 
-  const styledText = renderFrenchFlagText(text);
+  const parts = text.split(fudanText);
+  if (parts.length < 2) return <>{text}</>;
+  const [beforeFudan, rest] = parts;
+  const esgParts = rest.split(esgText);
+  if (esgParts.length < 2) return <>{text}</>;
+  const [between, afterEsg] = esgParts;
 
-  if (typeof styledText === "string") {
-    const parts = text.split(fudanText);
-    if (parts.length < 2) return <>{text}</>;
-    const [beforeFudan, rest] = parts;
-    const esgParts = rest.split(esgText);
-    if (esgParts.length < 2) return <>{text}</>;
-    const [between, afterEsg] = esgParts;
-
-    return (
-      <>
-        {beforeFudan}
-        <UniversityHighlight uniKey="fudan" locale={locale}>
-          {fudanText}
-        </UniversityHighlight>
-        {between}
-        <UniversityHighlight uniKey="esg" locale={locale}>
-          {esgText}
-        </UniversityHighlight>
-        {afterEsg}
-      </>
-    );
-  }
-
-  const indexFudan = text.indexOf(fudanText);
-  if (indexFudan !== -1) {
-    const indexEsg = text.indexOf(esgText);
-    if (indexEsg !== -1) {
-      const beforeFudan = text.slice(0, indexFudan);
-      const between = text.slice(indexFudan + fudanText.length, indexEsg);
-      const afterEsg = text.slice(indexEsg + esgText.length);
-
-      return (
-        <>
-          {renderFrenchFlagText(beforeFudan)}
-          <UniversityHighlight uniKey="fudan" locale={locale}>
-            {fudanText}
-          </UniversityHighlight>
-          {renderFrenchFlagText(between)}
-          <UniversityHighlight uniKey="esg" locale={locale}>
-            {esgText}
-          </UniversityHighlight>
-          {renderFrenchFlagText(afterEsg)}
-        </>
-      );
-    }
-  }
-
-  return styledText;
+  return (
+    <>
+      {beforeFudan}
+      <UniversityHighlight uniKey="fudan" locale={locale}>
+        {fudanText}
+      </UniversityHighlight>
+      {between}
+      <UniversityHighlight uniKey="esg" locale={locale}>
+        {esgText}
+      </UniversityHighlight>
+      {afterEsg}
+    </>
+  );
 }
