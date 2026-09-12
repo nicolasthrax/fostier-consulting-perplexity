@@ -1,6 +1,7 @@
+import Image from "next/image";
 import { Briefcase, ExternalLink, GraduationCap, MapPin, Newspaper } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { getFounder } from "@/lib/i18n/founder";
+import { getFounder, FOUNDER_PORTRAIT_SRC } from "@/lib/i18n/founder";
 import { Section } from "@/components/SectionHeading";
 import { Reveal } from "@/components/Reveal";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
@@ -40,12 +41,14 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
             </h2>
             <div className="card-base mt-8 grid gap-10 p-8 sm:p-12 lg:grid-cols-[280px_1fr]">
               <div>
-                <div
-                  role="img"
-                  aria-label={f.portraitAlt}
-                  className="flex aspect-[4/5] items-center justify-center rounded-2xl border border-dashed border-line bg-parchment text-xs text-muted"
-                >
-                  [ Portrait ]
+                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-line bg-white shadow-soft">
+                  <Image
+                    src={FOUNDER_PORTRAIT_SRC}
+                    alt={f.portraitAlt}
+                    fill
+                    sizes="(min-width: 1024px) 280px, 100vw"
+                    className="object-contain"
+                  />
                 </div>
                 <h3 className="mt-6 font-serif text-2xl font-medium text-ink">
                   {f.name}

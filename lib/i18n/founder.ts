@@ -6,6 +6,9 @@
 
 import type { Locale } from "@/lib/i18n/config";
 
+export const FOUNDER_PORTRAIT_SRC =
+  "/brand/89EE7D74-C846-4FCE-8943-5E73CBBF2890_1_201_a.jpeg";
+
 export interface FounderExperience {
   role: string;
   company: string;
@@ -51,7 +54,7 @@ const profiles: Record<Locale, FounderProfile> = {
     name: "Lucie Xiong",
     role: "Fondatrice",
     location: "Hong Kong · Auparavant Paris",
-    portraitAlt: "Portrait de Lucie Xiong — photo à fournir",
+    portraitAlt: "Portrait de Lucie Xiong, fondatrice de Fostier Consulting",
     bio: [
       "Fondatrice de Fostier Consulting, Lucie accompagne des particuliers exigeants — dont une clientèle fortunée — à Hong Kong, Macao et en Chine continentale : investissement, épargne, assurance santé et vie, retraite.",
       "Économiste diplômée de l'université Fudan (Shanghai), formée en France (Groupe ESG) et passée par le siège parisien de HSBC, elle parle un français parfait. En février 2026, l'UFE Hong Kong l'a invitée à présenter les traditions du Nouvel An chinois à la communauté française.",
@@ -111,7 +114,7 @@ const profiles: Record<Locale, FounderProfile> = {
     name: "Lucie Xiong",
     role: "Founder",
     location: "Hong Kong · Formerly Paris",
-    portraitAlt: "Portrait of Lucie Xiong — photo to be supplied",
+    portraitAlt: "Portrait of Lucie Xiong, founder of Fostier Consulting",
     bio: [
       "Founder of Fostier Consulting, Lucie advises discerning private clients — including high-net-worth individuals — across Hong Kong, Macau and mainland China on investment, savings, health and life insurance, and retirement planning.",
       "An economics graduate of Fudan University (Shanghai), educated in France (ESG Group) and seasoned at HSBC's Paris head office, she speaks fluent French. In February 2026, UFE Hong Kong invited her to present Chinese New Year traditions to the French community.",
@@ -171,7 +174,7 @@ const profiles: Record<Locale, FounderProfile> = {
     name: "Lucie Xiong",
     role: "创始人",
     location: "中国香港 · 曾常驻法国巴黎",
-    portraitAlt: "Lucie Xiong 的照片 —— 待提供",
+    portraitAlt: "Lucie Xiong（Fostier Consulting 创始人）的照片",
     bio: [
       "作为 Fostier Consulting 创始人，Lucie 为香港、澳门及中国内地的高要求个人客户（包括高净值人士）提供投资、储蓄、健康与人寿保险及退休规划咨询。",
       "Lucie 毕业于上海复旦大学经济专业，曾赴法国深造（ESG 集团），并就职于汇丰银行巴黎总部，法语流利。2026 年 2 月，UFE Hong Kong 邀请她为在港法国社群讲解中国春节习俗。",
