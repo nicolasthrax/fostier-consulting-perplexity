@@ -3,15 +3,18 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { AdvisorMapPill } from "./AdvisorMapPill";
 import {
-  TrendingUp,
-  ShieldCheck,
+  Globe2,
   FileCheck2,
   Coins,
-  Globe2,
+  TrendingUp,
+  Award,
+  ShieldCheck,
+  Landmark,
   Building2,
-  ArrowUpRight,
   Sparkles,
-  CheckCircle2,
+  Heart,
+  Scale,
+  BadgePercent,
 } from "lucide-react";
 
 interface HeroVisualProps {
@@ -19,339 +22,478 @@ interface HeroVisualProps {
   locale?: string;
 }
 
-const PANEL_TRANSLATIONS: Record<
+interface TileItem {
+  id: string;
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+  badge?: string;
+  color: string; // Tailored accent color
+  bgGlow: string;
+}
+
+const TILE_TRANSLATIONS: Record<
   string,
-  {
-    hub: string;
-    subtitle: string;
-    partnerBadge: string;
-    pillars: Array<{
-      id: string;
-      title: string;
-      subtitle: string;
-      metric: string;
-      tag: string;
-    }>;
-    connectionLabel: string;
-    advisoryNote: string;
-  }
+  TileItem[]
 > = {
-  fr: {
-    hub: "PARIS ↔ HONG KONG",
-    subtitle: "Ingénierie Patrimoniale Internationale",
-    partnerBadge: "Partenaire UFE HK",
-    pillars: [
-      {
-        id: "investment",
-        title: "Investissement & Portfolio",
-        subtitle: "Diversification & stratégie long terme",
-        metric: "+6.8% Cible Horizon",
-        tag: "Patrimoine",
-      },
-      {
-        id: "taxation",
-        title: "Fiscalité Hong Kong",
-        subtitle: "Déclarations & conformité expatriés",
-        metric: "SFC & IRD Aligné",
-        tag: "Conformité",
-      },
-      {
-        id: "savings",
-        title: "Épargne Multi-Devises",
-        subtitle: "Solutions structurées EUR / HKD / USD",
-        metric: "EUR ⇄ HKD ⇄ USD",
-        tag: "Trésorerie",
-      },
-      {
-        id: "protection",
-        title: "Assurance & Prévoyance",
-        subtitle: "Couverture santé & famille en Asie",
-        metric: "Protection 100%",
-        tag: "Famille",
-      },
-    ],
-    connectionLabel: "Accompagnement dédié des résidents français en Asie",
-    advisoryNote: "Conseil privé & sur mesure",
-  },
-  en: {
-    hub: "PARIS ↔ HONG KONG",
-    subtitle: "Cross-Border Wealth Advisory",
-    partnerBadge: "UFE HK Partner",
-    pillars: [
-      {
-        id: "investment",
-        title: "Investment & Portfolio",
-        subtitle: "Long-term growth & asset allocation",
-        metric: "Multi-Asset Strategy",
-        tag: "Wealth",
-      },
-      {
-        id: "taxation",
-        title: "Hong Kong Tax Guidance",
-        subtitle: "Filing preparation & compliance",
-        metric: "IRD Compliant",
-        tag: "Taxation",
-      },
-      {
-        id: "savings",
-        title: "Multi-Currency Banking",
-        subtitle: "Structured EUR / HKD / USD savings",
-        metric: "EUR ⇄ HKD ⇄ USD",
-        tag: "Liquidity",
-      },
-      {
-        id: "protection",
-        title: "Health & Life Protection",
-        subtitle: "Tailored family cover across Asia",
-        metric: "Global Cover",
-        tag: "Security",
-      },
-    ],
-    connectionLabel: "Dedicated financial advisory for French expats in Asia",
-    advisoryNote: "Bespoke private advisory",
-  },
-  zh: {
-    hub: "巴黎 ↔ 香港",
-    subtitle: "跨境财富与财务咨询",
-    partnerBadge: "UFE 香港合作伙伴",
-    pillars: [
-      {
-        id: "investment",
-        title: "投资与资产组合",
-        subtitle: "长期资产配置与稳健增值",
-        metric: "多资产策略",
-        tag: "财富",
-      },
-      {
-        id: "taxation",
-        title: "香港税务申报",
-        subtitle: "报税准备与税务合规协助",
-        metric: "合规保障",
-        tag: "税务",
-      },
-      {
-        id: "savings",
-        title: "多币种储蓄与银行",
-        subtitle: "EUR / HKD / USD 结构化方案",
-        metric: "EUR ⇄ HKD ⇄ USD",
-        tag: "流动性",
-      },
-      {
-        id: "protection",
-        title: "健康与人寿保险",
-        subtitle: "为在亚家庭定制全面保障",
-        metric: "全面守护",
-        tag: "保障",
-      },
-    ],
-    connectionLabel: "服务于居住在亚洲的法国居民",
-    advisoryNote: "专属一对一咨询",
-  },
+  fr: [
+    {
+      id: "hub",
+      icon: Globe2,
+      title: "Paris ⇄ Hong Kong",
+      subtitle: "Ingénierie Patrimoniale",
+      badge: "Hub Expat",
+      color: "text-[#38BDF8]",
+      bgGlow: "from-[#0A84FF]/20 to-transparent",
+    },
+    {
+      id: "taxation",
+      icon: FileCheck2,
+      title: "Fiscalité HK & IRD",
+      subtitle: "Déclarations & conformité",
+      badge: "Conformité",
+      color: "text-emerald-400",
+      bgGlow: "from-emerald-500/20 to-transparent",
+    },
+    {
+      id: "currency",
+      icon: Coins,
+      title: "EUR ⇄ HKD ⇄ USD",
+      subtitle: "Épargne Multi-Devises",
+      badge: "Trésorerie",
+      color: "text-amber-300",
+      bgGlow: "from-amber-500/20 to-transparent",
+    },
+    {
+      id: "growth",
+      icon: TrendingUp,
+      title: "+6.8% Performance",
+      subtitle: "Allocation multi-actifs",
+      badge: "Portfolio",
+      color: "text-cyan-300",
+      bgGlow: "from-cyan-500/20 to-transparent",
+    },
+    {
+      id: "ufe",
+      icon: Award,
+      title: "Partenaire UFE HK",
+      subtitle: "Union des Français de l'Étranger",
+      badge: "Officiel",
+      color: "text-[#FF6B7A]",
+      bgGlow: "from-[#ED2939]/20 to-transparent",
+    },
+    {
+      id: "protection",
+      icon: ShieldCheck,
+      title: "Assurance & Santé",
+      subtitle: "Couverture famille en Asie",
+      badge: "Protection",
+      color: "text-rose-400",
+      bgGlow: "from-rose-500/20 to-transparent",
+    },
+    {
+      id: "retirement",
+      icon: Landmark,
+      title: "Retraite Expatriés",
+      subtitle: "Solutions MPF & Assurance-Vie",
+      badge: "Prévoyance",
+      color: "text-indigo-400",
+      bgGlow: "from-indigo-500/20 to-transparent",
+    },
+    {
+      id: "realestate",
+      icon: Building2,
+      title: "Immobilier France",
+      subtitle: "Structuring & gestion locative",
+      badge: "Actifs",
+      color: "text-sky-300",
+      bgGlow: "from-sky-500/20 to-transparent",
+    },
+    {
+      id: "advisory",
+      icon: Sparkles,
+      title: "Conseil Privé",
+      subtitle: "Accompagnement dédié",
+      badge: "Sur-Mesure",
+      color: "text-purple-300",
+      bgGlow: "from-purple-500/20 to-transparent",
+    },
+    {
+      id: "wellness",
+      icon: Heart,
+      title: "Prévoyance Santé",
+      subtitle: "Rapatriement & Hospitalisation",
+      badge: "Sérénité",
+      color: "text-pink-400",
+      bgGlow: "from-pink-500/20 to-transparent",
+    },
+    {
+      id: "law",
+      icon: Scale,
+      title: "Succession & Droit",
+      subtitle: "Optimisation transfrontalière",
+      badge: "Juridique",
+      color: "text-violet-300",
+      bgGlow: "from-violet-500/20 to-transparent",
+    },
+    {
+      id: "optim",
+      icon: BadgePercent,
+      title: "Optimisation Fiscale",
+      subtitle: "Convention France - HK",
+      badge: "SFC Aligné",
+      color: "text-teal-300",
+      bgGlow: "from-teal-500/20 to-transparent",
+    },
+  ],
+  en: [
+    {
+      id: "hub",
+      icon: Globe2,
+      title: "Paris ⇄ Hong Kong",
+      subtitle: "Cross-Border Wealth",
+      badge: "Expat Hub",
+      color: "text-[#38BDF8]",
+      bgGlow: "from-[#0A84FF]/20 to-transparent",
+    },
+    {
+      id: "taxation",
+      icon: FileCheck2,
+      title: "HK Tax & Compliance",
+      subtitle: "IRD & SFC filing guidance",
+      badge: "Taxation",
+      color: "text-emerald-400",
+      bgGlow: "from-emerald-500/20 to-transparent",
+    },
+    {
+      id: "currency",
+      icon: Coins,
+      title: "EUR ⇄ HKD ⇄ USD",
+      subtitle: "Multi-Currency Banking",
+      badge: "Liquidity",
+      color: "text-amber-300",
+      bgGlow: "from-amber-500/20 to-transparent",
+    },
+    {
+      id: "growth",
+      icon: TrendingUp,
+      title: "+6.8% Target Return",
+      subtitle: "Multi-asset strategy",
+      badge: "Portfolio",
+      color: "text-cyan-300",
+      bgGlow: "from-cyan-500/20 to-transparent",
+    },
+    {
+      id: "ufe",
+      icon: Award,
+      title: "UFE HK Partner",
+      subtitle: "French Overseas Association",
+      badge: "Official",
+      color: "text-[#FF6B7A]",
+      bgGlow: "from-[#ED2939]/20 to-transparent",
+    },
+    {
+      id: "protection",
+      icon: ShieldCheck,
+      title: "Health & Life Cover",
+      subtitle: "Family protection in Asia",
+      badge: "Security",
+      color: "text-rose-400",
+      bgGlow: "from-rose-500/20 to-transparent",
+    },
+    {
+      id: "retirement",
+      icon: Landmark,
+      title: "Expat Retirement",
+      subtitle: "MPF & Life Insurance Solutions",
+      badge: "Pension",
+      color: "text-indigo-400",
+      bgGlow: "from-indigo-500/20 to-transparent",
+    },
+    {
+      id: "realestate",
+      icon: Building2,
+      title: "French Real Estate",
+      subtitle: "Structuring & Rental Management",
+      badge: "Assets",
+      color: "text-sky-300",
+      bgGlow: "from-sky-500/20 to-transparent",
+    },
+    {
+      id: "advisory",
+      icon: Sparkles,
+      title: "Private Advisory",
+      subtitle: "Bespoke wealth management",
+      badge: "Custom",
+      color: "text-purple-300",
+      bgGlow: "from-purple-500/20 to-transparent",
+    },
+    {
+      id: "wellness",
+      icon: Heart,
+      title: "Medical & Health",
+      subtitle: "Repatriation & Global Cover",
+      badge: "Wellness",
+      color: "text-pink-400",
+      bgGlow: "from-pink-500/20 to-transparent",
+    },
+    {
+      id: "law",
+      icon: Scale,
+      title: "Estate & Inheritance",
+      subtitle: "Cross-border estate planning",
+      badge: "Legal",
+      color: "text-violet-300",
+      bgGlow: "from-violet-500/20 to-transparent",
+    },
+    {
+      id: "optim",
+      icon: BadgePercent,
+      title: "Tax Optimization",
+      subtitle: "France - HK Tax Treaty",
+      badge: "Aligned",
+      color: "text-teal-300",
+      bgGlow: "from-teal-500/20 to-transparent",
+    },
+  ],
+  zh: [
+    {
+      id: "hub",
+      icon: Globe2,
+      title: "巴黎 ⇄ 香港",
+      subtitle: "跨境财富管理",
+      badge: "离岸枢纽",
+      color: "text-[#38BDF8]",
+      bgGlow: "from-[#0A84FF]/20 to-transparent",
+    },
+    {
+      id: "taxation",
+      icon: FileCheck2,
+      title: "香港税务合规",
+      subtitle: "IRD 与 SFC 报税指导",
+      badge: "税务",
+      color: "text-emerald-400",
+      bgGlow: "from-emerald-500/20 to-transparent",
+    },
+    {
+      id: "currency",
+      icon: Coins,
+      title: "EUR ⇄ HKD ⇄ USD",
+      subtitle: "多币种资产管理",
+      badge: "流动性",
+      color: "text-amber-300",
+      bgGlow: "from-amber-500/20 to-transparent",
+    },
+    {
+      id: "growth",
+      icon: TrendingUp,
+      title: "+6.8% 目标收益",
+      subtitle: "多元化资产配置",
+      badge: "组合",
+      color: "text-cyan-300",
+      bgGlow: "from-cyan-500/20 to-transparent",
+    },
+    {
+      id: "ufe",
+      icon: Award,
+      title: "UFE 香港合作伙伴",
+      subtitle: "法国海外居民协会",
+      badge: "官方认证",
+      color: "text-[#FF6B7A]",
+      bgGlow: "from-[#ED2939]/20 to-transparent",
+    },
+    {
+      id: "protection",
+      icon: ShieldCheck,
+      title: "健康与人寿保险",
+      subtitle: "在亚家庭全面保障",
+      badge: "保障",
+      color: "text-rose-400",
+      bgGlow: "from-rose-500/20 to-transparent",
+    },
+    {
+      id: "retirement",
+      icon: Landmark,
+      title: "侨民养老规划",
+      subtitle: "MPF 与人寿保险方案",
+      badge: "退休",
+      color: "text-indigo-400",
+      bgGlow: "from-indigo-500/20 to-transparent",
+    },
+    {
+      id: "realestate",
+      icon: Building2,
+      title: "法国房产投资",
+      subtitle: "结构化与租赁管理",
+      badge: "资产",
+      color: "text-sky-300",
+      bgGlow: "from-sky-500/20 to-transparent",
+    },
+    {
+      id: "advisory",
+      icon: Sparkles,
+      title: "私人专属咨询",
+      subtitle: "量身定制理财策略",
+      badge: "一对一",
+      color: "text-purple-300",
+      bgGlow: "from-purple-500/20 to-transparent",
+    },
+    {
+      id: "wellness",
+      icon: Heart,
+      title: "医疗与健康保障",
+      subtitle: "全球救助与住院医疗",
+      badge: "安心",
+      color: "text-pink-400",
+      bgGlow: "from-pink-500/20 to-transparent",
+    },
+    {
+      id: "law",
+      icon: Scale,
+      title: "遗产与继承规划",
+      subtitle: "跨境法律与继承安排",
+      badge: "法律",
+      color: "text-violet-300",
+      bgGlow: "from-violet-500/20 to-transparent",
+    },
+    {
+      id: "optim",
+      icon: BadgePercent,
+      title: "税务协同优化",
+      subtitle: "法港双边协定",
+      badge: "合规",
+      color: "text-teal-300",
+      bgGlow: "from-teal-500/20 to-transparent",
+    },
+  ],
 };
 
 export function HeroVisual({ caption, locale = "fr" }: HeroVisualProps) {
   const reduce = useReducedMotion();
-  const t = PANEL_TRANSLATIONS[locale] || PANEL_TRANSLATIONS.fr;
+  const tiles = TILE_TRANSLATIONS[locale] || TILE_TRANSLATIONS.fr;
+
+  // Organize 12 tiles into 4 columns x 3 rows with staggered vertical offset for odd columns
+  const columns = [
+    [tiles[0], tiles[4], tiles[8]],  // Col 1
+    [tiles[1], tiles[5], tiles[9]],  // Col 2 (shifted down)
+    [tiles[2], tiles[6], tiles[10]], // Col 3
+    [tiles[3], tiles[7], tiles[11]], // Col 4 (shifted down)
+  ];
 
   return (
     <figure className="relative w-full">
       <div
         aria-hidden="true"
-        className="relative aspect-[16/11] sm:aspect-[5/4] w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#020B24] via-[#05143C] to-[#010619] p-4 sm:p-5 shadow-2xl"
+        className="relative aspect-[16/11] sm:aspect-[5/4] w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#020B24] via-[#05143C] to-[#010619] p-4 sm:p-6 shadow-2xl flex items-center justify-center"
       >
-        {/* Deep ambient background glows */}
+        {/* Deep background glows */}
         <div className="absolute -left-20 -top-20 h-80 w-80 rounded-full bg-[#0A84FF]/20 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-[#ED2939]/15 blur-3xl pointer-events-none" />
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-72 w-72 rounded-full bg-navy/50 blur-3xl pointer-events-none" />
 
-        {/* Decorative Grid & Finance Chart Graphic Overlay */}
+        {/* Fine background Grid overlay */}
         <svg
-          className="absolute inset-0 h-full w-full opacity-20 pointer-events-none"
+          className="absolute inset-0 h-full w-full opacity-15 pointer-events-none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
             <pattern
-              id="heroGrid"
-              width="32"
-              height="32"
+              id="tileGrid"
+              width="28"
+              height="28"
               patternUnits="userSpaceOnUse"
             >
               <path
-                d="M 32 0 L 0 0 0 32"
+                d="M 28 0 L 0 0 0 28"
                 fill="none"
                 stroke="#FFFFFF"
                 strokeOpacity="0.08"
                 strokeWidth="0.5"
               />
             </pattern>
-            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#0A84FF" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#0A84FF" stopOpacity="0.0" />
-            </linearGradient>
           </defs>
-          <rect width="100%" height="100%" fill="url(#heroGrid)" />
-
-          {/* Ascending wealth sparkline SVG curve */}
-          <path
-            d="M 20 280 C 120 260, 180 290, 260 210 C 340 130, 420 170, 520 90"
-            fill="none"
-            stroke="#0A84FF"
-            strokeWidth="2"
-            strokeOpacity="0.5"
-            strokeDasharray="4 4"
-          />
-          <path
-            d="M 20 280 C 120 260, 180 290, 260 210 C 340 130, 420 170, 520 90 L 520 340 L 20 340 Z"
-            fill="url(#chartGrad)"
-          />
+          <rect width="100%" height="100%" fill="url(#tileGrid)" />
         </svg>
 
-        {/* Panel Main Container */}
-        <div className="relative z-10 flex h-full flex-col justify-between">
-          {/* Header Bar */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0A84FF]/20 border border-[#0A84FF]/40 text-[#38BDF8]">
-                <Globe2 className="h-4 w-4" />
-              </div>
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-widest text-[#38BDF8]">
-                  {t.hub}
-                </span>
-                <p className="text-[10px] text-white/70 font-medium leading-none mt-0.5">
-                  {t.subtitle}
-                </p>
-              </div>
-            </div>
+        {/* Staggered Grid Container */}
+        <div className="relative z-10 grid grid-cols-3 sm:grid-cols-4 gap-2.5 sm:gap-3.5 w-full max-w-xl mx-auto items-start pt-2 pb-14">
+          {columns.map((colTiles, colIdx) => {
+            // Apply staggered vertical offset to even index columns (Col 2 and Col 4)
+            const isStaggered = colIdx % 2 === 1;
+            // Hide 4th column on smallest mobile screens to prevent crowding
+            const isFourthCol = colIdx === 3;
 
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                {t.partnerBadge}
-              </span>
-            </div>
-          </div>
+            return (
+              <div
+                key={`col-${colIdx}`}
+                className={`flex flex-col gap-2.5 sm:gap-3.5 transition-transform duration-500 ${
+                  isStaggered ? "translate-y-3 sm:translate-y-4" : ""
+                } ${isFourthCol ? "hidden sm:flex" : "flex"}`}
+              >
+                {colTiles.map((tile, rowIdx) => {
+                  const Icon = tile.icon;
+                  return (
+                    <motion.div
+                      key={tile.id}
+                      initial={
+                        reduce
+                          ? {}
+                          : { opacity: 0, y: 12, scale: 0.95 }
+                      }
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{
+                        duration: 0.45,
+                        delay: 0.05 * (colIdx * 3 + rowIdx),
+                        ease: "easeOut",
+                      }}
+                      whileHover={
+                        reduce
+                          ? {}
+                          : {
+                              scale: 1.04,
+                              y: -3,
+                              transition: { duration: 0.2 },
+                            }
+                      }
+                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-2.5 sm:p-3 backdrop-blur-md shadow-lg transition-all duration-300 hover:border-white/25 hover:shadow-2xl hover:shadow-[#0A84FF]/10"
+                    >
+                      {/* Subtle hover background radial glow */}
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br ${tile.bgGlow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
+                      />
 
-          {/* 4 Wealth Advisory Pillars (2x2 Grid) */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 my-auto py-1">
-            {/* Pillar 1: Investment */}
-            <motion.div
-              initial={reduce ? {} : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] p-2.5 sm:p-3 backdrop-blur-md transition-all duration-300 hover:border-[#0A84FF]/50 hover:bg-white/[0.08]"
-            >
-              <div className="flex items-start justify-between mb-1">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#0A84FF]/20 text-[#38BDF8]">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                </div>
-                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-medium text-white/80">
-                  {t.pillars[0].tag}
-                </span>
-              </div>
-              <h4 className="text-[11px] sm:text-xs font-semibold text-white group-hover:text-[#38BDF8] transition-colors leading-snug">
-                {t.pillars[0].title}
-              </h4>
-              <p className="text-[9.5px] text-white/70 line-clamp-1 mt-0.5 font-normal">
-                {t.pillars[0].subtitle}
-              </p>
-              <div className="mt-1.5 flex items-center justify-between text-[9.5px] font-semibold text-[#38BDF8] border-t border-white/10 pt-1">
-                <span>{t.pillars[0].metric}</span>
-                <ArrowUpRight className="h-3 w-3 opacity-80 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </div>
-            </motion.div>
+                      {/* Top row: Icon & Tag */}
+                      <div className="flex items-center justify-between gap-1 mb-2 relative z-10">
+                        <div
+                          className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 ${tile.color} group-hover:scale-110 transition-transform duration-300`}
+                        >
+                          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        </div>
+                        {tile.badge && (
+                          <span className="rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[8.5px] sm:text-[9px] font-medium text-white/80 backdrop-blur-sm">
+                            {tile.badge}
+                          </span>
+                        )}
+                      </div>
 
-            {/* Pillar 2: Tax Guidance */}
-            <motion.div
-              initial={reduce ? {} : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] p-2.5 sm:p-3 backdrop-blur-md transition-all duration-300 hover:border-[#0A84FF]/50 hover:bg-white/[0.08]"
-            >
-              <div className="flex items-start justify-between mb-1">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/20 text-emerald-400">
-                  <FileCheck2 className="h-3.5 w-3.5" />
-                </div>
-                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-medium text-white/80">
-                  {t.pillars[1].tag}
-                </span>
+                      {/* Content: Title & Subtitle */}
+                      <div className="relative z-10">
+                        <h4 className="text-[11px] sm:text-xs font-semibold text-white leading-tight group-hover:text-white transition-colors">
+                          {tile.title}
+                        </h4>
+                        <p className="text-[9px] sm:text-[9.5px] text-white/70 font-normal leading-tight mt-0.5 line-clamp-1">
+                          {tile.subtitle}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
-              <h4 className="text-[11px] sm:text-xs font-semibold text-white group-hover:text-emerald-300 transition-colors leading-snug">
-                {t.pillars[1].title}
-              </h4>
-              <p className="text-[9.5px] text-white/70 line-clamp-1 mt-0.5 font-normal">
-                {t.pillars[1].subtitle}
-              </p>
-              <div className="mt-1.5 flex items-center justify-between text-[9.5px] font-semibold text-emerald-400 border-t border-white/10 pt-1">
-                <span>{t.pillars[1].metric}</span>
-                <CheckCircle2 className="h-3 w-3 opacity-80" />
-              </div>
-            </motion.div>
-
-            {/* Pillar 3: Multi-Currency Savings */}
-            <motion.div
-              initial={reduce ? {} : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] p-2.5 sm:p-3 backdrop-blur-md transition-all duration-300 hover:border-[#0A84FF]/50 hover:bg-white/[0.08]"
-            >
-              <div className="flex items-start justify-between mb-1">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/20 text-amber-300">
-                  <Coins className="h-3.5 w-3.5" />
-                </div>
-                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-medium text-white/80">
-                  {t.pillars[2].tag}
-                </span>
-              </div>
-              <h4 className="text-[11px] sm:text-xs font-semibold text-white group-hover:text-amber-300 transition-colors leading-snug">
-                {t.pillars[2].title}
-              </h4>
-              <p className="text-[9.5px] text-white/70 line-clamp-1 mt-0.5 font-normal">
-                {t.pillars[2].subtitle}
-              </p>
-              <div className="mt-1.5 flex items-center justify-between text-[9.5px] font-semibold text-amber-300 border-t border-white/10 pt-1">
-                <span>{t.pillars[2].metric}</span>
-                <Sparkles className="h-3 w-3 opacity-80" />
-              </div>
-            </motion.div>
-
-            {/* Pillar 4: Protection */}
-            <motion.div
-              initial={reduce ? {} : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] p-2.5 sm:p-3 backdrop-blur-md transition-all duration-300 hover:border-[#0A84FF]/50 hover:bg-white/[0.08]"
-            >
-              <div className="flex items-start justify-between mb-1">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ED2939]/20 text-[#FF6B7A]">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                </div>
-                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-medium text-white/80">
-                  {t.pillars[3].tag}
-                </span>
-              </div>
-              <h4 className="text-[11px] sm:text-xs font-semibold text-white group-hover:text-[#FF6B7A] transition-colors leading-snug">
-                {t.pillars[3].title}
-              </h4>
-              <p className="text-[9.5px] text-white/70 line-clamp-1 mt-0.5 font-normal">
-                {t.pillars[3].subtitle}
-              </p>
-              <div className="mt-1.5 flex items-center justify-between text-[9.5px] font-semibold text-[#FF6B7A] border-t border-white/10 pt-1">
-                <span>{t.pillars[3].metric}</span>
-                <Building2 className="h-3 w-3 opacity-80" />
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Footer Bar (Shifted right to give space to AdvisorMapPill) */}
-          <div className="flex items-center justify-end border-t border-white/10 pt-2 text-right">
-            <span className="text-[10px] font-semibold text-[#38BDF8]">
-              {t.advisoryNote}
-            </span>
-          </div>
+            );
+          })}
         </div>
 
-        {/* Advisor Map Pill Overlay */}
+        {/* Floating CTA Overlay */}
         <AdvisorMapPill locale={locale} />
       </div>
 
