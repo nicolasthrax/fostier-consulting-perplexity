@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Phone } from "lucide-react";
+import { ArrowRight, ExternalLink, Phone } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { site, whatsappUrl } from "@/lib/site";
 import { WeChatContactButton } from "@/components/WeChatContact";
@@ -17,7 +18,26 @@ export default function HomePage({ params: { lang } }: { params: { lang: "fr" | 
 
         <div className="container-site grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-2 lg:py-24">
           <div>
-            <h1 className="h-serif mt-6 text-4xl leading-[1.12] sm:text-5xl lg:text-6xl">
+            <a
+              href={dict.hero.ufePartnerUrl || "https://www.ufehongkong.hk/partenaires/fostier-consulting"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="focus-ring group inline-flex items-center gap-2.5 rounded-full border border-navy/15 bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-navy shadow-xs backdrop-blur-xs transition-all hover:border-navy/30 hover:bg-white hover:shadow-soft"
+            >
+              <span className="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-line bg-navy/5">
+                <Image
+                  src="/brand/ufe-logo.svg"
+                  alt="UFE"
+                  width={20}
+                  height={20}
+                  className="h-full w-full object-contain"
+                />
+              </span>
+              <span>{dict.hero.ufePartnerBadge}</span>
+              <ExternalLink className="h-3.5 w-3.5 text-navy/60 transition-transform group-hover:translate-x-0.5 group-hover:text-navy" />
+            </a>
+
+            <h1 className="h-serif mt-5 text-4xl leading-[1.12] sm:text-5xl lg:text-6xl">
               {dict.hero.title}
             </h1>
 
