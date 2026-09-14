@@ -78,7 +78,7 @@ export function Hero({ locale, dict }: { locale: string; dict: Dictionary }) {
           </motion.div>
         </motion.div>
         <motion.div {...fade(2)}>
-          <HeroVisual caption={dict.hero.visualCaption} />
+          <HeroVisual locale={locale} caption={dict.hero.visualCaption} />
         </motion.div>
       </div>
     </section>
