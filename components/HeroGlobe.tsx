@@ -20,8 +20,6 @@ const TARGET_PITCH = Math.asin(MID[2]) - 24 * RAD;
 const INTRO_MS = 2600;
 const ARC_START_MS = 1900;
 const ARC_MS = 1500;
-const TRAVEL_START_MS = ARC_START_MS + ARC_MS + 300;
-const TRAVEL_MS = 4200;
 
 function toVec(lat: number, lon: number): Vec {
   const φ = lat * RAD;
@@ -217,24 +215,6 @@ export function HeroGlobe({ children }: { children?: ReactNode }) {
       ctx.shadowBlur = 10;
       ctx.lineWidth = 1.8;
       if (arc > 0) stroke(0, arc);
-
-      if (!reduced && t > TRAVEL_START_MS) {
-        const phase = ((t - TRAVEL_START_MS) % TRAVEL_MS) / TRAVEL_MS;
-        const s = easeInOut(phase);
-        const fade = Math.min(1, phase / 0.08, (1 - phase) / 0.1);
-        ctx.globalAlpha = fade;
-        ctx.lineWidth = 3;
-        stroke(Math.max(0, s - 0.14), s);
-        const head = route[Math.round(s * (route.length - 1))];
-        if (shown(head)) {
-          ctx.shadowColor = "#fff";
-          ctx.shadowBlur = 14;
-          ctx.fillStyle = "#fff";
-          ctx.beginPath();
-          ctx.arc(head[0], head[1], 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
       ctx.restore();
 
       const marker = (v: Vec, color: string, size: number, label: HTMLSpanElement | null, delay: number) => {
