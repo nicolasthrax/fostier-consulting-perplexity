@@ -1,19 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowRight,
-  ChartLine,
-  ExternalLink,
-  Factory,
-  FileText,
-  Handshake,
-  Landmark,
-  Languages,
-  MapPin,
-  Phone,
-  ShieldCheck,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowRight, ExternalLink, MapPin, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/i18n/config";
@@ -27,16 +14,6 @@ import { HeroGlobe } from "@/components/HeroGlobe";
 import { Reveal } from "@/components/Reveal";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { getFounder } from "@/lib/i18n/founder";
-
-const serviceIcons: Record<string, LucideIcon> = {
-  bank: Landmark,
-  chart: ChartLine,
-  document: FileText,
-  factory: Factory,
-  language: Languages,
-  partners: Handshake,
-  shield: ShieldCheck,
-};
 
 const credentialsLabel: Record<Locale, string> = {
   fr: "Le parcours de votre conseillère",
@@ -193,27 +170,21 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
           </Reveal>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2">
-            {dict.services.items.map((service, i) => {
-              const Icon = serviceIcons[service.icon] ?? ArrowRight;
-              return (
-                <Reveal key={service.slug} delay={(i % 2) * 0.08}>
-                  <Link
-                    href={`/${lang}/services/${serviceSlugs[i][lang]}`}
-                    className="card-base focus-ring group flex h-full min-h-[180px] flex-col p-7 transition-all hover:-translate-y-[2px] hover:border-navy/25 hover:shadow-lift"
-                  >
-                    <span className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-navy-50 text-navy transition-colors group-hover:bg-navy group-hover:text-white">
-                      <Icon className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    <h3 className="font-serif text-xl font-medium text-ink">{service.title}</h3>
-                    <p className="mt-3 text-sm leading-relaxed text-muted">{service.benefit}</p>
-                    <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-navy">
-                      {dict.actions.learnMore}
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </span>
-                  </Link>
-                </Reveal>
-              );
-            })}
+            {dict.services.items.map((service, i) => (
+              <Reveal key={service.slug} delay={(i % 2) * 0.08}>
+                <Link
+                  href={`/${lang}/services/${serviceSlugs[i][lang]}`}
+                  className="card-base focus-ring group flex h-full min-h-[180px] flex-col p-7 transition-all hover:-translate-y-[2px] hover:border-navy/25 hover:shadow-lift"
+                >
+                  <h3 className="font-serif text-xl font-medium text-ink">{service.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted">{service.benefit}</p>
+                  <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-navy">
+                    {dict.actions.learnMore}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
