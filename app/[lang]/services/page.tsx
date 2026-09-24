@@ -2,7 +2,19 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Section } from "@/components/SectionHeading";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import { ServicesExplorer, type ExplorerService } from "@/components/ServicesExplorer";
+import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
+import { localizedMetadata } from "@/lib/metadata";
+import { getPageTitles } from "@/lib/i18n/titles";
+
+export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+  return localizedMetadata({
+    locale: params.lang,
+    path: "/services",
+    title: getPageTitles(params.lang).services,
+    description: getDictionary(params.lang).services.pageIntro,
+  });
+}
 
 export default function ServicesPage({ params }: { params: { lang: Locale } }) {
   const dict = getDictionary(params.lang);

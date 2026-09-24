@@ -20,18 +20,20 @@ export function localizedMetadata({
     ["x-default", `${site.baseUrl}/fr${path}`],
   ]);
 
+  const fullTitle = `${title} | ${site.name}`;
+
   return {
-    title,
+    title: { absolute: fullTitle },
     description,
     alternates: { canonical, languages },
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url: canonical,
       siteName: site.name,
       locale: ogLocales[locale],
       type: "website",
     },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary_large_image", title: fullTitle, description },
   };
 }

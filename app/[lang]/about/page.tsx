@@ -7,7 +7,19 @@ import { Reveal } from "@/components/Reveal";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import { AdvisorArrow } from "@/components/AdvisorArrow";
 import { UniversityHighlight, BioWithHighlights } from "@/components/UniversityHighlight";
+import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
+import { localizedMetadata } from "@/lib/metadata";
+import { getPageTitles } from "@/lib/i18n/titles";
+
+export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+  return localizedMetadata({
+    locale: params.lang,
+    path: "/about",
+    title: getPageTitles(params.lang).about,
+    description: getDictionary(params.lang).about.mission.paragraphs[0],
+  });
+}
 
 const advisorArrowLabel: Record<Locale, string> = {
   fr: "Aller à la section « Votre conseillère »",

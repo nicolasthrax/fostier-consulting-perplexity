@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { localizedMetadata } from "@/lib/metadata";
+import { getPageTitles } from "@/lib/i18n/titles";
 import { LegalArticle } from "@/components/LegalArticle";
 
 export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
@@ -10,7 +11,7 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
   return localizedMetadata({
     locale: params.lang,
     path: "/privacy",
-    title: page.title,
+    title: getPageTitles(params.lang).privacy,
     description: page.sections[0]?.body ?? dict.meta.siteDescription,
   });
 }

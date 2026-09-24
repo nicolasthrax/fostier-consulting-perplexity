@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { organisationJsonLd } from "@/lib/structured-data";
 import { playfair, inter } from "@/lib/fonts";
 import { site } from "@/lib/site";
+import { getPageTitles } from "@/lib/i18n/titles";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -24,7 +25,7 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
   return {
     metadataBase: new URL(site.baseUrl),
     applicationName: site.name,
-    title: { template: "%s — Fostier Consulting", default: dict.meta.siteTitle },
+    title: { template: `%s | ${site.name}`, default: `${getPageTitles(params.lang).home} | ${site.name}` },
     description: dict.meta.siteDescription,
     keywords: dict.meta.keywords,
     robots: { index: true, follow: true },

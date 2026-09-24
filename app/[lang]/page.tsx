@@ -1,12 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, Phone } from "lucide-react";
+import type { Metadata } from "next";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
+import type { Locale } from "@/lib/i18n/config";
+import { localizedMetadata } from "@/lib/metadata";
+import { getPageTitles } from "@/lib/i18n/titles";
 import { site, whatsappUrl } from "@/lib/site";
 import { WeChatContactButton } from "@/components/WeChatContact";
 import { AdvisorMapPill } from "@/components/AdvisorMapPill";
 import { HeroGlobe } from "@/components/HeroGlobe";
 
+
+export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+  return localizedMetadata({
+    locale: params.lang,
+    path: "",
+    title: getPageTitles(params.lang).home,
+    description: getDictionary(params.lang).meta.siteDescription,
+  });
+}
 
 export default function HomePage({ params: { lang } }: { params: { lang: "fr" | "en" } }) {
   const dict = getDictionary(lang);
