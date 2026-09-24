@@ -25,15 +25,19 @@ const config: Config = {
         muted: "#6B7280",
       },
       fontFamily: {
-        serif: ["var(--font-serif)", "Georgia", "serif"],
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "var(--font-serif-zh)", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "var(--font-sans-zh)", "system-ui", "sans-serif"],
       },
       maxWidth: {
         site: "72rem",
       },
       boxShadow: {
+        xs: "0 1px 2px rgba(17,24,39,.05)",
         soft: "0 1px 2px rgba(17,24,39,.04), 0 8px 24px rgba(17,24,39,.06)",
         lift: "0 2px 4px rgba(17,24,39,.05), 0 16px 40px rgba(0,35,149,.10)",
+      },
+      backdropBlur: {
+        xs: "2px",
       },
     },
   },

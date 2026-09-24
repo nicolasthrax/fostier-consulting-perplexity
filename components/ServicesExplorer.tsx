@@ -142,8 +142,9 @@ export function ServicesExplorer({ services, moreLabel }: { services: ExplorerSe
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3, ease: EASE }}
-              className="card-base p-8 sm:p-10"
+              className="card-base relative overflow-hidden !bg-parchment p-8 sm:p-10"
             >
+              <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-navy via-navy-100 to-fred/70" />
               <h3 className="font-serif text-2xl font-medium leading-snug text-ink sm:text-3xl">
                 {current.title}
               </h3>

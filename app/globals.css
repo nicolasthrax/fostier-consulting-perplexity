@@ -9,6 +9,7 @@ body { @apply bg-white text-ink antialiased; }
 .container-site { @apply mx-auto w-full max-w-site px-5 sm:px-8 lg:px-10; }
 .eyebrow { @apply font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-navy; }
 .eyebrow::before { content:""; @apply mr-3 inline-block h-px w-8 bg-fred align-middle; }
+.eyebrow-center::after { content:""; @apply ml-3 inline-block h-px w-8 bg-fred align-middle; }
 .h-serif { @apply font-serif font-medium tracking-[-0.01em] text-ink; }
 .body-lead { @apply text-base leading-relaxed text-slate/90 sm:text-lg; }
 .rule-fine { @apply h-px w-full bg-line; }
