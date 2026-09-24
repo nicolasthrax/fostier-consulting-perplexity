@@ -62,7 +62,7 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
               </h2>
               <div className="card-base mt-8 grid gap-10 p-8 sm:p-12 lg:grid-cols-[280px_1fr]">
                 <div>
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-line bg-white shadow-soft">
+                  <div className="relative aspect-square overflow-hidden rounded-2xl border border-line bg-white shadow-soft">
                     <Image
                       src={FOUNDER_PORTRAIT_SRC}
                       alt={f.portraitAlt}

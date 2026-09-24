@@ -5,10 +5,16 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { organisationJsonLd } from "@/lib/structured-data";
-import { playfair, inter } from "@/lib/fonts";
+import { playfair, inter, notoSerifSC, notoSansSC } from "@/lib/fonts";
 import { site } from "@/lib/site";
 import { getPageTitles } from "@/lib/i18n/titles";
 import "../globals.css";
+
+const skipLinkLabel: Record<Locale, string> = {
+  fr: "Aller au contenu",
+  en: "Skip to content",
+  zh: "跳到主要内容",
+};
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
@@ -44,11 +50,11 @@ export default function LocaleLayout({
   const jsonLd = organisationJsonLd(lang);
 
   return (
-    <html lang={dict.htmlLang} className={`${playfair.variable} ${inter.variable} font-sans`}>
+    <html lang={dict.htmlLang} className={`${playfair.variable} ${inter.variable} ${notoSerifSC.variable} ${notoSansSC.variable} font-sans`}>
       <body className="flex min-h-screen flex-col">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-navy focus:px-5 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
-          {lang === "fr" ? "Aller au contenu" : "Skip to content"}
+          {skipLinkLabel[lang]}
         </a>
         <Header locale={lang} dict={dict} />
         <main id="main" className="flex-1">{children}</main>

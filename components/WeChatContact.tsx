@@ -133,7 +133,13 @@ export function WeChatContactModal({
   );
 }
 
-export function WeChatContactButton({ locale }: { locale: Locale | string }) {
+export function WeChatContactButton({
+  locale,
+  sizeClassName = "h-12 w-12",
+}: {
+  locale: Locale | string;
+  sizeClassName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const s = getWeChatStrings(locale);
 
@@ -144,7 +150,7 @@ export function WeChatContactButton({ locale }: { locale: Locale | string }) {
         onClick={() => setOpen(true)}
         aria-label={s.buttonLabel}
         title={s.buttonLabel}
-        className="focus-ring inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#07C160] bg-[#07C160] text-white transition-colors hover:bg-[#06AD56] hover:border-[#06AD56]"
+        className={`focus-ring inline-flex ${sizeClassName} items-center justify-center rounded-full border border-[#07C160] bg-[#07C160] text-white transition-colors hover:bg-[#06AD56] hover:border-[#06AD56]`}
       >
         <WeChatIcon className="h-5 w-5" />
       </button>
