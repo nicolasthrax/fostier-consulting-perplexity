@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 export type ExplorerService = {
@@ -11,11 +13,12 @@ export type ExplorerService = {
   icon: string;
   includes: string[];
   disclaimer: string;
+  href: string;
 };
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
-function ServiceDetail({ service }: { service: ExplorerService }) {
+function ServiceDetail({ service, moreLabel }: { service: ExplorerService; moreLabel: string }) {
   return (
     <>
       <p className="border-l-2 border-fred pl-4 text-sm italic leading-relaxed text-slate">
@@ -23,6 +26,13 @@ function ServiceDetail({ service }: { service: ExplorerService }) {
       </p>
       <p className="mt-4 text-sm leading-relaxed text-muted">{service.short}</p>
       <p className="mt-6 text-xs leading-relaxed text-muted">{service.disclaimer}</p>
+      <Link
+        href={service.href}
+        className="focus-ring group mt-6 inline-flex items-center gap-1.5 rounded-sm text-sm font-semibold text-navy underline-offset-4 hover:underline"
+      >
+        {moreLabel}
+        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+      </Link>
     </>
   );
 }
@@ -75,7 +85,7 @@ function ServiceTitle({
   );
 }
 
-export function ServicesExplorer({ services }: { services: ExplorerService[] }) {
+export function ServicesExplorer({ services, moreLabel }: { services: ExplorerService[]; moreLabel: string }) {
   const [active, setActive] = useState(0);
   const current = services[Math.max(0, active)] ?? services[0];
 
@@ -113,7 +123,7 @@ export function ServicesExplorer({ services }: { services: ExplorerService[] }) 
               <div className="faq-panel lg:hidden" data-open={open}>
                 <div>
                   <div className="pb-7">
-                    <ServiceDetail service={service} />
+                    <ServiceDetail service={service} moreLabel={moreLabel} />
                   </div>
                 </div>
               </div>
@@ -138,7 +148,7 @@ export function ServicesExplorer({ services }: { services: ExplorerService[] }) 
                 {current.title}
               </h3>
               <div className="mt-5">
-                <ServiceDetail service={current} />
+                <ServiceDetail service={current} moreLabel={moreLabel} />
               </div>
             </motion.div>
           </AnimatePresence>

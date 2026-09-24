@@ -9,6 +9,11 @@ export const site = {
   phoneDisplay: "+852 6537 4439",
   phoneHref: "tel:+85265374439",
   whatsappNumber: "85265374439",
+  email: "yingfo@hotmail.com",
+  emailHref: "mailto:yingfo@hotmail.com",
+  founder: "Lucie Xiong",
+  logoPath: "/brand/FOSTIER%20consulting.png",
+  ufePartnerUrl: "https://www.ufehongkong.hk/partenaires/fostier-consulting",
   /** Public marketing domain — update to the production domain before launch. */
   baseUrl: "https://www.fostierconsulting.com",
 } as const;
