@@ -52,3 +52,37 @@ export const pageTitles: Record<
 };
 
 export const getPageTitles = (locale: Locale) => pageTitles[locale] ?? pageTitles.fr;
+
+/**
+ * <title> topics for the service pages, in `services.items` order. Same rules as
+ * above: keyword first, full title (with " | Fostier Consulting") at 60 characters or fewer.
+ */
+export const serviceTitles: Record<Locale, string[]> = {
+  fr: [
+    "Conseil en investissement à Hong Kong",
+    "Déclaration fiscale à Hong Kong",
+    "Épargne et banque à Hong Kong",
+    "Assurance santé et vie à Hong Kong",
+    "Interprétariat français–chinois",
+    "Recherche de fournisseurs en Chine",
+    "Partenaire français pour la Chine",
+  ],
+  en: [
+    "Investment advice in Hong Kong",
+    "Hong Kong tax return preparation",
+    "Savings and banking in Hong Kong",
+    "Health and life insurance, Hong Kong",
+    "French–Chinese interpreter, Hong Kong",
+    "Supplier sourcing in mainland China",
+    "French partner for business in China",
+  ],
+  zh: [
+    "香港投资咨询与资产组合规划",
+    "香港个人税务申报与准备",
+    "香港储蓄账户与银行开户",
+    "香港健康保险与人寿保险",
+    "法语、普通话及粤语口译服务",
+    "中国供应商寻源",
+    "助力中国商品进入法国市场",
+  ],
+};

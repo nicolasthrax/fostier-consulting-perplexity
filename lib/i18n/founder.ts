@@ -28,6 +28,8 @@ export interface FounderEducation {
 export interface UniversityHighlight {
   title: string;
   text: string;
+  /** Key credential shown large in the pop-up header. */
+  stat: { value: string; label: string };
 }
 
 export interface FounderProfile {
@@ -254,30 +256,36 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
   fr: {
     fudan: {
       title: "Université Fudan",
+      stat: { value: "26e", label: "QS 2027" },
       text: "Classée 26e au niveau mondial dans le classement QS World University Rankings 2027 — l'une des principales universités de recherche en Chine.",
     },
     esg: {
       title: "Groupe ESG",
+      stat: { value: "6–7", label: "RNCP" },
       text: "Membre du réseau international Galileo Global Education. Les programmes ESG délivrent des titres RNCP de niveaux 6 et 7 reconnus par l'État français.",
     },
   },
   en: {
     fudan: {
       title: "Fudan University",
+      stat: { value: "#26", label: "QS 2027" },
       text: "Ranked #26 globally in the QS World University Rankings 2027 — one of China’s leading research universities.",
     },
     esg: {
       title: "ESG Group",
+      stat: { value: "6–7", label: "RNCP" },
       text: "Part of Galileo Global Education’s international network. ESG programmes award French state-recognised RNCP Level 6 and 7 qualifications.",
     },
   },
   zh: {
     fudan: {
       title: "复旦大学",
+      stat: { value: "第 26 位", label: "QS 2027" },
       text: "在 2027 年 QS 世界大学排名中位列全球第 26 位 —— 中国顶尖的研究型大学之一。",
     },
     esg: {
       title: "ESG 集团",
+      stat: { value: "6–7", label: "RNCP 级别" },
       text: "伽利利全球教育集团（Galileo Global Education）国际网络成员，ESG 课程颁发法国国家认可的 RNCP 6 级与 7 级文凭。",
     },
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useId } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { UNIVERSITY_HIGHLIGHTS } from "@/lib/i18n/founder";
 import type { Locale } from "@/lib/i18n/config";
@@ -12,6 +12,12 @@ interface UniversityHighlightProps {
   className?: string;
 }
 
+const LOGOS = { fudan: "/brand/fudan-logo.svg", esg: "/brand/esg-logo.svg" } as const;
+
+const GAP = 12;
+const EDGE = 16;
+const MAX_WIDTH = 320;
+
 export function UniversityHighlight({
   uniKey,
   locale,
@@ -19,118 +25,96 @@ export function UniversityHighlight({
   className = "",
 }: UniversityHighlightProps) {
   const [open, setOpen] = useState(false);
+  const [placement, setPlacement] = useState<"top" | "bottom">("top");
+  const [pos, setPos] = useState({ left: 0, width: MAX_WIDTH });
   const containerRef = useRef<HTMLSpanElement>(null);
-  const isCoarsePointer = useRef<boolean>(false);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
+  /** Pointer type of the latest press, so a tap toggles while a mouse click just keeps it open. */
+  const lastPointer = useRef<string>("mouse");
+  const tooltipId = useId();
   const highlight =
     UNIVERSITY_HIGHLIGHTS[locale]?.[uniKey] ?? UNIVERSITY_HIGHLIGHTS.en[uniKey];
 
-  const [pos, setPos] = useState<{
-    tooltipLeft: number;
-    arrowLeft: number;
-    tooltipWidth: number;
-  }>({
-    tooltipLeft: 0,
-    arrowLeft: 0,
-    tooltipWidth: 280,
-  });
-
+  /** Centres the card on the trigger, clamps it to the viewport, and flips it below
+   * the text when there is not enough room between the sticky header and the trigger. */
   const updatePosition = useCallback(() => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const triggerCenter = rect.left + rect.width / 2;
-    const viewportWidth =
-      document.documentElement.clientWidth || window.innerWidth;
-    const padding = 16;
-    const maxAllowedWidth = Math.min(280, viewportWidth - padding * 2);
-    const tooltipWidth = Math.max(200, maxAllowedWidth);
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+    const width = Math.min(MAX_WIDTH, viewportWidth - EDGE * 2);
+    const idealLeft = rect.left + rect.width / 2 - width / 2;
+    const clampedLeft = Math.max(EDGE, Math.min(idealLeft, viewportWidth - EDGE - width));
+    setPos({ left: clampedLeft - rect.left, width });
 
-    const idealTooltipLeft = triggerCenter - tooltipWidth / 2;
-    const clampedTooltipLeft = Math.max(
-      padding,
-      Math.min(idealTooltipLeft, viewportWidth - padding - tooltipWidth)
-    );
-
-    const tooltipLeft = clampedTooltipLeft - rect.left;
-    const rawArrowLeft = triggerCenter - clampedTooltipLeft;
-    const arrowLeft = Math.max(
-      16,
-      Math.min(rawArrowLeft, tooltipWidth - 16)
-    );
-
-    setPos({ tooltipLeft, arrowLeft, tooltipWidth });
+    const height = tooltipRef.current?.offsetHeight ?? 0;
+    const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+    const roomAbove = rect.top - Math.max(headerBottom, 0);
+    const roomBelow = window.innerHeight - rect.bottom;
+    setPlacement(roomAbove >= height + GAP + 8 || roomAbove >= roomBelow ? "top" : "bottom");
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      isCoarsePointer.current =
-        window.matchMedia("(pointer: coarse)").matches ||
-        "ontouchstart" in window;
-    }
-  }, []);
+  // Measure once the card is in the DOM so the flip uses its real height.
+  useLayoutEffect(() => {
+    if (open) updatePosition();
+  }, [open, updatePosition]);
 
   useEffect(() => {
     if (!open) return;
-    updatePosition();
 
-    const handleResizeOrScroll = () => {
-      updatePosition();
-    };
-
-    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+    const onPointerDownOutside = (e: PointerEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
 
-    window.addEventListener("resize", handleResizeOrScroll);
-    window.addEventListener("scroll", handleResizeOrScroll, true);
-    document.addEventListener("mousedown", handleOutsideClick);
-    document.addEventListener("touchstart", handleOutsideClick);
-
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    document.addEventListener("pointerdown", onPointerDownOutside);
+    document.addEventListener("keydown", onKey);
     return () => {
-      window.removeEventListener("resize", handleResizeOrScroll);
-      window.removeEventListener("scroll", handleResizeOrScroll, true);
-      document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("touchstart", handleOutsideClick);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+      document.removeEventListener("pointerdown", onPointerDownOutside);
+      document.removeEventListener("keydown", onKey);
     };
   }, [open, updatePosition]);
+
+  const offset = placement === "top" ? 6 : -6;
 
   return (
     <span
       ref={containerRef}
       className="relative inline-block"
-      onMouseEnter={() => {
-        if (!isCoarsePointer.current) {
-          updatePosition();
-          setOpen(true);
-        }
-      }}
-      onMouseLeave={() => {
-        if (!isCoarsePointer.current) {
-          setOpen(false);
-        }
+      onPointerEnter={(e) => e.pointerType === "mouse" && setOpen(true)}
+      onPointerLeave={(e) => e.pointerType === "mouse" && setOpen(false)}
+      onPointerDown={(e) => {
+        lastPointer.current = e.pointerType;
       }}
     >
       <span
         tabIndex={0}
         role="button"
         aria-expanded={open}
-        onClick={(e) => {
-          e.stopPropagation();
-          updatePosition();
-          setOpen((prev) => !prev);
+        aria-describedby={open ? tooltipId : undefined}
+        onClick={() => {
+          if (lastPointer.current === "mouse") setOpen(true);
+          else setOpen((prev) => !prev);
+          lastPointer.current = "mouse";
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            updatePosition();
             setOpen((prev) => !prev);
           }
         }}
-        className={`cursor-pointer underline decoration-dotted decoration-navy decoration-2 underline-offset-4 transition-colors hover:text-navy hover:decoration-navy-700 ${className}`}
+        onBlur={(e) => {
+          if (!containerRef.current?.contains(e.relatedTarget as Node)) setOpen(false);
+        }}
+        className={`focus-ring cursor-pointer rounded-sm underline decoration-navy/25 decoration-1 underline-offset-[5px] transition-colors hover:text-ink hover:decoration-fred/70 ${
+          open ? "text-ink decoration-fred/70" : ""
+        } ${className}`}
       >
         {children}
       </span>
@@ -138,28 +122,40 @@ export function UniversityHighlight({
       <AnimatePresence>
         {open && (
           <motion.span
+            ref={tooltipRef}
+            id={tooltipId}
             role="tooltip"
-            initial={{ opacity: 0, y: 6, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            style={{
-              left: `${pos.tooltipLeft}px`,
-              width: `${pos.tooltipWidth}px`,
+            tabIndex={-1}
+            initial={{ opacity: 0, y: offset }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: offset / 2 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            onClick={() => {
+              if (lastPointer.current !== "mouse") setOpen(false);
+              lastPointer.current = "mouse";
             }}
-            className="absolute bottom-[calc(100%+8px)] z-50 rounded-xl border border-navy-700 bg-navy p-4 text-xs text-white shadow-xl"
+            style={{ left: `${pos.left}px`, width: `${pos.width}px` }}
+            className={`absolute z-40 block overflow-hidden outline-none rounded-2xl border border-line bg-parchment text-left font-sans not-italic shadow-lift ${
+              placement === "top" ? "bottom-[calc(100%+12px)]" : "top-[calc(100%+12px)]"
+            }`}
           >
-            <span className="block font-serif text-sm font-semibold text-white">
-              {highlight.title}
+            <span className="flex items-center justify-between gap-4 border-b border-line bg-white px-5 py-3.5">
+              <span className="flex min-w-0 items-center gap-2.5">
+                <img src={LOGOS[uniKey]} alt="" className="h-6 w-6 shrink-0 object-contain" />
+                <span className="truncate font-serif text-[15px] font-medium text-ink">
+                  {highlight.title}
+                </span>
+              </span>
+              <span className="flex shrink-0 flex-col items-end leading-none">
+                <span className="font-serif text-xl text-navy">{highlight.stat.value}</span>
+                <span className="mt-1 text-[9px] font-semibold uppercase tracking-[.16em] text-muted">
+                  {highlight.stat.label}
+                </span>
+              </span>
             </span>
-            <span className="mt-1 block leading-relaxed text-slate-200">
+            <span className="block px-5 py-4 text-[13px] font-normal leading-relaxed text-muted">
               {highlight.text}
             </span>
-            <span
-              aria-hidden="true"
-              style={{ left: `${pos.arrowLeft}px` }}
-              className="absolute -bottom-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-navy-700 bg-navy"
-            />
           </motion.span>
         )}
       </AnimatePresence>

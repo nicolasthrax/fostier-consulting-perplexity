@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
 import { localizedMetadata } from "@/lib/metadata";
 import { getPageTitles } from "@/lib/i18n/titles";
+import { serviceSlugs } from "@/lib/i18n/service-slugs";
 
 export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
   return localizedMetadata({
@@ -18,7 +19,10 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
 
 export default function ServicesPage({ params }: { params: { lang: Locale } }) {
   const dict = getDictionary(params.lang);
-  const services: ExplorerService[] = dict.services.items;
+  const services: ExplorerService[] = dict.services.items.map((s, i) => ({
+    ...s,
+    href: `/${params.lang}/services/${serviceSlugs[i][params.lang]}`,
+  }));
 
   return (
     <>
@@ -30,7 +34,7 @@ export default function ServicesPage({ params }: { params: { lang: Locale } }) {
       </Section>
 
       <Section className="!pt-6">
-        <ServicesExplorer services={services} />
+        <ServicesExplorer services={services} moreLabel={dict.actions.learnMore} />
         <LegalDisclaimer dict={dict} className="mt-16" />
       </Section>
     </>

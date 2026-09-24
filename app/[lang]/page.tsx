@@ -7,6 +7,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { localizedMetadata } from "@/lib/metadata";
 import { getPageTitles } from "@/lib/i18n/titles";
 import { site, whatsappUrl } from "@/lib/site";
+import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { WeChatContactButton } from "@/components/WeChatContact";
 import { AdvisorMapPill } from "@/components/AdvisorMapPill";
 import { HeroGlobe } from "@/components/HeroGlobe";
@@ -21,7 +22,7 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
   });
 }
 
-export default function HomePage({ params: { lang } }: { params: { lang: "fr" | "en" } }) {
+export default function HomePage({ params: { lang } }: { params: { lang: Locale } }) {
   const dict = getDictionary(lang);
 
   return (
@@ -119,10 +120,10 @@ export default function HomePage({ params: { lang } }: { params: { lang: "fr" | 
           <p className="body-lead mt-4 max-w-2xl">{dict.services.subtitle}</p>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2">
-            {dict.services.items.map((service: { slug: string; title: string; benefit: string }) => (
+            {dict.services.items.map((service, i) => (
               <Link
                 key={service.slug}
-                href={`/${lang}/services#${service.slug}`}
+                href={`/${lang}/services/${serviceSlugs[i][lang]}`}
                 className="card-base focus-ring group flex min-h-[180px] flex-col p-7 transition-all hover:-translate-y-[2px] hover:border-navy/25 hover:shadow-lift"
               >
                 <h3 className="font-serif text-xl font-medium text-ink">{service.title}</h3>

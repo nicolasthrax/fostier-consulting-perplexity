@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { Logo } from "./Logo";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import { WeChatContactChip } from "./WeChatContact";
 import { site, whatsappUrl } from "@/lib/site";
+import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
@@ -17,6 +18,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
     { href: `/${locale}/privacy`, label: dict.footer.links.privacy },
     { href: `/${locale}/cookies`, label: dict.footer.links.cookies },
     { href: `/${locale}/terms`, label: dict.footer.links.terms },
+    { href: `/${locale}/legal-notice`, label: dict.footer.links.notice },
   ];
   return (
     <footer className="border-t border-line bg-parchment">
@@ -51,10 +53,10 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             {dict.footer.servicesTitle}
           </h3>
           <ul className="mt-4 space-y-2.5">
-            {dict.services.items.map((s) => (
+            {dict.services.items.map((s, i) => (
               <li key={s.slug}>
                 <Link
-                  href={`/${locale}/services#${s.slug}`}
+                  href={`/${locale}/services/${serviceSlugs[i][locale]}`}
                   className="focus-ring rounded-sm text-sm text-muted hover:text-navy"
                 >
                   {s.title}
@@ -74,6 +76,15 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
                 className="focus-ring rounded-sm font-semibold text-navy underline-offset-4 hover:underline"
               >
                 {site.phoneDisplay}
+              </a>
+            </li>
+            <li>
+              <a
+                href={site.emailHref}
+                className="focus-ring inline-flex items-center gap-2 rounded-sm text-muted hover:text-navy"
+              >
+                <Mail className="h-4 w-4" />
+                {site.email}
               </a>
             </li>
             <li>
