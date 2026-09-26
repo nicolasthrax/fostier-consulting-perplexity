@@ -12,7 +12,8 @@ const labels: Record<string, string> = {
 
 const BORDER = 1.5;
 const SWEEP_DURATION = 620;
-const BLENDED_BLUE = "#1a75ff";
+const SWEEP = "#ED2939";
+const RADIUS = 2;
 
 export function AdvisorMapPill({ locale }: { locale: string }) {
   const pillRef = useRef<HTMLSpanElement>(null);
@@ -33,7 +34,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
     const draw = () => {
       const { width, height } = pill.getBoundingClientRect();
       const inset = BORDER / 2;
-      const radius = Math.max(0, height / 2 - inset);
+      const radius = Math.min(RADIUS, Math.max(0, height / 2 - inset));
 
       for (const path of [basePath, sweepPath]) {
         path.setAttribute("x", String(inset));
@@ -70,7 +71,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
       sweepPath.style.opacity = ".94";
       sweepPath.style.strokeDashoffset = "0";
       basePath.style.transition = "stroke 520ms ease-out, stroke-opacity 520ms ease-out, stroke-width 520ms ease-out";
-      basePath.style.stroke = "#0A84FF";
+      basePath.style.stroke = SWEEP;
       basePath.style.strokeOpacity = "1";
       basePath.style.strokeWidth = "1.65";
     };
@@ -80,7 +81,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
       sweepPath.style.opacity = "0";
       sweepPath.style.strokeDashoffset = "0";
       basePath.style.transition = "stroke 420ms ease-out, stroke-opacity 420ms ease-out, stroke-width 420ms ease-out";
-      basePath.style.stroke = "#FFFFFF";
+      basePath.style.stroke = "#002395";
       basePath.style.strokeOpacity = ".54";
       basePath.style.strokeWidth = String(BORDER);
       neutralStart = performance.now();
@@ -104,17 +105,12 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
   return (
     <Link
       href={`/${locale}/about#advisor`}
-      className="focus-ring group absolute bottom-4 left-4 inline-flex rounded-full transition-transform duration-500 ease-out hover:scale-[1.05]"
+      className="focus-ring group absolute bottom-4 left-4 inline-flex rounded-sm transition-transform duration-500 ease-out hover:-translate-y-0.5"
     >
       <span
         ref={pillRef}
-        className="relative inline-flex items-center gap-2 rounded-full bg-black/70 px-5 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-all duration-500 group-hover:bg-black/60"
+        className="relative inline-flex items-center gap-2 rounded-sm bg-white px-4 py-2.5 text-[13px] font-semibold text-navy transition-colors duration-500"
       >
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-full shadow-[0_0_7px_rgba(255,255,255,0.08)] transition-shadow duration-500 group-hover:shadow-[0_0_11px_rgba(10,132,255,0.22)]"
-        />
-
         <svg
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
@@ -132,7 +128,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
           <rect
             ref={basePathRef}
             fill="none"
-            stroke="#FFFFFF"
+            stroke="#002395"
             strokeOpacity=".54"
             strokeWidth={BORDER}
             className="transition-all duration-500 ease-out"
@@ -141,7 +137,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
           <rect
             ref={sweepPathRef}
             fill="none"
-            stroke={BLENDED_BLUE}
+            stroke={SWEEP}
             strokeLinecap="round"
             strokeDasharray="23 77"
             pathLength="100"
@@ -151,7 +147,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
         </svg>
 
         {labels[locale] ?? labels.en}
-        <ArrowRight className="h-3.5 w-3.5 text-white/60 transition-[color,transform] duration-500 ease-out group-hover:translate-x-0.5 group-hover:text-[#0A84FF]" />
+        <ArrowRight className="h-3.5 w-3.5 text-navy/60 transition-[color,transform] duration-500 ease-out group-hover:translate-x-0.5 group-hover:text-fred" />
       </span>
     </Link>
   );

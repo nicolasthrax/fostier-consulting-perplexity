@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss";
 
+// Tokens are documented in DESIGN.md. Neutrals are tinted towards the brand
+// blue on purpose — avoid reintroducing Tailwind's stock grays.
 const config: Config = {
   content: [
     "./app/**/*.{ts,tsx}",
@@ -11,33 +13,33 @@ const config: Config = {
       colors: {
         navy: {
           DEFAULT: "#002395",
-          50: "#EEF1FB",
-          100: "#D9DFF5",
+          50: "#EEF1F8",
+          100: "#D6DCF0",
           700: "#001B73",
           800: "#001452",
           900: "#000D38",
         },
-        fred: "#ED2939",
-        ink: "#111827",
-        slate: "#1F2937",
-        parchment: "#F8F8F6",
-        line: "#E5E7EB",
-        muted: "#6B7280",
+        nuit: "#0A1650",
+        fred: {
+          DEFAULT: "#ED2939",
+          700: "#C81C2B",
+        },
+        ink: "#141A38",
+        slate: "#353B5C",
+        muted: "#5A6082",
+        line: "#D9DCE8",
+        mist: "#EEF1F8",
       },
       fontFamily: {
         serif: ["var(--font-serif)", "var(--font-serif-zh)", "Georgia", "serif"],
         sans: ["var(--font-sans)", "var(--font-sans-zh)", "system-ui", "sans-serif"],
       },
       maxWidth: {
-        site: "72rem",
+        site: "76rem",
       },
       boxShadow: {
-        xs: "0 1px 2px rgba(17,24,39,.05)",
-        soft: "0 1px 2px rgba(17,24,39,.04), 0 8px 24px rgba(17,24,39,.06)",
-        lift: "0 2px 4px rgba(17,24,39,.05), 0 16px 40px rgba(0,35,149,.10)",
-      },
-      backdropBlur: {
-        xs: "2px",
+        // Only for layers that float above the page (modal, tooltip).
+        pop: "0 1px 0 rgba(20,26,56,.04), 0 18px 48px -12px rgba(10,22,80,.28)",
       },
     },
   },

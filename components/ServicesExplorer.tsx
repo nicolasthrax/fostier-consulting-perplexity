@@ -21,17 +21,17 @@ const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 function ServiceDetail({ service, moreLabel }: { service: ExplorerService; moreLabel: string }) {
   return (
     <>
-      <p className="border-l-2 border-fred pl-4 text-sm italic leading-relaxed text-slate">
+      <p className="font-serif text-xl leading-snug text-ink">
         {service.benefit}
       </p>
-      <p className="mt-4 text-sm leading-relaxed text-muted">{service.short}</p>
+      <p className="mt-4 text-[15px] leading-relaxed text-slate">{service.short}</p>
       <p className="mt-6 text-xs leading-relaxed text-muted">{service.disclaimer}</p>
       <Link
         href={service.href}
-        className="focus-ring group mt-6 inline-flex items-center gap-1.5 rounded-sm text-sm font-semibold text-navy underline-offset-4 hover:underline"
+        className="focus-ring link-arrow mt-7 text-[15px]"
       >
         {moreLabel}
-        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        <ArrowRight className="h-4 w-4" />
       </Link>
     </>
   );
@@ -65,7 +65,7 @@ function ServiceTitle({
   }, [title]);
 
   return (
-    <span className="relative inline-block pb-1.5 font-serif text-lg font-medium leading-snug lg:text-2xl">
+    <span className="relative inline-block pb-1.5 font-serif text-xl leading-snug lg:text-[1.65rem]">
       <span
         ref={textRef}
         className={`transition-colors duration-300 ${
@@ -116,7 +116,7 @@ export function ServicesExplorer({ services, moreLabel }: { services: ExplorerSe
                 onMouseEnter={() => setActive(i)}
                 onFocus={() => setActive(i)}
                 aria-expanded={open}
-                className="focus-ring group flex w-full py-5 text-left transition-transform duration-300 hover:-translate-y-[3px] lg:py-7"
+                className="focus-ring group flex w-full py-5 text-left lg:py-6"
               >
                 <ServiceTitle title={service.title} active={open} />
               </button>
@@ -142,10 +142,10 @@ export function ServicesExplorer({ services, moreLabel }: { services: ExplorerSe
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3, ease: EASE }}
-              className="card-base relative overflow-hidden !bg-parchment p-8 sm:p-10"
+              className="relative overflow-hidden rounded-sm bg-mist p-8 pt-10 sm:p-10 sm:pt-12"
             >
-              <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-navy via-navy-100 to-fred/70" />
-              <h3 className="font-serif text-2xl font-medium leading-snug text-ink sm:text-3xl">
+              <div aria-hidden="true" className="par-avion par-avion-drift absolute inset-x-0 top-0 h-2" />
+              <h3 className="font-serif text-3xl leading-tight tracking-[-0.01em] text-navy sm:text-4xl">
                 {current.title}
               </h3>
               <div className="mt-5">

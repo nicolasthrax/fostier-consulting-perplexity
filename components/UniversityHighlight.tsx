@@ -135,25 +135,25 @@ export function UniversityHighlight({
               lastPointer.current = "mouse";
             }}
             style={{ left: `${pos.left}px`, width: `${pos.width}px` }}
-            className={`absolute z-40 block overflow-hidden outline-none rounded-2xl border border-line bg-parchment text-left font-sans not-italic shadow-lift ${
+            className={`absolute z-40 block overflow-hidden outline-none rounded-sm border-t-4 border-navy bg-white text-left font-sans not-italic shadow-pop ${
               placement === "top" ? "bottom-[calc(100%+12px)]" : "top-[calc(100%+12px)]"
             }`}
           >
-            <span className="flex items-center justify-between gap-4 border-b border-line bg-white px-5 py-3.5">
+            <span className="flex items-center justify-between gap-4 border-b border-line px-5 py-3.5">
               <span className="flex min-w-0 items-center gap-2.5">
                 <img src={LOGOS[uniKey]} alt="" className="h-6 w-6 shrink-0 object-contain" />
-                <span className="truncate font-serif text-[15px] font-medium text-ink">
+                <span className="truncate font-serif text-base text-ink">
                   {highlight.title}
                 </span>
               </span>
               <span className="flex shrink-0 flex-col items-end leading-none">
-                <span className="font-serif text-xl text-navy">{highlight.stat.value}</span>
-                <span className="mt-1 text-[9px] font-semibold uppercase tracking-[.16em] text-muted">
+                <span className="tabular font-serif text-2xl text-fred">{highlight.stat.value}</span>
+                <span className="mt-1 text-[11px] font-medium text-muted">
                   {highlight.stat.label}
                 </span>
               </span>
             </span>
-            <span className="block px-5 py-4 text-[13px] font-normal leading-relaxed text-muted">
+            <span className="block bg-mist px-5 py-4 text-[14px] font-normal leading-relaxed text-slate">
               {highlight.text}
             </span>
           </motion.span>

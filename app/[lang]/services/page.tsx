@@ -1,5 +1,6 @@
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { Section } from "@/components/SectionHeading";
+import { PageHero, Section } from "@/components/SectionHeading";
+import { ContactEnvelope } from "@/components/ContactEnvelope";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import { ServicesExplorer, type ExplorerService } from "@/components/ServicesExplorer";
 import type { Metadata } from "next";
@@ -26,17 +27,14 @@ export default function ServicesPage({ params }: { params: { lang: Locale } }) {
 
   return (
     <>
-      <Section className="bg-gradient-to-b from-parchment to-white !pb-10">
-        <h1 className="h-serif max-w-3xl text-4xl leading-tight sm:text-5xl">
-          {dict.services.pageTitle}
-        </h1>
-        <p className="body-lead mt-6 max-w-2xl">{dict.services.pageIntro}</p>
-      </Section>
+      <PageHero title={dict.services.pageTitle} lead={dict.services.pageIntro} />
 
-      <Section className="!pt-6">
+      <Section className="!pt-14">
         <ServicesExplorer services={services} moreLabel={dict.actions.learnMore} />
         <LegalDisclaimer dict={dict} className="mt-16" />
       </Section>
+
+      <ContactEnvelope locale={params.lang} dict={dict} />
     </>
   );
 }

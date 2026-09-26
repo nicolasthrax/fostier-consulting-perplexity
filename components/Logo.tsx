@@ -1,10 +1,12 @@
 import Image from "next/image";
 
-export function Logo({ locale }: { locale: string }) {
+// The source PNG is a square with the monogram in a wide middle band;
+// object-cover crops the empty margins so the mark reads at header size.
+export function Logo({ locale, className = "h-[54px] w-[112px]" }: { locale: string; className?: string }) {
   return (
     <a
       href={`/${locale}`}
-      className="focus-ring flex items-center rounded-md"
+      className="focus-ring flex shrink-0 items-center rounded-sm"
       aria-label="Fostier Consulting"
     >
       <Image
@@ -13,7 +15,8 @@ export function Logo({ locale }: { locale: string }) {
         width={760}
         height={760}
         priority
-        className="h-12 w-auto object-contain sm:h-14"
+        sizes="140px"
+        className={`object-cover [object-position:50%_36%] ${className}`}
       />
     </a>
   );

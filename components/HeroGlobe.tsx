@@ -6,7 +6,7 @@ import { FRANCE_POINTS, LAND_MASK, SPHERE_POINTS } from "./globeDots";
 type Vec = [number, number, number];
 
 const RAD = Math.PI / 180;
-const BLUE = "#0A84FF";
+const BLUE = "#5B82FF"; // brand blue, lifted so it reads on the night panel
 const RED = "#ED2939";
 const PARIS: Vec = toVec(48.86, 2.35);
 const HK: Vec = toVec(22.32, 114.17);
@@ -18,6 +18,8 @@ const TARGET_YAW = Math.atan2(MID[1], MID[0]);
 const TARGET_PITCH = Math.asin(MID[2]) - 24 * RAD;
 
 const INTRO_MS = 2600;
+const DASH = 9;
+const DASH_PERIOD = 26;
 const ARC_START_MS = 1900;
 const ARC_MS = 1500;
 
@@ -62,7 +64,7 @@ function decodeLand(): { land: Float32Array; france: Float32Array } {
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 const easeInOut = (t: number) => 0.5 - Math.cos(Math.PI * t) / 2;
 
-export function HeroGlobe({ children }: { children?: ReactNode }) {
+export function HeroGlobe({ children, className = "" }: { children?: ReactNode; className?: string }) {
   const figureRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const parisRef = useRef<HTMLSpanElement>(null);
@@ -117,14 +119,14 @@ export function HeroGlobe({ children }: { children?: ReactNode }) {
       ctx.clearRect(0, 0, w, h);
 
       const halo = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R * 1.3);
-      halo.addColorStop(0, "rgba(10,132,255,.22)");
-      halo.addColorStop(1, "rgba(10,132,255,0)");
+      halo.addColorStop(0, "rgba(91,130,255,.18)");
+      halo.addColorStop(1, "rgba(91,130,255,0)");
       ctx.fillStyle = halo;
       ctx.fillRect(0, 0, w, h);
 
       const body = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R);
-      body.addColorStop(0, "#1c2436");
-      body.addColorStop(1, "#0b0d12");
+      body.addColorStop(0, "#1a2a78");
+      body.addColorStop(1, "#060d33");
       ctx.beginPath();
       ctx.arc(cx, cy, R, 0, Math.PI * 2);
       ctx.fillStyle = body;
@@ -177,9 +179,9 @@ export function HeroGlobe({ children }: { children?: ReactNode }) {
       ctx.restore();
 
       const rim = ctx.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
-      rim.addColorStop(0, "rgba(10,132,255,.55)");
-      rim.addColorStop(0.5, "rgba(255,255,255,.08)");
-      rim.addColorStop(1, "rgba(237,41,57,.35)");
+      rim.addColorStop(0, "rgba(91,130,255,.7)");
+      rim.addColorStop(0.5, "rgba(255,255,255,.25)");
+      rim.addColorStop(1, "rgba(237,41,57,.6)");
       ctx.beginPath();
       ctx.arc(cx, cy, R, 0, Math.PI * 2);
       ctx.strokeStyle = rim;
@@ -187,12 +189,6 @@ export function HeroGlobe({ children }: { children?: ReactNode }) {
       ctx.stroke();
 
       const route = ROUTE.map(([x, y, z]) => project(x, y, z));
-      const a = route[0];
-      const b = route[route.length - 1];
-      const grad = ctx.createLinearGradient(a[0], a[1], b[0], b[1]);
-      grad.addColorStop(0, BLUE);
-      grad.addColorStop(0.55, "#7A6CFF");
-      grad.addColorStop(1, RED);
       const stroke = (from: number, to: number) => {
         const i0 = Math.floor(from * (route.length - 1));
         const i1 = Math.floor(to * (route.length - 1));
@@ -207,15 +203,28 @@ export function HeroGlobe({ children }: { children?: ReactNode }) {
         ctx.stroke();
       };
 
+      // The route is drawn like an airmail border: white thread, then red and blue
+      // dashes marching from Paris towards Hong Kong once the flight has landed.
       const arc = reduced ? 1 : easeInOut(Math.min(1, Math.max(0, (t - ARC_START_MS) / ARC_MS)));
-      ctx.save();
-      ctx.lineCap = "round";
-      ctx.strokeStyle = grad;
-      ctx.shadowColor = "rgba(122,108,255,.8)";
-      ctx.shadowBlur = 10;
-      ctx.lineWidth = 1.8;
-      if (arc > 0) stroke(0, arc);
-      ctx.restore();
+      if (arc > 0) {
+        const march = reduced ? 0 : -((t - ARC_START_MS) / 45) % DASH_PERIOD;
+        ctx.save();
+        ctx.lineCap = "butt";
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(255,255,255,.92)";
+        ctx.shadowColor = "rgba(255,255,255,.35)";
+        ctx.shadowBlur = 6;
+        stroke(0, arc);
+        ctx.shadowBlur = 0;
+        ctx.setLineDash([DASH, DASH_PERIOD - DASH]);
+        ctx.strokeStyle = RED;
+        ctx.lineDashOffset = march;
+        stroke(0, arc);
+        ctx.strokeStyle = "#2F5BFF";
+        ctx.lineDashOffset = march - DASH_PERIOD / 2;
+        stroke(0, arc);
+        ctx.restore();
+      }
 
       const marker = (v: Vec, color: string, size: number, label: HTMLSpanElement | null, delay: number) => {
         const [x, y, d] = project(...v);
@@ -238,7 +247,7 @@ export function HeroGlobe({ children }: { children?: ReactNode }) {
         }
         ctx.beginPath();
         ctx.arc(x, y, size * 1.9, 0, Math.PI * 2);
-        ctx.fillStyle = "#0b0d12";
+        ctx.fillStyle = "#060d33";
         ctx.fill();
         ctx.strokeStyle = color;
         ctx.lineWidth = 1;
@@ -299,15 +308,13 @@ export function HeroGlobe({ children }: { children?: ReactNode }) {
   }, []);
 
   const chip =
-    "pointer-events-none absolute left-0 top-0 opacity-0 will-change-transform [&>span]:absolute [&>span]:whitespace-nowrap [&>span]:rounded-full [&>span]:border [&>span]:border-white/15 [&>span]:bg-black/55 [&>span]:px-2.5 [&>span]:py-1 [&>span]:text-[10px] [&>span]:font-semibold [&>span]:uppercase [&>span]:tracking-[.2em] [&>span]:text-white [&>span]:backdrop-blur";
+    "pointer-events-none absolute left-0 top-0 opacity-0 will-change-transform [&>span]:absolute [&>span]:whitespace-nowrap [&>span]:rounded-sm [&>span]:px-2 [&>span]:py-1 [&>span]:text-[11px] [&>span]:font-semibold [&>span]:tracking-[.08em]";
 
   return (
     <figure
       ref={figureRef}
-      className="relative aspect-[25/17] overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#1c1c1e] via-[#141416] to-black shadow-soft"
+      className={`relative aspect-[25/17] overflow-hidden bg-nuit ${className}`}
     >
-      <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#0A84FF]/15 blur-3xl" aria-hidden="true" />
-      <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-fred/10 blur-3xl" aria-hidden="true" />
 
       <canvas
         ref={canvasRef}
@@ -316,10 +323,10 @@ export function HeroGlobe({ children }: { children?: ReactNode }) {
       />
 
       <span ref={parisRef} aria-hidden="true" className={chip}>
-        <span className="-translate-x-1/2 -translate-y-[calc(100%+12px)]">Paris</span>
+        <span className="-translate-x-1/2 -translate-y-[calc(100%+12px)] bg-white text-navy">Paris</span>
       </span>
       <span ref={hkRef} aria-hidden="true" className={chip}>
-        <span className="-translate-x-1/2 translate-y-[14px]">Hong Kong</span>
+        <span className="-translate-x-1/2 translate-y-[14px] bg-fred text-white">Hong Kong</span>
       </span>
 
       {children}

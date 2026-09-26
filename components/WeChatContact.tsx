@@ -69,26 +69,26 @@ export function WeChatContactModal({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fade-in fixed inset-0 z-[80] flex items-center justify-center p-4 [animation-duration:.2s]"
       role="dialog"
       aria-modal="true"
       aria-label={s.title}
     >
       <div
-        className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-nuit/60"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="card-base relative w-full max-w-sm p-8 text-center shadow-lift animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-sm rounded-sm border-t-4 border-[#07C160] bg-white p-8 text-center shadow-pop">
         <button
           type="button"
           onClick={onClose}
           aria-label={s.closeLabel}
-          className="focus-ring absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:text-ink"
+          className="focus-ring absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-sm text-muted hover:text-ink"
         >
           <X className="h-4 w-4" />
         </button>
-        <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#07C160] text-white">
+        <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-sm bg-[#07C160] text-white">
           <WeChatIcon className="h-7 w-7" />
         </span>
         <h3 className="mt-4 font-serif text-xl font-medium text-ink">
@@ -97,8 +97,8 @@ export function WeChatContactModal({
         <p className="mt-1 text-sm leading-relaxed text-muted">
           {s.subtitle}
         </p>
-        <div className="mt-6 rounded-2xl border border-line bg-parchment p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-[.18em] text-muted">
+        <div className="mt-6 rounded-sm bg-mist p-4">
+          <p className="text-xs font-medium text-muted">
             {s.idLabel}
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
@@ -108,7 +108,7 @@ export function WeChatContactModal({
             <button
               type="button"
               onClick={copy}
-              className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-navy/25 bg-white px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-navy/50"
+              className="focus-ring inline-flex items-center gap-1.5 rounded-sm border border-navy/25 bg-white px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-navy"
             >
               {copied ? (
                 <Check className="h-3.5 w-3.5 text-fred" />
@@ -123,7 +123,7 @@ export function WeChatContactModal({
           <img
             src={WECHAT_QR_SRC}
             alt={s.scanNote}
-            className="mx-auto mt-6 h-36 w-36 rounded-xl border border-line object-contain"
+            className="mx-auto mt-6 h-36 w-36 rounded-sm border border-line object-contain"
             onError={() => setQrOk(false)}
           />
         )}
@@ -150,7 +150,7 @@ export function WeChatContactButton({
         onClick={() => setOpen(true)}
         aria-label={s.buttonLabel}
         title={s.buttonLabel}
-        className={`focus-ring inline-flex ${sizeClassName} items-center justify-center rounded-full border border-[#07C160] bg-[#07C160] text-white transition-colors hover:bg-[#06AD56] hover:border-[#06AD56]`}
+        className={`focus-ring inline-flex ${sizeClassName} items-center justify-center rounded-sm border border-[#07C160] bg-[#07C160] text-white transition-colors hover:border-[#06AD56] hover:bg-[#06AD56]`}
       >
         <WeChatIcon className="h-5 w-5" />
       </button>
@@ -168,9 +168,9 @@ export function WeChatContactChip({ locale }: { locale: Locale | string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={s.title}
-        className="focus-ring inline-flex items-center gap-2 rounded-sm text-left text-sm text-muted transition-colors hover:text-navy"
+        className="focus-ring inline-flex items-center gap-2 rounded-sm text-left text-[15px] text-slate transition-colors hover:text-navy"
       >
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-[#07C160] text-white">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-[#07C160] text-white">
           <WeChatIcon className="h-3 w-3" />
         </span>
         <span>WeChat</span>

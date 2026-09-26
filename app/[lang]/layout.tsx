@@ -5,7 +5,7 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { organisationJsonLd } from "@/lib/structured-data";
-import { playfair, inter, notoSerifSC, notoSansSC } from "@/lib/fonts";
+import { newsreader, bricolage, notoSerifSC, notoSansSC } from "@/lib/fonts";
 import { site } from "@/lib/site";
 import { getPageTitles } from "@/lib/i18n/titles";
 import "../globals.css";
@@ -50,10 +50,10 @@ export default function LocaleLayout({
   const jsonLd = organisationJsonLd(lang);
 
   return (
-    <html lang={dict.htmlLang} className={`${playfair.variable} ${inter.variable} ${notoSerifSC.variable} ${notoSansSC.variable} font-sans`}>
+    <html lang={dict.htmlLang} className={`${newsreader.variable} ${bricolage.variable} ${notoSerifSC.variable} ${notoSansSC.variable} font-sans`}>
       <body className="flex min-h-screen flex-col">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-navy focus:px-5 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-sm focus:bg-navy focus:px-5 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
           {skipLinkLabel[lang]}
         </a>
         <Header locale={lang} dict={dict} />

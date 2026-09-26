@@ -1,19 +1,25 @@
-import { Playfair_Display, Inter, Noto_Serif_SC, Noto_Sans_SC } from "next/font/google";
+import { Newsreader, Bricolage_Grotesque, Noto_Serif_SC, Noto_Sans_SC } from "next/font/google";
 
-export const playfair = Playfair_Display({
+// Newsreader is drawn by Production Type (Paris); its optical-size axis gives
+// high-contrast display cuts for headlines and sturdier text cuts for quotes.
+export const newsreader = Newsreader({
   subsets: ["latin"],
+  axes: ["opsz"],
+  style: ["normal", "italic"],
   variable: "--font-serif",
   display: "swap",
 });
 
-export const inter = Inter({
+// Bricolage Grotesque (Mathieu Triay) — body copy and UI.
+export const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
+  axes: ["opsz"],
   variable: "--font-sans",
   display: "swap",
 });
 
 // Chinese fallbacks: listed after the Latin fonts, so Latin glyphs still come
-// from Playfair/Inter and CJK chunks are only downloaded on pages that use them.
+// from Newsreader/Bricolage and CJK chunks are only downloaded on pages that use them.
 export const notoSerifSC = Noto_Serif_SC({
   weight: ["400", "500", "600"],
   variable: "--font-serif-zh",
