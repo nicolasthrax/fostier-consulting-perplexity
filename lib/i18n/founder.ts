@@ -15,6 +15,7 @@ export interface FounderExperience {
   location: string;
   current?: boolean;
   detail: string;
+  logo?: string;
 }
 
 export interface FounderEducation {
@@ -81,6 +82,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Senior Wealth Management Manager",
         company: "AIA",
+        logo: "/brand/aia-logo.svg",
         location: "Hong Kong & Macao",
         current: false,
         detail:
@@ -89,6 +91,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Gestion de patrimoine",
         company: "HSBC",
+        logo: "/brand/hsbc-logo.svg",
         location: "Paris, France",
         current: false,
         detail:
@@ -145,6 +148,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Senior Wealth Management Manager",
         company: "AIA",
+        logo: "/brand/aia-logo.svg",
         location: "Hong Kong & Macau",
         current: false,
         detail:
@@ -153,6 +157,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Wealth management",
         company: "HSBC",
+        logo: "/brand/hsbc-logo.svg",
         location: "Paris, France",
         current: false,
         detail:
@@ -209,6 +214,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Senior Wealth Management Manager",
         company: "AIA（友邦保险）",
+        logo: "/brand/aia-logo.svg",
         location: "香港及澳门",
         current: false,
         detail:
@@ -217,6 +223,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "财富管理",
         company: "汇丰银行（HSBC）",
+        logo: "/brand/hsbc-logo.svg",
         location: "法国巴黎",
         current: false,
         detail:

@@ -118,17 +118,17 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
             {credentialsLabel[lang]}
           </p>
           <ul className="flex flex-wrap items-center gap-x-8 gap-y-4">
-            {pastEmployers.map((e) => (
-              <li key={e.company} className="font-serif text-lg font-medium text-slate/80">
-                {e.company}
-              </li>
-            ))}
-            {founder.education.map((ed) => (
-              <li key={ed.school} className="flex items-center gap-2.5 text-sm font-semibold text-slate/80">
-                <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg border border-line bg-white p-0.5 shadow-xs">
-                  <Image src={ed.logo} alt="" width={32} height={32} className="h-full w-full object-contain" />
-                </span>
-                {ed.school}
+            {[
+              ...pastEmployers.map((e) => ({ name: e.company, logo: e.logo })),
+              ...founder.education.map((ed) => ({ name: ed.school, logo: ed.logo })),
+            ].map(({ name, logo }) => (
+              <li key={name} className="flex items-center gap-2.5 text-sm font-semibold text-slate/80">
+                {logo && (
+                  <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg border border-line bg-white p-0.5 shadow-xs">
+                    <Image src={logo} alt="" width={32} height={32} className="h-full w-full object-contain" />
+                  </span>
+                )}
+                {name}
               </li>
             ))}
           </ul>
