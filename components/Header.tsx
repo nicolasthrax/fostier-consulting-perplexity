@@ -53,15 +53,6 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher current={locale} label={dict.nav.languageSwitcher} />
-          <a
-            href={whatsappUrl(dict.actions.whatsappMessage)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="focus-ring btn-primary hidden !py-2.5 text-sm sm:inline-flex"
-          >
-            <WhatsAppIcon className="h-4 w-4" />
-            {dict.actions.whatsapp}
-          </a>
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
