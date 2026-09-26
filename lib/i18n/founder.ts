@@ -82,7 +82,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Senior Wealth Management Manager",
         company: "AIA",
-        logo: "/brand/aia-logo.svg",
+        logo: "/brand/aia-logo.png",
         location: "Hong Kong & Macao",
         current: false,
         detail:
@@ -148,7 +148,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Senior Wealth Management Manager",
         company: "AIA",
-        logo: "/brand/aia-logo.svg",
+        logo: "/brand/aia-logo.png",
         location: "Hong Kong & Macau",
         current: false,
         detail:
@@ -214,7 +214,7 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Senior Wealth Management Manager",
         company: "AIA（友邦保险）",
-        logo: "/brand/aia-logo.svg",
+        logo: "/brand/aia-logo.png",
         location: "香港及澳门",
         current: false,
         detail:
