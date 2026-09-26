@@ -10,8 +10,6 @@ export type ExplorerService = {
   title: string;
   short: string;
   benefit: string;
-  icon: string;
-  includes: string[];
   disclaimer: string;
   href: string;
 };

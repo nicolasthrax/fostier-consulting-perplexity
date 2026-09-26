@@ -9,7 +9,7 @@ import type { Locale } from "@/lib/i18n/config";
 export const FOUNDER_PORTRAIT_SRC =
   "/brand/89EE7D74-C846-4FCE-8943-5E73CBBF2890_1_201_a.jpeg";
 
-export interface FounderExperience {
+interface FounderExperience {
   role: string;
   company: string;
   location: string;
@@ -18,7 +18,7 @@ export interface FounderExperience {
   logo?: string;
 }
 
-export interface FounderEducation {
+interface FounderEducation {
   degree: string;
   school: string;
   location: string;
@@ -26,14 +26,14 @@ export interface FounderEducation {
   key: "esg" | "fudan";
 }
 
-export interface UniversityHighlight {
+interface UniversityHighlight {
   title: string;
   text: string;
   /** Key credential shown large in the pop-up header. */
   stat: { value: string; label: string };
 }
 
-export interface FounderProfile {
+interface FounderProfile {
   heading: string;
   name: string;
   role: string;

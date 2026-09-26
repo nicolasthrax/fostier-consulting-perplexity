@@ -2,7 +2,7 @@
   "name": "fostier-consulting",
   "version": "1.0.0",
   "private": true,
-  "description": "Fostier Consulting — Bilingual (FR/EN) financial-services website for French residents in Hong Kong.",
+  "description": "Fostier Consulting — Trilingual (FR/EN/ZH) financial-services website for French residents in Hong Kong.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

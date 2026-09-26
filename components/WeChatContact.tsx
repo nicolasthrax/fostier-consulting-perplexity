@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Copy, X } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
 import {
@@ -9,7 +10,7 @@ import {
   getWeChatStrings,
 } from "@/lib/i18n/wechat";
 
-export function WeChatIcon({ className }: { className?: string }) {
+function WeChatIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -43,7 +44,7 @@ function useCopyId() {
   return { copied, copy };
 }
 
-export function WeChatContactModal({
+function WeChatContactModal({
   open,
   onClose,
   locale,
@@ -55,32 +56,64 @@ export function WeChatContactModal({
   const [qrOk, setQrOk] = useState(true);
   const { copied, copy } = useCopyId();
   const s = getWeChatStrings(locale);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
+  // While open: focus the dialog, keep Tab inside it, close on Escape, freeze the page
+  // behind it, and hand focus back to whatever opened it.
   useEffect(() => {
     if (!open) return;
+    const opener = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") return onCloseRef.current();
+      if (e.key !== "Tab" || !panelRef.current) return;
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>("button, [href], [tabindex]:not([tabindex='-1'])");
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      opener?.focus();
+    };
+  }, [open]);
 
   if (!open) return null;
 
-  return (
+  // Portalled to <body> so no transformed or clipped ancestor can trap the fixed overlay.
+  return createPortal(
     <div
       className="fade-in fixed inset-0 z-[80] flex items-center justify-center p-4 [animation-duration:.2s]"
       role="dialog"
       aria-modal="true"
-      aria-label={s.title}
+      aria-labelledby={titleId}
     >
       <div
         className="absolute inset-0 bg-nuit/60"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative w-full max-w-sm rounded-sm border-t-4 border-[#07C160] bg-white p-8 text-center shadow-pop">
+      <div
+        ref={panelRef}
+        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto rounded-sm border-t-4 border-[#07C160] bg-white p-8 text-center shadow-pop"
+      >
         <button
+          ref={closeRef}
           type="button"
           onClick={onClose}
           aria-label={s.closeLabel}
@@ -91,9 +124,9 @@ export function WeChatContactModal({
         <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-sm bg-[#07C160] text-white">
           <WeChatIcon className="h-7 w-7" />
         </span>
-        <h3 className="mt-4 font-serif text-xl font-medium text-ink">
+        <h2 id={titleId} className="mt-4 font-serif text-xl font-medium text-ink">
           {s.title}
-        </h3>
+        </h2>
         <p className="mt-1 text-sm leading-relaxed text-muted">
           {s.subtitle}
         </p>
@@ -129,7 +162,8 @@ export function WeChatContactModal({
         )}
         <p className="mt-4 text-xs leading-relaxed text-muted">{s.scanNote}</p>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

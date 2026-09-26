@@ -20,6 +20,9 @@ export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
+// Only the three locales exist; anything else 404s before a page can render with it.
+export const dynamicParams = false;
+
 export const viewport = {
   themeColor: "#002395",
   width: "device-width",

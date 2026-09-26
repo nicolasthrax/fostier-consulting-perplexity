@@ -12,7 +12,7 @@ import { site } from "./site";
 const orgId = `${site.baseUrl}/#organization`;
 const languages = ["French", "English", "Chinese"];
 
-export const serviceUrl = (locale: Locale, index: number) =>
+const serviceUrl = (locale: Locale, index: number) =>
   `${site.baseUrl}/${locale}/services/${serviceSlugs[index][locale]}`;
 
 export function organisationJsonLd(locale: Locale) {

@@ -51,7 +51,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher current={locale} label={dict.nav.languageSwitcher} />
           <a
             href={whatsappUrl(dict.actions.whatsappMessage)}
@@ -93,12 +93,12 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
               href={whatsappUrl(dict.actions.whatsappMessage)}
               target="_blank"
               rel="noopener noreferrer"
-              className="focus-ring btn-primary flex-1"
+              className="focus-ring btn-primary flex-1 whitespace-nowrap"
             >
               <WhatsAppIcon className="h-4 w-4" />
               {dict.actions.whatsapp}
             </a>
-            <a href={site.phoneHref} className="focus-ring btn-outline flex-1">
+            <a href={site.phoneHref} className="focus-ring btn-outline tabular flex-1 whitespace-nowrap">
               <Phone className="h-4 w-4" />
               {site.phoneDisplay}
             </a>

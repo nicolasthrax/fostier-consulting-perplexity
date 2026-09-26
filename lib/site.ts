@@ -18,7 +18,5 @@ export const site = {
   baseUrl: "https://www.fostierconsulting.com",
 } as const;
 
-export type Locale = "fr" | "en";
-
 export const whatsappUrl = (message: string) =>
   `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(message)}`;

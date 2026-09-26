@@ -8,10 +8,11 @@ export function RiseTitle({ text, className = "", delay = 0.05, step = 0.06 }: {
   const spaced = /\s/.test(text);
   const parts = spaced ? text.split(/\s+/) : text.split(/(?<=[，。、])/);
   return (
-    <h1 className={className}>
+    // The split spans are hidden from assistive tech, which reads the whole title from aria-label.
+    <h1 className={className} aria-label={text}>
       {parts.map((part, i) => (
         <Fragment key={i}>
-          <span className="rise-line">
+          <span aria-hidden="true" className="rise-line">
             <span style={{ animationDelay: `${delay + i * step}s` }}>{part}</span>
           </span>
           {spaced && i < parts.length - 1 ? " " : null}

@@ -30,6 +30,8 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
     let neutralStart = performance.now();
     let sweepStart: number | null = null;
     let frame = 0;
+    let visible = true;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const draw = () => {
       const { width, height } = pill.getBoundingClientRect();
@@ -63,7 +65,7 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
         if (progress >= 1) sweepStart = null;
       }
 
-      frame = requestAnimationFrame(animate);
+      frame = visible ? requestAnimationFrame(animate) : 0;
     };
 
     const onMouseEnter = () => {
@@ -92,11 +94,17 @@ export function AdvisorMapPill({ locale }: { locale: string }) {
     observer.observe(pill);
     pill.addEventListener("mouseenter", onMouseEnter);
     pill.addEventListener("mouseleave", onMouseLeave);
-    frame = requestAnimationFrame(animate);
+    // The border pulse runs every frame, so only animate while the pill is on screen.
+    const io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !frame && !reduced) frame = requestAnimationFrame(animate);
+    });
+    io.observe(pill);
 
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      io.disconnect();
       pill.removeEventListener("mouseenter", onMouseEnter);
       pill.removeEventListener("mouseleave", onMouseLeave);
     };

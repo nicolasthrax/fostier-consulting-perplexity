@@ -11,14 +11,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          DEFAULT: "#002395",
-          50: "#EEF1F8",
-          100: "#D6DCF0",
-          700: "#001B73",
-          800: "#001452",
-          900: "#000D38",
-        },
+        navy: "#002395",
         nuit: "#0A1650",
         fred: {
           DEFAULT: "#ED2939",

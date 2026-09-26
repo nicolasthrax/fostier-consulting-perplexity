@@ -21,7 +21,11 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
 export default function ServicesPage({ params }: { params: { lang: Locale } }) {
   const dict = getDictionary(params.lang);
   const services: ExplorerService[] = dict.services.items.map((s, i) => ({
-    ...s,
+    slug: s.slug,
+    title: s.title,
+    short: s.short,
+    benefit: s.benefit,
+    disclaimer: s.disclaimer,
     href: `/${params.lang}/services/${serviceSlugs[i][params.lang]}`,
   }));
 

@@ -77,7 +77,7 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
                 href={whatsappUrl(dict.actions.whatsappMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="focus-ring btn-primary"
+                className="focus-ring btn-primary w-full sm:w-auto"
               >
                 <WhatsAppIcon className="h-4 w-4" />
                 {dict.actions.whatsappAdvisor}

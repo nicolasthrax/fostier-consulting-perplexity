@@ -31,7 +31,7 @@ export function ContactEnvelope({ locale, dict }: { locale: Locale; dict: Dictio
     <section id="contact" aria-labelledby="contact-title" className="scroll-mt-24 bg-mist py-20 sm:py-28">
       <div className="container-site">
         <div className="envelope">
-          <div className="envelope-inner grid gap-12 p-7 sm:p-12 lg:grid-cols-[1.25fr_1fr] lg:p-16">
+          <div className="envelope-inner grid gap-12 px-5 py-8 sm:p-12 lg:grid-cols-[1.25fr_1fr] lg:p-16">
             <div>
               <p className="inline-flex flex-col rounded-sm bg-navy px-3 py-1.5 text-[11px] font-bold leading-tight tracking-[.12em] text-white">
                 <span>PAR AVION</span>
@@ -46,12 +46,12 @@ export function ContactEnvelope({ locale, dict }: { locale: Locale; dict: Dictio
                   href={whatsappUrl(dict.actions.whatsappMessage)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="focus-ring btn-primary"
+                  className="focus-ring btn-primary w-full sm:w-auto"
                 >
                   <WhatsAppIcon className="h-4 w-4" />
                   {dict.actions.whatsappAdvisor}
                 </a>
-                <a href={site.emailHref} className="focus-ring btn-outline">
+                <a href={site.emailHref} className="focus-ring btn-outline w-full sm:w-auto">
                   <Mail className="h-4 w-4" />
                   {t.email}
                 </a>
