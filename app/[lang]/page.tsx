@@ -209,7 +209,7 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
           {hkQuote && (
             <Reveal delay={0.1} className="flex items-end">
               <blockquote>
-                <span aria-hidden="true" className="-mb-6 block h-20 font-serif text-[8rem] leading-none text-fred">
+                <span aria-hidden="true" className="mb-5 block font-serif text-[5.5rem] leading-[.55] text-fred">
                   {lang === "zh" ? "“" : "«"}
                 </span>
                 <p className="font-serif text-3xl leading-[1.25] tracking-[-0.01em] sm:text-[2.6rem]">{hkQuote}</p>

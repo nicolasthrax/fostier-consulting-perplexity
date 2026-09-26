@@ -61,13 +61,13 @@ const UFE_ARTICLE_URL =
 const profiles: Record<Locale, FounderProfile> = {
   fr: {
     heading: "Votre conseillère",
-    name: "Lucie Xiong",
+    name: "Lucie Fostier",
     role: "Fondatrice",
     location: "Hong Kong · Auparavant Paris",
-    portraitAlt: "Portrait de Lucie Xiong, fondatrice de Fostier Consulting",
+    portraitAlt: "Portrait de Lucie Fostier, fondatrice de Fostier Consulting",
     bio: [
       "Fondatrice de Fostier Consulting, Lucie accompagne des particuliers exigeants — dont une clientèle fortunée — à Hong Kong, Macao et en Chine continentale : investissement, épargne, assurance santé et vie, retraite.",
-      "Économiste diplômée de l'Université Fudan (Shanghai), formée au Groupe ESG (Paris) et passée par HSBC, elle parle un français parfait. En février 2026, l'UFE Hong Kong l'a invitée à présenter les traditions du Nouvel An chinois à la communauté française.",
+      "Économiste diplômée de l'Université Fudan (Shanghai), formée à l'école de commerce ESG (Paris) et passée par HSBC, elle parle un français parfait. En février 2026, l'UFE Hong Kong l'a invitée à présenter les traditions du Nouvel An chinois à la communauté française.",
     ],
     experienceTitle: "Expérience",
     experience: [
@@ -102,7 +102,7 @@ const profiles: Record<Locale, FounderProfile> = {
     education: [
       {
         degree: "Diplôme de niveau Master",
-        school: "Groupe ESG",
+        school: "École de commerce ESG",
         location: "Paris, France",
         logo: "/brand/esg-logo.svg",
         key: "esg",
@@ -127,13 +127,13 @@ const profiles: Record<Locale, FounderProfile> = {
   },
   en: {
     heading: "Your advisor",
-    name: "Lucie Xiong",
+    name: "Lucie Fostier",
     role: "Founder",
     location: "Hong Kong · Formerly Paris",
-    portraitAlt: "Portrait of Lucie Xiong, founder of Fostier Consulting",
+    portraitAlt: "Portrait of Lucie Fostier, founder of Fostier Consulting",
     bio: [
       "Founder of Fostier Consulting, Lucie advises discerning private clients — including high-net-worth individuals — across Hong Kong, Macau and mainland China on investment, savings, health and life insurance, and retirement planning.",
-      "An economics graduate of Fudan University (Shanghai), educated at ESG Group (Paris) and seasoned at HSBC, she speaks fluent French. In February 2026, UFE Hong Kong invited her to present Chinese New Year traditions to the French community.",
+      "An economics graduate of Fudan University (Shanghai), educated at ESG business school (Paris) and seasoned at HSBC, she speaks fluent French. In February 2026, UFE Hong Kong invited her to present Chinese New Year traditions to the French community.",
     ],
     experienceTitle: "Experience",
     experience: [
@@ -168,7 +168,7 @@ const profiles: Record<Locale, FounderProfile> = {
     education: [
       {
         degree: "Master's-level business degree",
-        school: "ESG Group",
+        school: "ESG business school",
         location: "Paris, France",
         logo: "/brand/esg-logo.svg",
         key: "esg",
@@ -193,13 +193,13 @@ const profiles: Record<Locale, FounderProfile> = {
   },
   zh: {
     heading: "您的专属顾问",
-    name: "Lucie Xiong",
+    name: "Lucie Fostier",
     role: "创始人",
     location: "中国香港 · 曾常驻法国巴黎",
-    portraitAlt: "Lucie Xiong（Fostier Consulting 创始人）的照片",
+    portraitAlt: "Lucie Fostier（Fostier Consulting 创始人）的照片",
     bio: [
       "作为 Fostier Consulting 创始人，Lucie 为香港、澳门及中国内地的高要求个人客户（包括高净值人士）提供投资、储蓄、健康与人寿保险及退休规划咨询。",
-      "Lucie 毕业于复旦大学（上海）经济学专业，曾就读于 ESG 集团（巴黎），并就职于汇丰银行，法语流利。2026 年 2 月，UFE Hong Kong 邀请她为在港法国社群讲解中国春节习俗。",
+      "Lucie 毕业于复旦大学（上海）经济学专业，曾就读于法国 ESG 商学院（巴黎），并就职于汇丰银行，法语流利。2026 年 2 月，UFE Hong Kong 邀请她为在港法国社群讲解中国春节习俗。",
     ],
     experienceTitle: "职业经历",
     experience: [
@@ -234,7 +234,7 @@ const profiles: Record<Locale, FounderProfile> = {
     education: [
       {
         degree: "硕士阶段商科学位",
-        school: "ESG 集团",
+        school: "ESG 商学院",
         location: "法国巴黎",
         logo: "/brand/esg-logo.svg",
         key: "esg",
@@ -267,9 +267,9 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
       text: "Classée 26e au niveau mondial dans le classement QS World University Rankings 2027 — l'une des principales universités de recherche en Chine.",
     },
     esg: {
-      title: "Groupe ESG",
+      title: "École de commerce ESG",
       stat: { value: "6–7", label: "RNCP" },
-      text: "Membre du réseau international Galileo Global Education. Les programmes ESG délivrent des titres RNCP de niveaux 6 et 7 reconnus par l'État français.",
+      text: "École de commerce française, membre du réseau international Galileo Global Education. Les programmes ESG délivrent des titres RNCP de niveaux 6 et 7 reconnus par l'État français.",
     },
   },
   en: {
@@ -279,9 +279,9 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
       text: "Ranked #26 globally in the QS World University Rankings 2027 — one of China’s leading research universities.",
     },
     esg: {
-      title: "ESG Group",
+      title: "ESG business school",
       stat: { value: "6–7", label: "RNCP" },
-      text: "Part of Galileo Global Education’s international network. ESG programmes award French state-recognised RNCP Level 6 and 7 qualifications.",
+      text: "French business school, part of Galileo Global Education’s international network. ESG programmes award French state-recognised RNCP Level 6 and 7 qualifications.",
     },
   },
   zh: {
@@ -291,9 +291,9 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
       text: "在 2027 年 QS 世界大学排名中位列全球第 26 位 —— 中国顶尖的研究型大学之一。",
     },
     esg: {
-      title: "ESG 集团",
+      title: "ESG 商学院",
       stat: { value: "6–7", label: "RNCP 级别" },
-      text: "伽利利全球教育集团（Galileo Global Education）国际网络成员，ESG 课程颁发法国国家认可的 RNCP 6 级与 7 级文凭。",
+      text: "法国商学院，伽利略全球教育集团（Galileo Global Education）国际网络成员，ESG 课程颁发法国国家认可的 RNCP 6 级与 7 级文凭。",
     },
   },
 };

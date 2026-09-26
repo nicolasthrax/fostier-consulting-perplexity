@@ -171,14 +171,14 @@ export function BioWithHighlights({
   locale: Locale;
 }) {
   let fudanText = "Fudan University (Shanghai)";
-  let esgText = "ESG Group (Paris)";
+  let esgText = "ESG business school (Paris)";
 
   if (locale === "fr") {
     fudanText = "Université Fudan (Shanghai)";
-    esgText = "Groupe ESG (Paris)";
+    esgText = "école de commerce ESG (Paris)";
   } else if (locale === "zh") {
     fudanText = "复旦大学（上海）";
-    esgText = "ESG 集团（巴黎）";
+    esgText = "ESG 商学院（巴黎）";
   }
 
   const parts = text.split(fudanText);

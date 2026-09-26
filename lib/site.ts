@@ -11,7 +11,7 @@ export const site = {
   whatsappNumber: "85265374439",
   email: "yingfo@hotmail.com",
   emailHref: "mailto:yingfo@hotmail.com",
-  founder: "Lucie Xiong",
+  founder: "Lucie Fostier",
   logoPath: "/brand/FOSTIER%20consulting.png",
   ufePartnerUrl: "https://www.ufehongkong.hk/partenaires/fostier-consulting",
   /** Public marketing domain — update to the production domain before launch. */
