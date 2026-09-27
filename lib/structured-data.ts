@@ -1,6 +1,8 @@
 import type { Locale } from "./i18n/config";
 import { getDictionary } from "./i18n/get-dictionary";
 import { serviceSlugs } from "./i18n/service-slugs";
+import { getFounder, FOUNDER_PORTRAIT_SRC } from "./i18n/founder";
+import type { FaqItem } from "./i18n/faq";
 import { site } from "./site";
 
 /**
@@ -10,48 +12,102 @@ import { site } from "./site";
  */
 
 const orgId = `${site.baseUrl}/#organization`;
-const languages = ["French", "English", "Chinese"];
+const websiteId = `${site.baseUrl}/#website`;
+const personId = `${site.baseUrl}/#lucie-fostier`;
+const languages = ["French", "English", "Mandarin", "Cantonese"];
+const inLanguage: Record<Locale, string> = { fr: "fr", en: "en", zh: "zh-Hans" };
 
 const serviceUrl = (locale: Locale, index: number) =>
   `${site.baseUrl}/${locale}/services/${serviceSlugs[index][locale]}`;
 
+/** Site-wide graph: the website, the business and its founder, linked by @id. */
 export function organisationJsonLd(locale: Locale) {
   const dict = getDictionary(locale);
+  const founder = getFounder(locale);
   return {
     "@context": "https://schema.org",
-    "@type": "FinancialService",
-    "@id": orgId,
-    name: site.name,
-    description: dict.meta.siteDescription,
-    url: `${site.baseUrl}/${locale}`,
-    logo: `${site.baseUrl}${site.logoPath}`,
-    image: `${site.baseUrl}${site.logoPath}`,
-    telephone: site.phoneHref.replace("tel:", ""),
-    email: site.email,
-    address: { "@type": "PostalAddress", addressLocality: "Hong Kong", addressCountry: "HK" },
-    areaServed: [
-      { "@type": "City", name: "Hong Kong" },
-      { "@type": "City", name: "Macau" },
-      { "@type": "Country", name: "China" },
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": websiteId,
+        url: site.baseUrl,
+        name: site.name,
+        publisher: { "@id": orgId },
+        inLanguage: ["fr", "en", "zh-Hans"],
+      },
+      {
+        "@type": "FinancialService",
+        "@id": orgId,
+        name: site.name,
+        description: dict.meta.siteDescription,
+        url: `${site.baseUrl}/${locale}`,
+        logo: `${site.baseUrl}${site.logoPath}`,
+        image: `${site.baseUrl}${site.logoPath}`,
+        telephone: site.phoneHref.replace("tel:", ""),
+        email: site.email,
+        foundingDate: site.foundingYear,
+        identifier: { "@type": "PropertyValue", propertyID: "Hong Kong Business Registration Number", value: site.brn },
+        // Service-area business: district only, matching the Google Business Profile.
+        address: { "@type": "PostalAddress", addressLocality: site.district, addressRegion: "Hong Kong", addressCountry: "HK" },
+        hasMap: site.googleBusinessUrl,
+        areaServed: [
+          { "@type": "City", name: "Hong Kong" },
+          { "@type": "City", name: "Macau" },
+          { "@type": "Country", name: "China" },
+        ],
+        availableLanguage: languages,
+        founder: { "@id": personId },
+        sameAs: [site.linkedinUrl, site.googleBusinessUrl, site.ufePartnerUrl],
+        contactPoint: {
+          "@type": "ContactPoint",
+          telephone: site.phoneHref.replace("tel:", ""),
+          email: site.email,
+          contactType: "customer service",
+          availableLanguage: languages,
+        },
+        hasOfferCatalog: {
+          "@type": "OfferCatalog",
+          name: dict.services.pageTitle,
+          itemListElement: dict.services.items.map((s, i) => ({
+            "@type": "Offer",
+            itemOffered: { "@type": "Service", name: s.title, url: serviceUrl(locale, i) },
+          })),
+        },
+      },
+      {
+        "@type": "Person",
+        "@id": personId,
+        name: founder.name,
+        jobTitle: founder.role,
+        url: `${site.baseUrl}/${locale}/about#advisor`,
+        image: `${site.baseUrl}${encodeURI(FOUNDER_PORTRAIT_SRC)}`,
+        worksFor: { "@id": orgId },
+        workLocation: { "@type": "Place", name: `${site.district}, Hong Kong` },
+        alumniOf: founder.education.map((ed) => ({ "@type": "EducationalOrganization", name: ed.school })),
+        knowsLanguage: languages,
+        subjectOf: {
+          "@type": "Article",
+          headline: founder.press.title.replace(/^[«“「]\s*|\s*[»”」]$/g, ""),
+          url: founder.press.url,
+          publisher: { "@type": "Organization", name: "UFE Hong Kong" },
+        },
+      },
     ],
-    availableLanguage: languages,
-    founder: { "@type": "Person", name: site.founder, jobTitle: "Founder" },
-    sameAs: [site.ufePartnerUrl],
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: site.phoneHref.replace("tel:", ""),
-      email: site.email,
-      contactType: "customer service",
-      availableLanguage: languages,
-    },
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: dict.services.pageTitle,
-      itemListElement: dict.services.items.map((s, i) => ({
-        "@type": "Offer",
-        itemOffered: { "@type": "Service", name: s.title, url: serviceUrl(locale, i) },
-      })),
-    },
+  };
+}
+
+/** About page: marks it as the founder's profile page. */
+export function aboutJsonLd(locale: Locale) {
+  const url = `${site.baseUrl}/${locale}/about`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    "@id": url,
+    url,
+    inLanguage: inLanguage[locale],
+    isPartOf: { "@id": websiteId },
+    mainEntity: { "@id": personId },
+    dateModified: site.contentUpdated,
   };
 }
 
@@ -60,6 +116,17 @@ export function serviceJsonLd(locale: Locale, index: number) {
   const service = dict.services.items[index];
   const url = serviceUrl(locale, index);
   return [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": url,
+      url,
+      name: service.title,
+      inLanguage: inLanguage[locale],
+      isPartOf: { "@id": websiteId },
+      about: { "@id": `${url}#service` },
+      dateModified: site.contentUpdated,
+    },
     {
       "@context": "https://schema.org",
       "@type": "Service",
@@ -82,4 +149,17 @@ export function serviceJsonLd(locale: Locale, index: number) {
       ],
     },
   ];
+}
+
+/** FAQPage for a visible FAQ block — the questions and answers must match the page. */
+export function faqJsonLd(items: FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map(({ q, a }) => ({
+      "@type": "Question",
+      name: q,
+      acceptedAnswer: { "@type": "Answer", text: a },
+    })),
+  };
 }

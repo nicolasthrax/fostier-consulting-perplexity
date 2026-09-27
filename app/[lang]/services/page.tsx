@@ -8,13 +8,14 @@ import type { Locale } from "@/lib/i18n/config";
 import { localizedMetadata } from "@/lib/metadata";
 import { getPageTitles } from "@/lib/i18n/titles";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
+import { pageDescriptions } from "@/lib/i18n/descriptions";
 
 export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
   return localizedMetadata({
     locale: params.lang,
     path: "/services",
     title: getPageTitles(params.lang).services,
-    description: getDictionary(params.lang).services.pageIntro,
+    description: pageDescriptions[params.lang].services,
   });
 }
 

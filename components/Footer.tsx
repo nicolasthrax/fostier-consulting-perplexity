@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, MapPin } from "lucide-react";
+import { Linkedin, Mail, MapPin } from "lucide-react";
 import { Logo } from "./Logo";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import { WeChatContactChip } from "./WeChatContact";
@@ -7,6 +7,8 @@ import { site, whatsappUrl } from "@/lib/site";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
+
+const brLabel: Record<Locale, string> = { fr: "N° BR", en: "BR No.", zh: "商业登记号码" };
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const year = new Date().getFullYear();
@@ -87,6 +89,12 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             <li>
               <WeChatContactChip locale={locale} />
             </li>
+            <li>
+              <a href={site.linkedinUrl} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-2 text-slate hover:text-navy">
+                <Linkedin className="h-4 w-4" aria-hidden="true" />
+                <span className="link-underline">LinkedIn</span>
+              </a>
+            </li>
           </ul>
           <h2 className={`${heading} mt-10`}>{dict.footer.legalTitle}</h2>
           <ul className="mt-4 space-y-3">
@@ -103,7 +111,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
       <div className="bg-nuit text-white/75">
         <div className="container-site flex flex-col gap-4 py-8 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
           <p className="max-w-3xl text-xs leading-relaxed">{dict.legal.disclaimer}</p>
-          <p className="shrink-0 text-xs">{dict.footer.copyright.replace("{year}", String(year))}</p>
+          <p className="shrink-0 text-xs">{dict.footer.copyright.replace("{year}", String(year))} · {brLabel[locale]} {site.brn}</p>
         </div>
       </div>
     </footer>

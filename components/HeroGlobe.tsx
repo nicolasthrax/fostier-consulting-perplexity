@@ -82,6 +82,7 @@ export function HeroGlobe({ children, className = "" }: { children?: ReactNode; 
     let w = 0;
     let h = 0;
     let frame = 0;
+    let lastDraw = 0;
     let visible = true;
     let dragYaw = 0;
     let dragging: { x: number; yaw: number } | null = null;
@@ -262,9 +263,13 @@ export function HeroGlobe({ children, className = "" }: { children?: ReactNode; 
       marker(HK, RED, 3.8, hkRef.current, 1200);
     };
 
+    // Motion is time-based, so drawing at ~30 fps keeps the same speed at half the main-thread cost.
     const loop = (now: number) => {
-      if (!dragging) dragYaw *= 0.94;
-      draw(now - start);
+      if (now - lastDraw >= 32 || dragging) {
+        if (!dragging) dragYaw *= 0.88;
+        draw(now - start);
+        lastDraw = now;
+      }
       frame = visible ? requestAnimationFrame(loop) : 0;
     };
 
@@ -326,7 +331,7 @@ export function HeroGlobe({ children, className = "" }: { children?: ReactNode; 
         <span className="-translate-x-1/2 -translate-y-[calc(100%+12px)] bg-white text-navy">Paris</span>
       </span>
       <span ref={hkRef} aria-hidden="true" className={chip}>
-        <span className="-translate-x-1/2 translate-y-[14px] bg-fred text-white">Hong Kong</span>
+        <span className="-translate-x-1/2 translate-y-[14px] bg-fred-700 text-white">Hong Kong</span>
       </span>
 
       {children}

@@ -11,16 +11,28 @@ export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
-/** The bundled OG font has no CJK glyphs, so the Chinese card reuses the English tagline. */
-const taglineLocale = (lang: Locale): Locale => (lang === "zh" ? "en" : lang);
+/**
+ * The bundled OG font has no CJK glyphs. For Chinese, fetch just the tagline's glyphs
+ * from Google Fonts at build time (TTF, which Satori reads); on failure, fall back to English.
+ */
+async function loadCjkFont(text: string): Promise<ArrayBuffer | null> {
+  try {
+    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&text=${encodeURIComponent(text)}`)).text();
+    const src = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1];
+    return src ? await (await fetch(src)).arrayBuffer() : null;
+  } catch {
+    return null;
+  }
+}
 
 // Satori has no repeating gradients, so the airmail stripes are an SVG pattern.
 const AIRMAIL_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><defs><pattern id="p" width="72" height="72" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="24" height="72" fill="#ed2939"/><rect x="24" width="12" height="72" fill="#fff"/><rect x="36" width="24" height="72" fill="#002395"/><rect x="60" width="12" height="72" fill="#fff"/></pattern></defs><rect width="1200" height="630" fill="url(#p)"/></svg>`,
 )}`;
 
-export default function OpengraphImage({ params }: { params: { lang: Locale } }) {
-  const dict = getDictionary(taglineLocale(params.lang));
+export default async function OpengraphImage({ params }: { params: { lang: Locale } }) {
+  const cjkFont = params.lang === "zh" ? await loadCjkFont(getDictionary("zh").hero.title) : null;
+  const dict = getDictionary(params.lang === "zh" && !cjkFont ? "en" : params.lang);
 
   // Airmail envelope: striped border, white card, title in brand navy.
   return new ImageResponse(
@@ -66,7 +78,7 @@ export default function OpengraphImage({ params }: { params: { lang: Locale } })
             </div>
           </div>
 
-          <div style={{ display: "flex", fontSize: 68, lineHeight: 1.08, maxWidth: 960, color: "#141a38" }}>
+          <div style={{ display: "flex", fontSize: 68, lineHeight: 1.08, maxWidth: 960, color: "#141a38", ...(cjkFont ? { fontFamily: "Noto Serif SC" } : {}) }}>
             {dict.hero.title}
           </div>
 
@@ -74,6 +86,6 @@ export default function OpengraphImage({ params }: { params: { lang: Locale } })
         </div>
       </div>
     ),
-    size
+    { ...size, fonts: cjkFont ? [{ name: "Noto Serif SC", data: cjkFont, weight: 500, style: "normal" }] : undefined }
   );
 }

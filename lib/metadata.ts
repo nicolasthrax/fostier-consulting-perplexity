@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { site } from "./site";
-import { ogLocales, locales, type Locale } from "./i18n/config";
+import { hreflangs, ogLocales, locales, type Locale } from "./i18n/config";
 
 /**
  * Builds canonical + hreflang alternates and OG metadata for a route.
@@ -20,7 +20,7 @@ export function localizedMetadata({
   const pathFor = (l: Locale) => (typeof path === "string" ? path : path[l]);
   const canonical = `${site.baseUrl}/${locale}${pathFor(locale)}`;
   const languages = Object.fromEntries([
-    ...locales.map((l) => [l, `${site.baseUrl}/${l}${pathFor(l)}`]),
+    ...locales.map((l) => [hreflangs[l], `${site.baseUrl}/${l}${pathFor(l)}`]),
     ["x-default", `${site.baseUrl}/fr${pathFor("fr")}`],
   ]);
 

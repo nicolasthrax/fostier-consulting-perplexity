@@ -13,13 +13,17 @@ import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
 import { localizedMetadata } from "@/lib/metadata";
 import { getPageTitles } from "@/lib/i18n/titles";
+import { pageDescriptions } from "@/lib/i18n/descriptions";
+import { formatUpdated } from "@/lib/i18n/dates";
+import { aboutJsonLd } from "@/lib/structured-data";
+import { site } from "@/lib/site";
 
 export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
   return localizedMetadata({
     locale: params.lang,
     path: "/about",
     title: getPageTitles(params.lang).about,
-    description: getDictionary(params.lang).about.mission.paragraphs[0],
+    description: pageDescriptions[params.lang].about,
   });
 }
 
@@ -37,7 +41,8 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
 
   return (
     <>
-      <PageHero title={a.title} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd(params.lang)) }} />
+      <PageHero title={a.title} note={formatUpdated(params.lang, site.contentUpdated)} />
       <AdvisorArrow label={advisorArrowLabel[params.lang] ?? advisorArrowLabel.en} />
 
       <Section>
@@ -96,8 +101,8 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
                   </p>
                   <div>
                     <p className="font-serif text-xl leading-snug text-ink">{e.role}</p>
-                    <p className="mt-0.5 text-sm text-muted">{e.location}</p>
-                    <p className="mt-3 text-[15px] leading-relaxed text-slate">{e.detail}</p>
+                    <p className="mt-0.5 text-sm text-muted">{e.period ? `${e.location} · ${e.period}` : e.location}</p>
+                    <p className="mt-3 text-base leading-relaxed text-slate">{e.detail}</p>
                   </div>
                 </li>
               ))}
@@ -138,7 +143,7 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
                 <span className="mt-2 block font-serif text-2xl leading-snug text-ink transition-colors group-hover:text-white">
                   {f.press.title}
                 </span>
-                <span className="mt-3 block text-[15px] leading-relaxed text-slate transition-colors group-hover:text-white/85">
+                <span className="mt-3 block text-base leading-relaxed text-slate transition-colors group-hover:text-white/85">
                   {f.press.text}
                 </span>
                 <span className="mt-4 inline-flex items-center gap-1.5 text-[15px] font-semibold text-navy transition-colors group-hover:text-white">

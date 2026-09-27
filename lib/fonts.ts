@@ -1,11 +1,12 @@
-import { Newsreader, Bricolage_Grotesque, Noto_Serif_SC, Noto_Sans_SC } from "next/font/google";
+import { Newsreader, Bricolage_Grotesque } from "next/font/google";
 
 // Newsreader is drawn by Production Type (Paris); its optical-size axis gives
 // high-contrast display cuts for headlines and sturdier text cuts for quotes.
+// Upright only: the design never uses italics, and the italic file alone is ~147 KB.
 export const newsreader = Newsreader({
   subsets: ["latin"],
   axes: ["opsz"],
-  style: ["normal", "italic"],
+  style: ["normal"],
   variable: "--font-serif",
   display: "swap",
 });
@@ -18,17 +19,5 @@ export const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
-// Chinese fallbacks: listed after the Latin fonts, so Latin glyphs still come
-// from Newsreader/Bricolage and CJK chunks are only downloaded on pages that use them.
-export const notoSerifSC = Noto_Serif_SC({
-  weight: ["400", "500", "600"],
-  variable: "--font-serif-zh",
-  display: "swap",
-  preload: false,
-});
-
-export const notoSansSC = Noto_Sans_SC({
-  variable: "--font-sans-zh",
-  display: "swap",
-  preload: false,
-});
+// Chinese uses the system CJK fonts listed in tailwind.config.ts. Web-font Noto SC
+// put ~128 KB of render-blocking @font-face CSS on every page, FR and EN included.

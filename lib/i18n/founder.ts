@@ -5,15 +5,17 @@
  */
 
 import type { Locale } from "@/lib/i18n/config";
+import { site } from "@/lib/site";
 
-export const FOUNDER_PORTRAIT_SRC =
-  "/brand/89EE7D74-C846-4FCE-8943-5E73CBBF2890_1_201_a.jpeg";
+export const FOUNDER_PORTRAIT_SRC = "/brand/lucie-fostier-portrait.jpeg";
 
 interface FounderExperience {
   role: string;
   company: string;
   location: string;
   current?: boolean;
+  /** e.g. "Since 2015"; only shown when known. */
+  period?: string;
   detail: string;
   logo?: string;
 }
@@ -55,8 +57,7 @@ interface FounderProfile {
   };
 }
 
-const UFE_ARTICLE_URL =
-  "https://www.ufehongkong.hk/actualite/les-secrets-du-nouvel-an-chinois-avec-lucie";
+const UFE_ARTICLE_URL = site.ufeArticleUrl;
 
 const profiles: Record<Locale, FounderProfile> = {
   fr: {
@@ -66,7 +67,7 @@ const profiles: Record<Locale, FounderProfile> = {
     location: "Hong Kong · Auparavant Paris",
     portraitAlt: "Portrait de Lucie Fostier, fondatrice de Fostier Consulting",
     bio: [
-      "Fondatrice de Fostier Consulting, Lucie accompagne des particuliers exigeants — dont une clientèle fortunée — à Hong Kong, Macao et en Chine continentale : investissement, épargne, assurance santé et vie, retraite.",
+      "Fondatrice de Fostier Consulting en 2015, Lucie accompagne des particuliers exigeants — dont une clientèle fortunée — à Hong Kong, Macao et en Chine continentale : investissement, épargne, assurance santé et vie, retraite.",
       "Économiste diplômée de l'Université Fudan (Shanghai), formée à l'école de commerce ESG (Paris) et passée par HSBC, elle parle un français parfait. En février 2026, l'UFE Hong Kong l'a invitée à présenter les traditions du Nouvel An chinois à la communauté française.",
     ],
     experienceTitle: "Expérience",
@@ -74,8 +75,9 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Fondatrice",
         company: "Fostier Consulting",
-        location: "Hong Kong",
+        location: "Central, Hong Kong",
         current: true,
+        period: "Depuis 2015",
         detail:
           "Conseil en investissement, épargne, assurance santé et vie, et planification de la retraite pour des particuliers à Hong Kong, Macao et en Chine continentale.",
       },
@@ -132,7 +134,7 @@ const profiles: Record<Locale, FounderProfile> = {
     location: "Hong Kong · Formerly Paris",
     portraitAlt: "Portrait of Lucie Fostier, founder of Fostier Consulting",
     bio: [
-      "Founder of Fostier Consulting, Lucie advises discerning private clients — including high-net-worth individuals — across Hong Kong, Macau and mainland China on investment, savings, health and life insurance, and retirement planning.",
+      "Founder of Fostier Consulting since 2015, Lucie advises discerning private clients — including high-net-worth individuals — across Hong Kong, Macau and mainland China on investment, savings, health and life insurance, and retirement planning.",
       "An economics graduate of Fudan University (Shanghai), educated at ESG business school (Paris) and seasoned at HSBC, she speaks fluent French. In February 2026, UFE Hong Kong invited her to present Chinese New Year traditions to the French community.",
     ],
     experienceTitle: "Experience",
@@ -140,8 +142,9 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "Founder",
         company: "Fostier Consulting",
-        location: "Hong Kong",
+        location: "Central, Hong Kong",
         current: true,
+        period: "Since 2015",
         detail:
           "Advice on investment, savings, health and life insurance, and retirement planning for private clients in Hong Kong, Macau and mainland China.",
       },
@@ -198,7 +201,7 @@ const profiles: Record<Locale, FounderProfile> = {
     location: "中国香港 · 曾常驻法国巴黎",
     portraitAlt: "Lucie Fostier（Fostier Consulting 创始人）的照片",
     bio: [
-      "作为 Fostier Consulting 创始人，Lucie 为香港、澳门及中国内地的高要求个人客户（包括高净值人士）提供投资、储蓄、健康与人寿保险及退休规划咨询。",
+      "作为 Fostier Consulting 创始人（2015 年创立），Lucie 为香港、澳门及中国内地的高要求个人客户（包括高净值人士）提供投资、储蓄、健康与人寿保险及退休规划咨询。",
       "Lucie 毕业于复旦大学（上海）经济学专业，曾就读于法国 ESG 商学院（巴黎），并就职于汇丰银行，法语流利。2026 年 2 月，UFE Hong Kong 邀请她为在港法国社群讲解中国春节习俗。",
     ],
     experienceTitle: "职业经历",
@@ -206,8 +209,9 @@ const profiles: Record<Locale, FounderProfile> = {
       {
         role: "创始人",
         company: "Fostier Consulting",
-        location: "中国香港",
+        location: "香港中环",
         current: true,
+        period: "2015 年至今",
         detail:
           "为香港、澳门及中国内地的个人客户提供投资、储蓄、健康与人寿保险及退休规划咨询。",
       },
@@ -269,7 +273,7 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
     esg: {
       title: "École de commerce ESG",
       stat: { value: "6–7", label: "RNCP" },
-      text: "École de commerce française, membre du réseau international Galileo Global Education. Les programmes ESG délivrent des titres RNCP de niveaux 6 et 7 reconnus par l'État français.",
+      text: "École de commerce française, membre du réseau international Galileo Global Education. Les programmes ESG délivrent des titres de niveaux 6 et 7 inscrits au RNCP (Répertoire national des certifications professionnelles), reconnus par l'État français.",
     },
   },
   en: {
@@ -281,7 +285,7 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
     esg: {
       title: "ESG business school",
       stat: { value: "6–7", label: "RNCP" },
-      text: "French business school, part of Galileo Global Education’s international network. ESG programmes award French state-recognised RNCP Level 6 and 7 qualifications.",
+      text: "French business school, part of Galileo Global Education’s international network. ESG programmes award French state-recognised Level 6 and 7 qualifications listed on the RNCP (France's national register of professional certifications).",
     },
   },
   zh: {
@@ -293,7 +297,7 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
     esg: {
       title: "ESG 商学院",
       stat: { value: "6–7", label: "RNCP 级别" },
-      text: "法国商学院，伽利略全球教育集团（Galileo Global Education）国际网络成员，ESG 课程颁发法国国家认可的 RNCP 6 级与 7 级文凭。",
+      text: "法国商学院，伽利略全球教育集团（Galileo Global Education）国际网络成员，ESG 课程颁发法国国家认可、列入 RNCP（法国国家职业资格认证目录）的 6 级与 7 级文凭。",
     },
   },
 };

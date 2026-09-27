@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { Check, Copy, X } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
 import {
@@ -121,7 +122,7 @@ function WeChatContactModal({
         >
           <X className="h-4 w-4" />
         </button>
-        <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-sm bg-[#07C160] text-white">
+        <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-sm bg-wechat text-white">
           <WeChatIcon className="h-7 w-7" />
         </span>
         <h2 id={titleId} className="mt-4 font-serif text-xl font-medium text-ink">
@@ -153,9 +154,11 @@ function WeChatContactModal({
           </div>
         </div>
         {qrOk && (
-          <img
+          <Image
             src={WECHAT_QR_SRC}
             alt={s.scanNote}
+            width={144}
+            height={144}
             className="mx-auto mt-6 h-36 w-36 rounded-sm border border-line object-contain"
             onError={() => setQrOk(false)}
           />
@@ -184,7 +187,7 @@ export function WeChatContactButton({
         onClick={() => setOpen(true)}
         aria-label={s.buttonLabel}
         title={s.buttonLabel}
-        className={`focus-ring inline-flex ${sizeClassName} items-center justify-center rounded-sm border border-[#07C160] bg-[#07C160] text-white transition-colors hover:border-[#06AD56] hover:bg-[#06AD56]`}
+        className={`focus-ring inline-flex ${sizeClassName} items-center justify-center rounded-sm border border-wechat bg-wechat text-white transition-colors hover:border-wechat-700 hover:bg-wechat-700`}
       >
         <WeChatIcon className="h-5 w-5" />
       </button>
@@ -201,10 +204,10 @@ export function WeChatContactChip({ locale }: { locale: Locale | string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={s.title}
+        aria-label={`WeChat — ${s.title}`}
         className="focus-ring inline-flex items-center gap-2 rounded-sm text-left text-[15px] text-slate transition-colors hover:text-navy"
       >
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-[#07C160] text-white">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-wechat text-white">
           <WeChatIcon className="h-3 w-3" />
         </span>
         <span>WeChat</span>

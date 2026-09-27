@@ -19,6 +19,9 @@ import { StampPortrait } from "@/components/Stamp";
 import { DualClock } from "@/components/DualClock";
 import { ContactEnvelope } from "@/components/ContactEnvelope";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "@/lib/i18n/founder";
+import { pageDescriptions } from "@/lib/i18n/descriptions";
+import { faqHeading, homeFaq } from "@/lib/i18n/faq";
+import { Faq } from "@/components/Faq";
 
 const credentialsLabel: Record<Locale, string> = {
   fr: "Son parcours",
@@ -43,7 +46,7 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
     locale: params.lang,
     path: "",
     title: getPageTitles(params.lang).home,
-    description: getDictionary(params.lang).meta.siteDescription,
+    description: pageDescriptions[params.lang].home,
   });
 }
 
@@ -217,6 +220,15 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
               </blockquote>
             </Reveal>
           )}
+        </div>
+      </section>
+
+      {/* ——— FAQ ——— */}
+      <section className="bg-white py-20 sm:py-28">
+        <div className="container-site">
+          <div className="max-w-4xl">
+            <Faq title={faqHeading[lang]} items={homeFaq[lang]} />
+          </div>
         </div>
       </section>
 

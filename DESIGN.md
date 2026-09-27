@@ -16,7 +16,9 @@ something (the contact block is an envelope, the advisor portrait is a stamp).
 - **Newsreader** (Production Type, Paris) — headings and pull quotes. Weight
   400–500, tight tracking at large sizes. No italic accent words in headlines.
 - **Bricolage Grotesque** (Mathieu Triay) — body copy and UI.
-- Noto Serif SC / Noto Sans SC as CJK fallbacks.
+- CJK falls back to system fonts (PingFang SC / Songti SC, Microsoft YaHei,
+  Noto CJK). Don't add CJK web fonts through `next/font` in the shared layout:
+  their `@font-face` CSS blocks rendering on every page, FR and EN included.
 - Labels are sentence case. No all-caps tracked "eyebrows" above headings.
 
 ## Colour

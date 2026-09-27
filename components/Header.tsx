@@ -11,6 +11,12 @@ import { site, whatsappUrl } from "@/lib/site";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
+const navCopy: Record<Locale, { contact: string; primary: string; mobile: string }> = {
+  fr: { contact: "Contact", primary: "Navigation principale", mobile: "Menu mobile" },
+  en: { contact: "Contact", primary: "Primary", mobile: "Mobile menu" },
+  zh: { contact: "联系我们", primary: "主导航", mobile: "移动端菜单" },
+};
+
 export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -29,22 +35,26 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  const t = navCopy[locale];
   const links = [
     { href: `/${locale}/services`, label: dict.nav.services },
     { href: `/${locale}/about`, label: dict.nav.about },
+    // Every page carries a #contact block (contact envelope, or the service page sidebar).
+    { href: "#contact", label: t.contact },
   ];
+  const isCurrent = (href: string) => (href.startsWith("/") && pathname.startsWith(href) ? "page" : undefined);
 
   return (
     <header className="header-shell sticky top-0 z-50 bg-white" data-scrolled={scrolled}>
       <div aria-hidden="true" className="par-avion h-1.5" />
       <div className={`container-site flex items-center justify-between gap-4 transition-[padding] duration-300 ${scrolled ? "py-1.5" : "py-3"}`}>
         <Logo locale={locale} />
-        <nav aria-label="Primary" className="hidden items-center gap-9 lg:flex">
+        <nav aria-label={t.primary} className="hidden items-center gap-9 lg:flex">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              aria-current={pathname.startsWith(link.href) ? "page" : undefined}
+              aria-current={isCurrent(link.href)}
               className="focus-ring link-underline text-[15px] font-medium text-ink transition-colors hover:text-navy"
             >
               {link.label}
@@ -67,13 +77,14 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
       </div>
       {open && (
         <div id="mobile-menu" className="border-t border-line bg-white lg:hidden">
-          <nav aria-label="Mobile" className="container-site flex flex-col">
+          <nav aria-label={t.mobile} className="container-site flex flex-col">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="focus-ring border-b border-line py-4 font-serif text-2xl text-ink hover:text-navy"
+                aria-current={isCurrent(link.href)}
+                className="focus-ring border-b border-line py-4 font-serif text-2xl text-ink hover:text-navy aria-[current=page]:text-navy"
               >
                 {link.label}
               </Link>
