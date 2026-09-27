@@ -2,10 +2,22 @@ import { site } from "@/lib/site";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getFounder } from "@/lib/i18n/founder";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
+import { visibleGuides } from "@/lib/guides";
+import { locales } from "@/lib/i18n/config";
 
 export const dynamic = "force-static";
 
 /** /llms.txt — a plain-Markdown summary for AI assistants, built from the same copy as the site. */
+function guidesSection() {
+  const list = visibleGuides().flatMap((g) =>
+    locales.filter((l) => g.translations[l]).map((l) => {
+      const tr = g.translations[l]!;
+      return `- [${tr.title}](${site.baseUrl}/${l}/guides/${tr.slug}) (${l}, updated ${g.updated}): ${tr.description}`;
+    })
+  );
+  return list.length ? `## Guides\n\n${list.join("\n")}\n\n` : "";
+}
+
 export function GET() {
   const en = getDictionary("en");
   const founder = getFounder("en");
@@ -25,7 +37,7 @@ Contact: phone and WhatsApp ${site.phoneDisplay}; email ${site.email}; WeChat ID
 
 ${en.services.items.map((s, i) => `- [${s.title}](${url(`/en/services/${serviceSlugs[i].en}`)}): ${s.short}`).join("\n")}
 
-## About
+${guidesSection()}## About
 
 - [About ${founder.name}](${url("/en/about")}): background, experience, education and press.
 - [All services](${url("/en/services")})

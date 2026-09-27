@@ -5,6 +5,7 @@ import { WhatsAppIcon } from "./WhatsAppIcon";
 import { WeChatContactChip } from "./WeChatContact";
 import { site, whatsappUrl } from "@/lib/site";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
+import { guidesCopy, hasGuides } from "@/lib/guides";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
@@ -15,6 +16,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const navLinks = [
     { href: `/${locale}/services`, label: dict.nav.services },
     { href: `/${locale}/about`, label: dict.nav.about },
+    ...(hasGuides() ? [{ href: `/${locale}/guides`, label: guidesCopy[locale].nav }] : []),
   ];
   const legal = [
     { href: `/${locale}/privacy`, label: dict.footer.links.privacy },

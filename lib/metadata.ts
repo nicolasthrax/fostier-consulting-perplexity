@@ -4,24 +4,29 @@ import { hreflangs, ogLocales, locales, type Locale } from "./i18n/config";
 
 /**
  * Builds canonical + hreflang alternates and OG metadata for a route.
- * `path` is either shared by every locale or, for localised slugs, given per locale.
+ * `path` is either shared by every locale or given per locale; a page that only
+ * exists in some locales (e.g. an untranslated guide) passes just those.
  */
 export function localizedMetadata({
   locale,
   path,
   title,
   description,
+  type = "website",
 }: {
   locale: Locale;
-  path: string | Record<Locale, string>;
+  path: string | Partial<Record<Locale, string>>;
   title: string;
   description: string;
+  type?: "website" | "article";
 }): Metadata {
   const pathFor = (l: Locale) => (typeof path === "string" ? path : path[l]);
-  const canonical = `${site.baseUrl}/${locale}${pathFor(locale)}`;
+  const available = locales.filter((l) => pathFor(l) !== undefined);
+  const canonical = `${site.baseUrl}/${locale}${pathFor(locale) ?? ""}`;
+  const defaultLocale = available.includes("fr") ? "fr" : locale;
   const languages = Object.fromEntries([
-    ...locales.map((l) => [hreflangs[l], `${site.baseUrl}/${l}${pathFor(l)}`]),
-    ["x-default", `${site.baseUrl}/fr${pathFor("fr")}`],
+    ...available.map((l) => [hreflangs[l], `${site.baseUrl}/${l}${pathFor(l)}`]),
+    ["x-default", `${site.baseUrl}/${defaultLocale}${pathFor(defaultLocale) ?? ""}`],
   ]);
 
   const fullTitle = `${title} | ${site.name}`;
@@ -38,7 +43,7 @@ export function localizedMetadata({
       url: canonical,
       siteName: site.name,
       locale: ogLocales[locale],
-      type: "website",
+      type,
       images,
     },
     twitter: { card: "summary_large_image", title: fullTitle, description, images },

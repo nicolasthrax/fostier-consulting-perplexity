@@ -5,10 +5,12 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LocaleProvider } from "@/components/LocaleProvider";
+import { Analytics } from "@vercel/analytics/next";
 import { organisationJsonLd } from "@/lib/structured-data";
 import { newsreader, bricolage } from "@/lib/fonts";
 import { site } from "@/lib/site";
 import { getPageTitles } from "@/lib/i18n/titles";
+import { guidesCopy, hasGuides } from "@/lib/guides";
 import "../globals.css";
 
 const skipLinkLabel: Record<Locale, string> = {
@@ -60,11 +62,13 @@ export default function LocaleLayout({
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-sm focus:bg-navy focus:px-5 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
           {skipLinkLabel[lang]}
         </a>
-        <Header locale={lang} dict={dict} />
+        <Header locale={lang} dict={dict} guidesLabel={hasGuides() ? guidesCopy[lang].nav : undefined} />
         <main id="main" className="flex-1">
           <LocaleProvider locale={lang}>{children}</LocaleProvider>
         </main>
         <Footer locale={lang} dict={dict} />
+        {/* Cookieless audience measurement; only reports on Vercel deployments. */}
+        <Analytics />
       </body>
     </html>
   );

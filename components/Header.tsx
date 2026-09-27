@@ -17,7 +17,7 @@ const navCopy: Record<Locale, { contact: string; primary: string; mobile: string
   zh: { contact: "联系我们", primary: "主导航", mobile: "移动端菜单" },
 };
 
-export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
+export function Header({ locale, dict, guidesLabel }: { locale: Locale; dict: Dictionary; guidesLabel?: string }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const pathname = usePathname() ?? "";
@@ -39,6 +39,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const links = [
     { href: `/${locale}/services`, label: dict.nav.services },
     { href: `/${locale}/about`, label: dict.nav.about },
+    ...(guidesLabel ? [{ href: `/${locale}/guides`, label: guidesLabel }] : []),
     // Every page carries a #contact block (contact envelope, or the service page sidebar).
     { href: "#contact", label: t.contact },
   ];

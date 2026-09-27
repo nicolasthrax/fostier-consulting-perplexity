@@ -3,6 +3,7 @@ import { getDictionary } from "./i18n/get-dictionary";
 import { serviceSlugs } from "./i18n/service-slugs";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "./i18n/founder";
 import type { FaqItem } from "./i18n/faq";
+import { guidesCopy, type Guide } from "./guides";
 import { site } from "./site";
 
 /**
@@ -146,6 +147,39 @@ export function serviceJsonLd(locale: Locale, index: number) {
         { "@type": "ListItem", position: 1, name: site.name, item: `${site.baseUrl}/${locale}` },
         { "@type": "ListItem", position: 2, name: dict.nav.services, item: `${site.baseUrl}/${locale}/services` },
         { "@type": "ListItem", position: 3, name: service.title, item: url },
+      ],
+    },
+  ];
+}
+
+/** Guide article: authored by the founder, published by the business. */
+export function guideJsonLd(locale: Locale, guide: Guide) {
+  const tr = guide.translations[locale]!;
+  const url = `${site.baseUrl}/${locale}/guides/${tr.slug}`;
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "@id": `${url}#article`,
+      headline: tr.title,
+      description: tr.description,
+      url,
+      mainEntityOfPage: url,
+      inLanguage: inLanguage[locale],
+      datePublished: guide.published,
+      dateModified: guide.updated,
+      author: { "@id": personId },
+      publisher: { "@id": orgId },
+      isPartOf: { "@id": websiteId },
+      image: `${site.baseUrl}/${locale}/opengraph-image`,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: site.name, item: `${site.baseUrl}/${locale}` },
+        { "@type": "ListItem", position: 2, name: guidesCopy[locale].title, item: `${site.baseUrl}/${locale}/guides` },
+        { "@type": "ListItem", position: 3, name: tr.title, item: url },
       ],
     },
   ];

@@ -26,6 +26,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Skip Next internals and anything that looks like a file (sitemap.xml, icon.png, …).
-  matcher: ["/((?!_next/|.*\\.[^/]+$).*)"],
+  // Skip Next and Vercel internals (/_vercel/insights for analytics) and anything that looks like a file.
+  matcher: ["/((?!_next/|_vercel/|.*\\.[^/]+$).*)"],
 };
