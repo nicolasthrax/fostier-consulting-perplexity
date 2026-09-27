@@ -22,14 +22,15 @@ function ServiceDetail({ service, moreLabel }: { service: ExplorerService; moreL
       <p className="font-serif text-xl leading-snug text-ink">
         {service.benefit}
       </p>
-      <p className="mt-4 text-[15px] leading-relaxed text-slate">{service.short}</p>
+      <p className="mt-4 text-base leading-relaxed text-slate">{service.short}</p>
       <p className="mt-6 text-xs leading-relaxed text-muted">{service.disclaimer}</p>
       <Link
         href={service.href}
         className="focus-ring link-arrow mt-7 text-[15px]"
       >
         {moreLabel}
-        <ArrowRight className="h-4 w-4" />
+        <span className="sr-only"> — {service.title}</span>
+        <ArrowRight className="h-4 w-4" aria-hidden="true" />
       </Link>
     </>
   );
@@ -108,16 +109,18 @@ export function ServicesExplorer({ services, moreLabel }: { services: ExplorerSe
               id={service.slug}
               className="scroll-mt-28 border-t border-line last:border-b lg:last:border-b-0"
             >
-              <button
-                type="button"
-                onClick={() => setActive(i)}
-                onMouseEnter={() => setActive(i)}
-                onFocus={() => setActive(i)}
-                aria-expanded={open}
-                className="focus-ring group flex w-full py-5 text-left lg:py-6"
-              >
-                <ServiceTitle title={service.title} active={open} />
-              </button>
+              <h2>
+                <button
+                  type="button"
+                  onClick={() => setActive(i)}
+                  onMouseEnter={() => setActive(i)}
+                  onFocus={() => setActive(i)}
+                  aria-expanded={open}
+                  className="focus-ring group flex w-full py-5 text-left lg:py-6"
+                >
+                  <ServiceTitle title={service.title} active={open} />
+                </button>
+              </h2>
               <div className="faq-panel lg:hidden" data-open={open}>
                 <div>
                   <div className="pb-7">
@@ -143,9 +146,9 @@ export function ServicesExplorer({ services, moreLabel }: { services: ExplorerSe
               className="relative overflow-hidden rounded-sm bg-mist p-8 pt-10 sm:p-10 sm:pt-12"
             >
               <div aria-hidden="true" className="par-avion par-avion-drift absolute inset-x-0 top-0 h-2" />
-              <h3 className="font-serif text-3xl leading-tight tracking-[-0.01em] text-navy sm:text-4xl">
+              <p className="font-serif text-3xl leading-tight tracking-[-0.01em] text-navy sm:text-4xl">
                 {current.title}
-              </h3>
+              </p>
               <div className="mt-5">
                 <ServiceDetail service={current} moreLabel={moreLabel} />
               </div>

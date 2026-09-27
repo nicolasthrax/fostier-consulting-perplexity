@@ -11,10 +11,10 @@ export function Logo({ locale, className = "h-[46px] w-[96px] sm:h-[54px] sm:w-[
       aria-label="Fostier Consulting"
     >
       <Image
-        src="/brand/FOSTIER consulting.png"
+        src="/brand/fostier-consulting-logo.png"
         alt="Fostier Consulting"
-        width={760}
-        height={760}
+        width={500}
+        height={500}
         priority
         sizes="140px"
         className={`object-cover [object-position:50%_36%] ${className}`}

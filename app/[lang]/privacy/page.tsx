@@ -3,16 +3,15 @@ import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { localizedMetadata } from "@/lib/metadata";
 import { getPageTitles } from "@/lib/i18n/titles";
+import { pageDescriptions } from "@/lib/i18n/descriptions";
 import { LegalArticle } from "@/components/LegalArticle";
 
 export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
-  const dict = getDictionary(params.lang);
-  const page = dict.legal.pages.privacy;
   return localizedMetadata({
     locale: params.lang,
     path: "/privacy",
     title: getPageTitles(params.lang).privacy,
-    description: page.sections[0]?.body ?? dict.meta.siteDescription,
+    description: pageDescriptions[params.lang].privacy,
   });
 }
 

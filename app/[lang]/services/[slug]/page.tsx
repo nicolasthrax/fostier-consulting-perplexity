@@ -7,6 +7,10 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { serviceIndex, serviceSlugs } from "@/lib/i18n/service-slugs";
 import { getPageTitles, serviceTitles } from "@/lib/i18n/titles";
 import { localizedMetadata } from "@/lib/metadata";
+import { serviceDescriptions } from "@/lib/i18n/descriptions";
+import { formatUpdated } from "@/lib/i18n/dates";
+import { faqHeading, serviceFaq } from "@/lib/i18n/faq";
+import { Faq } from "@/components/Faq";
 import { serviceJsonLd } from "@/lib/structured-data";
 import { site, whatsappUrl } from "@/lib/site";
 import { PageHero, Section } from "@/components/SectionHeading";
@@ -25,12 +29,11 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: Params }): Metadata {
   const i = serviceIndex(params.lang, params.slug);
   if (i < 0) return { title: { absolute: getPageTitles(params.lang).notFound } };
-  const service = getDictionary(params.lang).services.items[i];
   return localizedMetadata({
     locale: params.lang,
     path: Object.fromEntries(locales.map((l) => [l, `/services/${serviceSlugs[i][l]}`])) as Record<Locale, string>,
     title: serviceTitles[params.lang][i],
-    description: service.short,
+    description: serviceDescriptions[params.lang][i],
   });
 }
 
@@ -64,6 +67,7 @@ export default function ServicePage({ params }: { params: Params }) {
           </Link>
         }
         after={<p className="fade-in mt-8 max-w-2xl font-serif text-2xl leading-snug text-navy [animation-delay:.2s]">{service.benefit}</p>}
+        note={formatUpdated(lang, site.contentUpdated)}
       />
 
       <Section className="!pt-16">
@@ -81,7 +85,7 @@ export default function ServicePage({ params }: { params: Params }) {
             <p className="mt-8 max-w-2xl text-sm leading-relaxed text-muted">{service.disclaimer}</p>
           </div>
 
-          <aside className="envelope h-fit lg:sticky lg:top-28">
+          <aside id="contact" className="envelope h-fit scroll-mt-28 lg:sticky lg:top-28">
             <div className="envelope-inner p-7 sm:p-8">
             <h2 className="h-serif text-3xl leading-tight">{dict.contact.title}</h2>
             <p className="mt-3 text-[15px] leading-relaxed text-slate">{dict.contact.localNote}</p>
@@ -116,6 +120,10 @@ export default function ServicePage({ params }: { params: Params }) {
             </div>
             </div>
           </aside>
+        </div>
+
+        <div className="mt-20 max-w-4xl">
+          <Faq title={faqHeading[lang]} items={serviceFaq(lang, dict, i)} />
         </div>
 
         <div className="rule-fine my-16" />

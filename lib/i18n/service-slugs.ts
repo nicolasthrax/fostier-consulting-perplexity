@@ -28,5 +28,7 @@ export function localizePath(pathname: string, target: Locale): string {
     const i = serviceIndex(from as Locale, service[1]);
     if (i >= 0) return `/${target}/services/${serviceSlugs[i][target]}${service[2]}`;
   }
+  // Guide slugs are per translation and not every guide is translated: land on the guides index.
+  if (/^\/guides\/[^/]+/.test(rest)) return `/${target}/guides`;
   return `/${target}${rest}`;
 }

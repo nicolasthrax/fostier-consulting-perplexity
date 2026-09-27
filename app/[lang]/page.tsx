@@ -13,12 +13,14 @@ import { HeroGlobe } from "@/components/HeroGlobe";
 import { Reveal } from "@/components/Reveal";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { RiseTitle } from "@/components/RiseTitle";
-import { Postmark } from "@/components/Postmark";
 import { ServiceIndex } from "@/components/ServiceIndex";
 import { StampPortrait } from "@/components/Stamp";
 import { DualClock } from "@/components/DualClock";
 import { ContactEnvelope } from "@/components/ContactEnvelope";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "@/lib/i18n/founder";
+import { pageDescriptions } from "@/lib/i18n/descriptions";
+import { faqHeading, homeFaq } from "@/lib/i18n/faq";
+import { Faq } from "@/components/Faq";
 
 const credentialsLabel: Record<Locale, string> = {
   fr: "Son parcours",
@@ -32,6 +34,13 @@ const credentialsLink: Record<Locale, string> = {
   zh: "查看完整简介",
 };
 
+/** UFE spelled out for screen readers and crawlers; the visible badge stays short so the hero row fits. */
+const ufeExpansion: Record<Locale, string> = {
+  fr: "Union des Français de l'Étranger",
+  en: "Union des Français de l'Étranger",
+  zh: "法国海外侨民协会香港分会",
+};
+
 const clockLabel: Record<Locale, string> = {
   fr: "L'heure, en ce moment",
   en: "Local time, right now",
@@ -43,7 +52,7 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
     locale: params.lang,
     path: "",
     title: getPageTitles(params.lang).home,
-    description: getDictionary(params.lang).meta.siteDescription,
+    description: pageDescriptions[params.lang].home,
   });
 }
 
@@ -101,6 +110,7 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
               >
                 <Image src="/brand/ufe-logo.svg" alt="" width={22} height={22} className="h-[22px] w-[22px] object-contain" />
                 <span className="link-underline">{dict.hero.ufePartnerBadge}</span>
+                <span className="sr-only"> ({ufeExpansion[lang]})</span>
                 <ArrowUpRight className="h-3.5 w-3.5 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </a>
             </div>
@@ -112,7 +122,6 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
                 <AdvisorMapPill locale={lang} />
               </HeroGlobe>
             </div>
-            <Postmark className="absolute -right-3 -top-10 h-24 w-24 rotate-12 sm:-right-8 sm:-top-12 sm:h-32 sm:w-32" />
           </div>
         </div>
       </section>
@@ -217,6 +226,15 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
               </blockquote>
             </Reveal>
           )}
+        </div>
+      </section>
+
+      {/* ——— FAQ ——— */}
+      <section className="bg-white py-20 sm:py-28">
+        <div className="container-site">
+          <div className="max-w-4xl">
+            <Faq title={faqHeading[lang]} items={homeFaq[lang]} />
+          </div>
         </div>
       </section>
 
