@@ -189,7 +189,7 @@ Verified on a fresh production build: 42/42 pages crawled with unique titles and
 | L11 hreflang | Done | `zh-Hans` in `<html lang>`, hreflang and the sitemap. |
 | M2 Address / NAP | Done | "Central, Hong Kong" in the footer, contact block, legal notice and schema (district only, to match the service-area Google Business Profile). BR No. 38375423 in the legal notice and the footer. LinkedIn link in the footer. |
 | M5 Track record | Partly done | Founded in 2015, shown in the bio, the About timeline ("Since 2015"), the FAQ and the schema. **Still needed:** dates for the AIA and HSBC roles, case studies. |
-| M9 Trust signals | **Needs business input** | Testimonials, licence status, business-domain email. |
+| M9 Trust signals | **Partly done** | Business-domain email (`lucie@fostierconsulting.com`) now used site-wide; company registration number shown. Still needed: testimonials, licence status. |
 
 **Open issues found during this pass**
 
