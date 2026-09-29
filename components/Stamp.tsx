@@ -28,7 +28,7 @@ export function StampPortrait({
       </div>
       <figcaption className="mt-3 flex items-end justify-between gap-3 border-t border-ink/10 pt-2.5">
         <span className="font-serif text-lg leading-tight text-ink">{name}</span>
-        <span className="text-right text-xs font-medium text-muted">{caption}</span>
+        <span className="text-right text-sm font-medium text-muted">{caption}</span>
       </figcaption>
     </figure>
   );

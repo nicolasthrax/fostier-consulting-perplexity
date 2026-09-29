@@ -23,7 +23,7 @@ function ServiceDetail({ service, moreLabel }: { service: ExplorerService; moreL
         {service.benefit}
       </p>
       <p className="mt-4 text-base leading-relaxed text-slate">{service.short}</p>
-      <p className="mt-6 text-xs leading-relaxed text-muted">{service.disclaimer}</p>
+      <p className="mt-6 text-sm leading-relaxed text-muted">{service.disclaimer}</p>
       <Link
         href={service.href}
         className="focus-ring link-arrow mt-7 text-[15px]"
