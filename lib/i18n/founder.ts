@@ -47,19 +47,26 @@ interface FounderProfile {
   educationTitle: string;
   education: FounderEducation[];
   pressTitle: string;
-  press: {
-    outlet: string;
-    title: string;
-    date: string;
-    text: string;
-    linkLabel: string;
-    url: string;
-  };
+  /** Main press item. Also read by `aboutJsonLd` (structured data): keep the shape. */
+  press: PressItem;
+  /** Every press item shown on the About page, `press` first. */
+  pressItems: PressItem[];
+}
+
+export interface PressItem {
+  outlet: string;
+  title: string;
+  date: string;
+  text: string;
+  linkLabel: string;
+  url: string;
+  /** Outlet logo in /public; items without one render as text only. */
+  logo?: string;
 }
 
 const UFE_ARTICLE_URL = site.ufeArticleUrl;
 
-const profiles: Record<Locale, FounderProfile> = {
+const profiles: Record<Locale, Omit<FounderProfile, "pressItems">> = {
   fr: {
     heading: "Votre conseillère",
     name: "Lucie Fostier",
@@ -125,6 +132,7 @@ const profiles: Record<Locale, FounderProfile> = {
       text: "Invitée par le Cercle Arts et Culture de l'UFE Hong Kong, Lucie a animé à Wan Chai une conférence destinée à la communauté française : origines et codes des enveloppes rouges, billets neufs, gestes d'étiquette et traditions du Nouvel An chinois.",
       linkLabel: "Lire l'article",
       url: UFE_ARTICLE_URL,
+      logo: "/brand/ufe-logo.svg",
     },
   },
   en: {
@@ -192,6 +200,7 @@ const profiles: Record<Locale, FounderProfile> = {
       text: "Invited by UFE Hong Kong's Arts and Culture Circle, Lucie hosted a talk in Wan Chai for the French community: the origins and etiquette of red envelopes, brand-new banknotes, and the traditions of Chinese New Year. Article in French.",
       linkLabel: "Read the article",
       url: UFE_ARTICLE_URL,
+      logo: "/brand/ufe-logo.svg",
     },
   },
   zh: {
@@ -259,6 +268,7 @@ const profiles: Record<Locale, FounderProfile> = {
       text: "受 UFE Hong Kong 文化艺术俱乐部的邀请，Lucie 在湾仔为法国社群主讲春节习俗讲座：红包的起源与礼仪、新钞讲究及春节传统。（原文为法语）",
       linkLabel: "阅读原文（法语）",
       url: UFE_ARTICLE_URL,
+      logo: "/brand/ufe-logo.svg",
     },
   },
 };
@@ -302,5 +312,47 @@ export const UNIVERSITY_HIGHLIGHTS: Record<Locale, Record<"esg" | "fudan", Unive
   },
 };
 
-export const getFounder = (locale: Locale): FounderProfile =>
-  profiles[locale] ?? profiles.fr;
+/**
+ * Agenda listing of the same UFE talk on lepetitjournal.com Hong Kong
+ * (published 1 February 2026, event on 9 February 2026). Verified 2026-09-29.
+ */
+const LPJ_LISTING_URL =
+  "https://lepetitjournal.com/hong-kong/agenda/conferences/les-secrets-du-nouvel-an-chinois-une-conference-pour-tout-comprendre-";
+
+const morePress: Record<Locale, PressItem[]> = {
+  fr: [
+    {
+      outlet: "lepetitjournal.com Hong Kong",
+      title: "« Les secrets du Nouvel An chinois… Une conférence pour tout comprendre ! »",
+      date: "Février 2026",
+      text: "L'agenda de lepetitjournal.com Hong Kong a annoncé la conférence animée par Lucie pour le Cercle Art & Culture de l'UFE, le 9 février 2026 à Wan Chai.",
+      linkLabel: "Lire l'annonce",
+      url: LPJ_LISTING_URL,
+    },
+  ],
+  en: [
+    {
+      outlet: "lepetitjournal.com Hong Kong",
+      title: "“The secrets of Chinese New Year… A talk to understand it all!”",
+      date: "February 2026",
+      text: "The events listings of lepetitjournal.com Hong Kong announced the talk Lucie gave for UFE's Arts and Culture Circle on 9 February 2026 in Wan Chai. Listing in French.",
+      linkLabel: "Read the listing",
+      url: LPJ_LISTING_URL,
+    },
+  ],
+  zh: [
+    {
+      outlet: "lepetitjournal.com 香港版",
+      title: "「春节的秘密……一场讲座带您全面了解！」",
+      date: "2026 年 2 月",
+      text: "法语媒体 lepetitjournal.com 香港版在活动日历中预告了 Lucie 于 2026 年 2 月 9 日在湾仔为 UFE 文化艺术俱乐部主讲的讲座。（原文为法语）",
+      linkLabel: "阅读预告（法语）",
+      url: LPJ_LISTING_URL,
+    },
+  ],
+};
+
+export const getFounder = (locale: Locale): FounderProfile => {
+  const profile = profiles[locale] ?? profiles.fr;
+  return { ...profile, pressItems: [profile.press, ...(morePress[locale] ?? morePress.fr)] };
+};
