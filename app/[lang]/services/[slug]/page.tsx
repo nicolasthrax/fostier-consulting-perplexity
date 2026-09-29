@@ -10,7 +10,9 @@ import { localizedMetadata } from "@/lib/metadata";
 import { serviceDescriptions } from "@/lib/i18n/descriptions";
 import { formatUpdated } from "@/lib/i18n/dates";
 import { faqHeading, serviceFaq } from "@/lib/i18n/faq";
+import { getServiceDetail } from "@/lib/i18n/service-details";
 import { Faq } from "@/components/Faq";
+import { ServiceDetails } from "@/components/ServiceDetails";
 import { serviceJsonLd } from "@/lib/structured-data";
 import { site, whatsappUrl } from "@/lib/site";
 import { PageHero, Section } from "@/components/SectionHeading";
@@ -49,6 +51,7 @@ export default function ServicePage({ params }: { params: Params }) {
   const { lang } = params;
   const dict = getDictionary(lang);
   const service = dict.services.items[i];
+  const detail = getServiceDetail(lang, i);
   const t = labels[lang];
 
   return (
@@ -73,16 +76,22 @@ export default function ServicePage({ params }: { params: Params }) {
       <Section className="!pt-16">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_.8fr]">
           <div>
-            <h2 className="h-serif text-3xl sm:text-4xl">{dict.services.includesTitle}</h2>
-            <ul className="mt-8 grid border-t border-ink sm:grid-cols-2 sm:gap-x-10">
-              {service.includes.map((item) => (
-                <li key={item} className="flex items-start gap-3 border-b border-line py-4 text-base leading-relaxed text-ink">
-                  <Check className="mt-1 h-4 w-4 shrink-0 text-fred" aria-hidden="true" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-8 max-w-2xl text-sm leading-relaxed text-muted">{service.disclaimer}</p>
+            {detail ? (
+              <ServiceDetails detail={detail} includes={service.includes} />
+            ) : (
+              <>
+                <h2 className="h-serif text-3xl sm:text-4xl">{dict.services.includesTitle}</h2>
+                <ul className="mt-8 grid border-t border-ink sm:grid-cols-2 sm:gap-x-10">
+                  {service.includes.map((item) => (
+                    <li key={item} className="flex items-start gap-3 border-b border-line py-4 text-base leading-relaxed text-ink">
+                      <Check className="mt-1 h-4 w-4 shrink-0 text-fred" aria-hidden="true" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <p className={`${detail ? "mt-12" : "mt-8"} max-w-2xl text-sm leading-relaxed text-muted`}>{service.disclaimer}</p>
           </div>
 
           <aside id="contact" className="envelope h-fit scroll-mt-28 lg:sticky lg:top-28">
