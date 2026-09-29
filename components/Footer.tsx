@@ -25,7 +25,12 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
     { href: `/${locale}/legal-notice`, label: dict.footer.links.notice },
   ];
   const heading = "font-serif text-lg text-ink";
-  const link = "focus-ring link-underline text-[15px] text-slate hover:text-navy";
+  // Every footer link is at least 24px tall (WCAG 2.5.8 target size). Text links are
+  // inline blocks whose underline sits on an inner inline span, so it still follows
+  // each line when a label wraps; icon links are flex rows.
+  const target = "focus-ring min-h-6";
+  const iconLink = `${target} inline-flex items-center gap-2 text-slate hover:text-navy`;
+  const link = `${target} inline-block text-[15px] text-slate hover:text-navy`;
 
   return (
     <footer className="bg-white">
@@ -45,7 +50,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             {navLinks.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} className={link}>
-                  {l.label}
+                  <span className="link-underline">{l.label}</span>
                 </Link>
               </li>
             ))}
@@ -57,7 +62,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             {dict.services.items.map((s, i) => (
               <li key={s.slug}>
                 <Link href={`/${locale}/services/${serviceSlugs[i][locale]}`} className={link}>
-                  {s.title}
+                  <span className="link-underline">{s.title}</span>
                 </Link>
               </li>
             ))}
@@ -67,12 +72,12 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           <h2 className={heading}>{dict.footer.contactTitle}</h2>
           <ul className="mt-4 space-y-3 text-[15px]">
             <li>
-              <a href={site.phoneHref} className="focus-ring link-underline tabular font-semibold text-navy">
-                {site.phoneDisplay}
+              <a href={site.phoneHref} className={`${target} inline-block tabular font-semibold text-navy`}>
+                <span className="link-underline">{site.phoneDisplay}</span>
               </a>
             </li>
             <li>
-              <a href={site.emailHref} className="focus-ring inline-flex items-center gap-2 text-slate hover:text-navy">
+              <a href={site.emailHref} className={iconLink}>
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 <span className="link-underline">{site.email}</span>
               </a>
@@ -82,17 +87,18 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
                 href={whatsappUrl(dict.actions.whatsappMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="focus-ring inline-flex items-center gap-2 text-slate hover:text-navy"
+                className={iconLink}
               >
                 <WhatsAppIcon className="h-4 w-4" />
                 <span className="link-underline">{dict.actions.whatsapp}</span>
               </a>
             </li>
-            <li>
+            {/* The chip's button is shared, so the footer sets its minimum height here. */}
+            <li className="[&>button]:min-h-6">
               <WeChatContactChip locale={locale} />
             </li>
             <li>
-              <a href={site.linkedinUrl} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-2 text-slate hover:text-navy">
+              <a href={site.linkedinUrl} target="_blank" rel="noopener noreferrer" className={iconLink}>
                 <Linkedin className="h-4 w-4" aria-hidden="true" />
                 <span className="link-underline">LinkedIn</span>
               </a>
@@ -103,7 +109,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             {legal.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} className={link}>
-                  {l.label}
+                  <span className="link-underline">{l.label}</span>
                 </Link>
               </li>
             ))}
@@ -112,8 +118,8 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
       </div>
       <div className="bg-nuit text-white/75">
         <div className="container-site flex flex-col gap-4 py-8 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
-          <p className="max-w-3xl text-xs leading-relaxed">{dict.legal.disclaimer}</p>
-          <p className="shrink-0 text-xs">{dict.footer.copyright.replace("{year}", String(year))} · {brLabel[locale]} {site.brn}</p>
+          <p className="max-w-3xl text-sm leading-relaxed">{dict.legal.disclaimer}</p>
+          <p className="shrink-0 text-sm">{dict.footer.copyright.replace("{year}", String(year))} · {brLabel[locale]} {site.brn}</p>
         </div>
       </div>
     </footer>
