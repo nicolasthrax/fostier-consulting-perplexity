@@ -1,10 +1,15 @@
 import type { Locale } from "./config";
 
 /**
- * Page-specific <title> topics. The layout template appends " | Fostier Consulting".
+ * Page-specific <title> topics. `withBrand` (lib/metadata.ts) appends " | Fostier Consulting"
+ * unless the entry already ends with a brand suffix (" | Fostier…"), which is how a
+ * title can use the shorter " | Fostier" or the longer " | Fostier Consulting Hong Kong".
  * Each topic mirrors the page's <h1>, front-loads its keyword, and keeps the full
  * title between 50 and 60 characters (FR/EN). Chinese titles are kept to a similar
  * rendered width (~35–40 characters) since CJK glyphs are roughly twice as wide.
+ *
+ * Home, services, About and the service pages pair the brand with "Hong Kong"/"HK":
+ * search engines otherwise fold "Fostier" into "Foster" (visibility audit, Sept 2026).
  */
 export const pageTitles: Record<
   Locale,
@@ -20,9 +25,9 @@ export const pageTitles: Record<
   }
 > = {
   fr: {
-    home: "Patrimoine international à Hong Kong",
-    services: "Services : patrimoine, impôts, Chine",
-    about: "Relation de conseil France–Hong Kong",
+    home: "Patrimoine & fiscalité en français à HK",
+    services: "Patrimoine, impôts et Chine à Hong Kong",
+    about: "Lucie Fostier, fondatrice | Fostier Consulting Hong Kong",
     notice: "Mentions légales et éditeur du site",
     privacy: "Politique de confidentialité du site",
     terms: "Conditions d'utilisation du site",
@@ -30,9 +35,9 @@ export const pageTitles: Record<
     notFound: "Erreur 404 : contenu introuvable",
   },
   en: {
-    home: "International wealth advice, Hong Kong",
-    services: "Services: wealth, tax, China trade",
-    about: "France–Hong Kong advisory relationship",
+    home: "French-speaking financial planning, HK",
+    services: "Wealth, tax and China services in HK",
+    about: "Lucie Fostier, founder | Fostier Consulting Hong Kong",
     notice: "Legal notice and site publisher",
     privacy: "Privacy policy and your data rights",
     terms: "Terms of use and advice disclaimer",
@@ -40,9 +45,9 @@ export const pageTitles: Record<
     notFound: "Error 404: the content was not found",
   },
   zh: {
-    home: "香港国际化财富规划与法语财务咨询",
-    services: "服务：财富规划、税务、保险与中法商务",
-    about: "联结法国与香港的财务顾问关系",
+    home: "香港法语财富规划与税务服务",
+    services: "香港财富、税务、保险与中法商务服务",
+    about: "创始人 Lucie Fostier | Fostier Consulting Hong Kong",
     notice: "法律声明与网站发布者信息",
     privacy: "隐私政策与个人资料使用说明",
     terms: "使用条款：本网站的使用规则",
@@ -55,34 +60,35 @@ export const getPageTitles = (locale: Locale) => pageTitles[locale] ?? pageTitle
 
 /**
  * <title> topics for the service pages, in `services.items` order. Same rules as
- * above: keyword first, full title (with " | Fostier Consulting") at 60 characters or fewer.
+ * above: keyword first, "Hong Kong" in every title, full title (with its brand suffix)
+ * at 60 characters or fewer.
  */
 export const serviceTitles: Record<Locale, string[]> = {
   fr: [
-    "Conseil en investissement à Hong Kong",
-    "Déclaration fiscale à Hong Kong",
+    "Investissement et portefeuille à HK",
+    "Déclaration d'impôts à Hong Kong en français | Fostier",
     "Épargne et banque à Hong Kong",
-    "Assurance santé et vie à Hong Kong",
-    "Interprétariat français–chinois",
-    "Recherche de fournisseurs en Chine",
-    "Partenaire français pour la Chine",
+    "Assurance santé pour Français à Hong Kong | Fostier",
+    "Interprète français–chinois à Hong Kong",
+    "Fournisseurs en Chine, depuis Hong Kong",
+    "Partenaire français en Chine, depuis HK",
   ],
   en: [
-    "Investment advice in Hong Kong",
-    "Hong Kong tax return preparation",
+    "Investment and portfolio planning, HK",
+    "Hong Kong tax return help, in French",
     "Savings and banking in Hong Kong",
-    "Health and life insurance, Hong Kong",
+    "Health insurance for French expats in HK | Fostier",
     "French–Chinese interpreter, Hong Kong",
-    "Supplier sourcing in mainland China",
-    "French partner for business in China",
+    "China supplier sourcing from Hong Kong",
+    "French partner for China, based in HK",
   ],
   zh: [
-    "香港投资咨询与资产组合规划",
+    "香港投资与资产组合规划",
     "香港个人税务申报与准备",
     "香港储蓄账户与银行开户",
     "香港健康保险与人寿保险",
-    "法语、普通话及粤语口译服务",
-    "中国供应商寻源",
-    "法国创业者的中国商务伙伴",
+    "香港法语、普通话及粤语口译服务",
+    "立足香港的中国供应商寻源",
+    "立足香港：法国创业者的中国商务伙伴",
   ],
 };

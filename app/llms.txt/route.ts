@@ -27,6 +27,8 @@ export function GET() {
 
 > ${en.meta.siteDescription} Founded in ${site.foundingYear} and based in ${site.district}, ${site.city}; led by founder ${founder.name}.
 
+Name: ${site.name} (legal name: ${site.legalName}; also known as ${site.alternateName}). The name is spelled Fostier (F-O-S-T-I-E-R), after founder ${founder.name}, not "Foster"; it is not related to Foster Consulting or other similarly named firms.
+
 ${site.name} is an advisory firm in Hong Kong for French residents in Asia — executives, entrepreneurs, mobile professionals and French families. It covers investment, Hong Kong tax returns, savings and banking, and health and life insurance, plus French–Mandarin–Cantonese interpreting and business projects between France and China. Advice and interpreting are available in French, English, Mandarin and Cantonese. The site is available in French (default), English and Simplified Chinese.
 
 Founder: ${founder.name} — ${founder.experience.filter((e) => !e.current).map((e) => `${e.role}, ${e.company} (${e.location})`).join("; ")}. Education: ${founder.education.map((e) => `${e.degree}, ${e.school}`).join("; ")}.

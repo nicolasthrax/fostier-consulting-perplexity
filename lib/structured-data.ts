@@ -33,6 +33,7 @@ export function organisationJsonLd(locale: Locale) {
         "@id": websiteId,
         url: site.baseUrl,
         name: site.name,
+        alternateName: site.alternateName,
         publisher: { "@id": orgId },
         inLanguage: ["fr", "en", "zh-Hans"],
       },
@@ -40,6 +41,8 @@ export function organisationJsonLd(locale: Locale) {
         "@type": "FinancialService",
         "@id": orgId,
         name: site.name,
+        legalName: site.legalName,
+        alternateName: site.alternateName,
         description: dict.meta.siteDescription,
         url: `${site.baseUrl}/${locale}`,
         logo: `${site.baseUrl}${site.logoPath}`,
@@ -49,8 +52,8 @@ export function organisationJsonLd(locale: Locale) {
         foundingDate: site.foundingYear,
         identifier: { "@type": "PropertyValue", propertyID: "Hong Kong Business Registration Number", value: site.brn },
         // Service-area business: district only, matching the Google Business Profile.
+        // No hasMap / geo: the profile publishes no pin that matches Central.
         address: { "@type": "PostalAddress", addressLocality: site.district, addressRegion: "Hong Kong", addressCountry: "HK" },
-        hasMap: site.googleBusinessUrl,
         areaServed: [
           { "@type": "City", name: "Hong Kong" },
           { "@type": "City", name: "Macau" },

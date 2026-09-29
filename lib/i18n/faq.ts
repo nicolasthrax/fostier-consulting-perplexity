@@ -43,6 +43,22 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
       q: "Les informations de ce site constituent-elles un conseil personnalisé ?",
       a: "Non. Le contenu du site est fourni à titre d'information générale. Toute recommandation suppose une analyse préalable de votre situation individuelle.",
     },
+    {
+      q: "Quel est le nom exact de la société et son numéro d'enregistrement ?",
+      a: `${site.legalName}, parfois présentée comme « ${site.alternateName} », a été fondée en ${site.foundingYear} à Hong Kong par Lucie Fostier. Numéro d'enregistrement commercial (Business Registration) à Hong Kong : ${site.brn}.`,
+    },
+    {
+      q: "Fostier Consulting a-t-il un lien avec Foster Consulting ?",
+      a: "Non. Le nom s'écrit Fostier, F-O-S-T-I-E-R, comme celui de sa fondatrice, Lucie Fostier. Fostier Consulting, à Hong Kong, n'a aucun lien avec les sociétés au nom proche, comme « Foster Consulting ».",
+    },
+    {
+      q: "Comment le statut d'intermédiaire en assurance est-il communiqué ?",
+      a: "Lorsque des solutions d'assurance sont envisagées, la nature de la relation, la rémunération et le statut d'intermédiaire sont précisés en toute transparence avant toute souscription, comme l'indiquent les conditions d'utilisation du site.",
+    },
+    {
+      q: "Fostier Consulting a-t-il été cité dans la presse ?",
+      a: "Oui. En février 2026, l'UFE Hong Kong (Union des Français de l'Étranger) a consacré un article à la conférence de Lucie Fostier sur les traditions du Nouvel An chinois. Fostier Consulting est aussi partenaire officiel de l'UFE Hong Kong.",
+    },
   ],
   en: [
     {
@@ -69,6 +85,22 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
       q: "Is the information on this site personalised advice?",
       a: "No. Site content is general information only. Any recommendation requires a prior review of your individual situation.",
     },
+    {
+      q: "What is the company's exact name and registration number?",
+      a: `${site.legalName}, also known as "${site.alternateName}", was founded in Hong Kong in ${site.foundingYear} by Lucie Fostier. Hong Kong Business Registration No. ${site.brn}.`,
+    },
+    {
+      q: "Is Fostier Consulting related to Foster Consulting?",
+      a: "No. The name is spelled Fostier, F-O-S-T-I-E-R, after its founder, Lucie Fostier. Fostier Consulting in Hong Kong has no connection with similarly named firms such as \"Foster Consulting\".",
+    },
+    {
+      q: "How is the insurance intermediary status disclosed?",
+      a: "Where insurance solutions are considered, the nature of the relationship, remuneration and intermediary status are disclosed transparently before any subscription, as the site's terms of use state.",
+    },
+    {
+      q: "Has Fostier Consulting been featured in the press?",
+      a: "Yes. In February 2026, UFE Hong Kong (Union des Français de l'Étranger) published an article on Lucie Fostier's talk about Chinese New Year traditions. Fostier Consulting is also an official UFE Hong Kong partner.",
+    },
   ],
   zh: [
     {
@@ -94,6 +126,22 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
     {
       q: "本网站的信息是否构成个性化建议？",
       a: "不构成。网站内容仅供一般参考，任何建议均须事先了解您的个人情况。",
+    },
+    {
+      q: "公司的准确名称和商业登记号码是什么？",
+      a: `${site.legalName}（亦称「${site.alternateName}」）由 Lucie Fostier 于 ${site.foundingYear} 年在香港创立。香港商业登记号码：${site.brn}。`,
+    },
+    {
+      q: "Fostier Consulting 与 Foster Consulting 有关系吗？",
+      a: "没有。公司名称拼写为 Fostier（F-O-S-T-I-E-R），与创始人 Lucie Fostier 的姓氏相同。位于香港的 Fostier Consulting 与「Foster Consulting」等名称相近的公司没有任何关联。",
+    },
+    {
+      q: "保险中介身份如何披露？",
+      a: "如涉及保险方案，关系性质、报酬方式及中介身份将在投保前透明披露，详见本网站的使用条款。",
+    },
+    {
+      q: "Fostier Consulting 是否获得过媒体报道？",
+      a: "是的。2026 年 2 月，UFE Hong Kong（法国海外侨民协会香港分会）发表文章，介绍 Lucie Fostier 主讲的春节习俗讲座。Fostier Consulting 亦是 UFE 香港官方合作伙伴。",
     },
   ],
 };

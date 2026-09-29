@@ -5,6 +5,13 @@
 
 export const site = {
   name: "Fostier Consulting",
+  /** Name as published in the legal notice (site publisher). Update if the BR certificate shows a different registered name. */
+  legalName: "Fostier Consulting",
+  /**
+   * Disambiguating name used in schema and llms.txt: search engines tend to fold
+   * "Fostier" into "Foster", so the brand is paired with the city.
+   */
+  alternateName: "Fostier Consulting Hong Kong",
   city: "Hong Kong",
   phoneDisplay: "+852 6537 4439",
   phoneHref: "tel:+85265374439",
@@ -18,9 +25,12 @@ export const site = {
   /** Hong Kong Business Registration number. */
   brn: "38375423",
   linkedinUrl: "https://www.linkedin.com/company/fostierconsulting",
-  /** Google Business Profile (tracking parameters removed). It is a service-area profile, so no street address or coordinates are published. */
-  googleBusinessUrl:
-    "https://www.google.com/maps/place/Fostier+Consulting/@22.3527242,114.1394,11z/data=!3m1!4b1!4m6!3m5!1s0x8471bfe9babca44b:0x3316948d47b1f653!8m2!3d22.3527242!4d114.1394!16s%2Fg%2F11w3g_crxl",
+  /**
+   * Google Business Profile, as a coordinate-free CID link (place ID 0x3316948d47b1f653).
+   * It is a service-area profile: no street address or map pin is published, and the
+   * old /maps/place URL carried a pin in the New Territories rather than Central.
+   */
+  googleBusinessUrl: "https://maps.google.com/?cid=3681293079936104019",
   ufePartnerUrl: "https://www.ufehongkong.hk/partenaires/fostier-consulting",
   ufeArticleUrl: "https://www.ufehongkong.hk/actualite/les-secrets-du-nouvel-an-chinois-avec-lucie",
   /** Public marketing domain. */

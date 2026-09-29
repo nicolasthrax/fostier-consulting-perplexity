@@ -10,6 +10,7 @@ import { organisationJsonLd } from "@/lib/structured-data";
 import { newsreader, bricolage } from "@/lib/fonts";
 import { site } from "@/lib/site";
 import { getPageTitles } from "@/lib/i18n/titles";
+import { withBrand } from "@/lib/metadata";
 import { guidesCopy, hasGuides } from "@/lib/guides";
 import "../globals.css";
 
@@ -37,7 +38,7 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
   return {
     metadataBase: new URL(site.baseUrl),
     applicationName: site.name,
-    title: { template: `%s | ${site.name}`, default: `${getPageTitles(params.lang).home} | ${site.name}` },
+    title: { template: `%s | ${site.name}`, default: withBrand(getPageTitles(params.lang).home) },
     description: dict.meta.siteDescription,
     keywords: dict.meta.keywords,
     robots: { index: true, follow: true },
