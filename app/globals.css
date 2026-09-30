@@ -98,6 +98,7 @@ body {
   .header-shell { transition: box-shadow .3s ease, border-color .3s ease; border-bottom: 1px solid transparent; }
   .header-shell[data-scrolled="true"] { border-bottom-color: var(--line); }
 
+  .faq-section > summary::-webkit-details-marker,
   .faq-item > summary::-webkit-details-marker { display: none; }
 
   .faq-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s cubic-bezier(.22,1,.36,1); }
