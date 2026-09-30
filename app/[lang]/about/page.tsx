@@ -9,6 +9,7 @@ import { AdvisorArrow } from "@/components/AdvisorArrow";
 import { UniversityHighlight, BioWithHighlights } from "@/components/UniversityHighlight";
 import { StampPortrait } from "@/components/Stamp";
 import { ContactEnvelope } from "@/components/ContactEnvelope";
+import { CaseStudies } from "@/components/CaseStudies";
 import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
 import { localizedMetadata } from "@/lib/metadata";
@@ -129,34 +130,44 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
             </ul>
 
             <h3 className={`${subheading} mt-16`}>{f.pressTitle}</h3>
-            <a
-              href={f.press.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="focus-ring group mt-6 grid gap-5 rounded-sm border-t-4 border-fred bg-white p-6 transition-colors hover:bg-navy sm:grid-cols-[auto_1fr] sm:p-8"
-            >
-              <Image src="/brand/ufe-logo.svg" alt="UFE" width={48} height={48} className="h-12 w-12 rounded-sm bg-white object-contain p-1" />
-              <span>
-                <span className="block text-sm font-medium text-muted transition-colors group-hover:text-white/75">
-                  {f.press.outlet} · {f.press.date}
-                </span>
-                <span className="mt-2 block font-serif text-2xl leading-snug text-ink transition-colors group-hover:text-white">
-                  {f.press.title}
-                </span>
-                <span className="mt-3 block text-base leading-relaxed text-slate transition-colors group-hover:text-white/85">
-                  {f.press.text}
-                </span>
-                <span className="mt-4 inline-flex items-center gap-1.5 text-[15px] font-semibold text-navy transition-colors group-hover:text-white">
-                  {f.press.linkLabel}
-                  <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </span>
-              </span>
-            </a>
+            <ul className="mt-6 grid gap-4">
+              {f.pressItems.map((item) => (
+                <li key={item.url}>
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`focus-ring group grid gap-5 rounded-sm border-t-4 border-fred bg-white p-6 transition-colors hover:bg-navy sm:p-8 ${item.logo ? "sm:grid-cols-[auto_1fr]" : ""}`}
+                  >
+                    {item.logo && (
+                      <Image src={item.logo} alt="" width={48} height={48} className="h-12 w-12 rounded-sm bg-white object-contain p-1" />
+                    )}
+                    <span>
+                      <span className="block text-sm font-medium text-muted transition-colors group-hover:text-white/75">
+                        {item.outlet} · {item.date}
+                      </span>
+                      <span className="mt-2 block font-serif text-2xl leading-snug text-ink transition-colors group-hover:text-white">
+                        {item.title}
+                      </span>
+                      <span className="mt-3 block text-base leading-relaxed text-slate transition-colors group-hover:text-white/85">
+                        {item.text}
+                      </span>
+                      <span className="mt-4 inline-flex items-center gap-1.5 text-[15px] font-semibold text-navy transition-colors group-hover:text-white">
+                        {item.linkLabel}
+                        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
 
             <LegalDisclaimer dict={dict} className="mt-16" />
           </div>
         </div>
       </section>
+
+      <CaseStudies locale={params.lang} dict={dict} />
 
       <ContactEnvelope locale={params.lang} dict={dict} />
     </>

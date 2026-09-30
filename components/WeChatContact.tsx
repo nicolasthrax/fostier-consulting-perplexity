@@ -132,7 +132,7 @@ function WeChatContactModal({
           {s.subtitle}
         </p>
         <div className="mt-6 rounded-sm bg-mist p-4">
-          <p className="text-xs font-medium text-muted">
+          <p className="text-sm font-medium text-muted">
             {s.idLabel}
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
@@ -142,7 +142,7 @@ function WeChatContactModal({
             <button
               type="button"
               onClick={copy}
-              className="focus-ring inline-flex items-center gap-1.5 rounded-sm border border-navy/25 bg-white px-3 py-1.5 text-xs font-semibold text-navy transition-colors hover:border-navy"
+              className="focus-ring inline-flex items-center gap-1.5 rounded-sm border border-navy/25 bg-white px-3 py-1.5 text-sm font-semibold text-navy transition-colors hover:border-navy"
             >
               {copied ? (
                 <Check className="h-3.5 w-3.5 text-fred" />
@@ -163,7 +163,7 @@ function WeChatContactModal({
             onError={() => setQrOk(false)}
           />
         )}
-        <p className="mt-4 text-xs leading-relaxed text-muted">{s.scanNote}</p>
+        <p className="mt-4 text-sm leading-relaxed text-muted">{s.scanNote}</p>
       </div>
     </div>,
     document.body,

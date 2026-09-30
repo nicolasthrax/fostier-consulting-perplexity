@@ -148,7 +148,7 @@ export function UniversityHighlight({
               </span>
               <span className="flex shrink-0 flex-col items-end leading-none">
                 <span className="tabular font-serif text-2xl text-fred">{highlight.stat.value}</span>
-                <span className="mt-1 text-[11px] font-medium text-muted">
+                <span className="mt-1 text-sm font-medium text-muted">
                   {highlight.stat.label}
                 </span>
               </span>
