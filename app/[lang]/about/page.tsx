@@ -18,7 +18,8 @@ import { formatUpdated } from "@/lib/i18n/dates";
 import { aboutJsonLd } from "@/lib/structured-data";
 import { site } from "@/lib/site";
 
-export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const params = (await props.params) as { lang: Locale };
   return localizedMetadata({
     locale: params.lang,
     path: "/about",
@@ -33,7 +34,8 @@ const advisorArrowLabel: Record<Locale, string> = {
   zh: "跳转到「您的专属顾问」部分",
 };
 
-export default function AboutPage({ params }: { params: { lang: Locale } }) {
+export default async function AboutPage(props: { params: Promise<{ lang: string }> }) {
+  const params = (await props.params) as { lang: Locale };
   const dict = getDictionary(params.lang);
   const a = dict.about;
   const f = getFounder(params.lang);

@@ -30,9 +30,10 @@ const AIRMAIL_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><defs><pattern id="p" width="72" height="72" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="24" height="72" fill="#ed2939"/><rect x="24" width="12" height="72" fill="#fff"/><rect x="36" width="24" height="72" fill="#002395"/><rect x="60" width="12" height="72" fill="#fff"/></pattern></defs><rect width="1200" height="630" fill="url(#p)"/></svg>`,
 )}`;
 
-export default async function OpengraphImage({ params }: { params: { lang: Locale } }) {
-  const cjkFont = params.lang === "zh" ? await loadCjkFont(getDictionary("zh").hero.title) : null;
-  const dict = getDictionary(params.lang === "zh" && !cjkFont ? "en" : params.lang);
+export default async function OpengraphImage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = (await params) as { lang: Locale };
+  const cjkFont = lang === "zh" ? await loadCjkFont(getDictionary("zh").hero.title) : null;
+  const dict = getDictionary(lang === "zh" && !cjkFont ? "en" : lang);
 
   // Airmail envelope: striped border, white card, title in brand navy.
   return new ImageResponse(

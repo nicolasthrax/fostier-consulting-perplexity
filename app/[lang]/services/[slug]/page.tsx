@@ -28,7 +28,8 @@ export function generateStaticParams() {
   return locales.flatMap((lang) => serviceSlugs.map((s) => ({ lang, slug: s[lang] })));
 }
 
-export function generateMetadata({ params }: { params: Params }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
+  const params = (await props.params) as Params;
   const i = serviceIndex(params.lang, params.slug);
   if (i < 0) return { title: { absolute: getPageTitles(params.lang).notFound } };
   return localizedMetadata({
@@ -45,7 +46,8 @@ const labels: Record<Locale, { all: string; others: string; email: string }> = {
   zh: { all: "全部服务", others: "其他服务", email: "发送电子邮件" },
 };
 
-export default function ServicePage({ params }: { params: Params }) {
+export default async function ServicePage(props: { params: Promise<{ lang: string; slug: string }> }) {
+  const params = (await props.params) as Params;
   const i = serviceIndex(params.lang, params.slug);
   if (i < 0) notFound();
   const { lang } = params;

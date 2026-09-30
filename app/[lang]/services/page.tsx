@@ -9,7 +9,8 @@ import { getPageTitles } from "@/lib/i18n/titles";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { pageDescriptions } from "@/lib/i18n/descriptions";
 
-export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const params = (await props.params) as { lang: Locale };
   return localizedMetadata({
     locale: params.lang,
     path: "/services",
@@ -18,7 +19,8 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
   });
 }
 
-export default function ServicesPage({ params }: { params: { lang: Locale } }) {
+export default async function ServicesPage(props: { params: Promise<{ lang: string }> }) {
+  const params = (await props.params) as { lang: Locale };
   const dict = getDictionary(params.lang);
   const services: ExplorerService[] = dict.services.items.map((s, i) => ({
     slug: s.slug,

@@ -46,7 +46,8 @@ const clockLabel: Record<Locale, string> = {
   zh: "此刻时间",
 };
 
-export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const params = (await props.params) as { lang: Locale };
   return localizedMetadata({
     locale: params.lang,
     path: "",
@@ -55,7 +56,8 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
   });
 }
 
-export default function HomePage({ params: { lang } }: { params: { lang: Locale } }) {
+export default async function HomePage(props: { params: Promise<{ lang: string }> }) {
+  const { lang } = (await props.params) as { lang: Locale };
   const dict = getDictionary(lang);
   const founder = getFounder(lang);
   const pastEmployers = founder.experience.filter((e) => !e.current);

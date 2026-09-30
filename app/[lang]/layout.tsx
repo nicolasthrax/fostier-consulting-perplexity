@@ -33,7 +33,8 @@ export const viewport = {
   initialScale: 1,
 };
 
-export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const params = (await props.params) as { lang: Locale };
   const dict = getDictionary(params.lang);
   return {
     metadataBase: new URL(site.baseUrl),
@@ -45,13 +46,14 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
   };
 }
 
-export default function LocaleLayout({
+export default async function LocaleLayout({
   children,
-  params: { lang },
+  params,
 }: {
   children: React.ReactNode;
-  params: { lang: Locale };
+  params: Promise<{ lang: string }>;
 }) {
+  const { lang } = (await params) as { lang: Locale };
   if (!locales.includes(lang)) notFound();
   const dict = getDictionary(lang);
   const jsonLd = organisationJsonLd(lang);

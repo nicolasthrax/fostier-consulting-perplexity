@@ -6,7 +6,8 @@ import { getPageTitles } from "@/lib/i18n/titles";
 import { pageDescriptions } from "@/lib/i18n/descriptions";
 import { LegalArticle } from "@/components/LegalArticle";
 
-export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const params = (await props.params) as { lang: Locale };
   return localizedMetadata({
     locale: params.lang,
     path: "/cookies",
@@ -15,7 +16,8 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
   });
 }
 
-export default function Page({ params: { lang } }: { params: { lang: Locale } }) {
+export default async function Page(props: { params: Promise<{ lang: string }> }) {
+  const { lang } = (await props.params) as { lang: Locale };
   const dict = getDictionary(lang);
   return <LegalArticle page={dict.legal.pages.cookies} dict={dict} />;
 }

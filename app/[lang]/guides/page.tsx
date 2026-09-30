@@ -9,7 +9,8 @@ import { formatUpdated } from "@/lib/i18n/dates";
 import { guidesCopy, guidesIn, hasGuides, visibleGuides } from "@/lib/guides";
 import { PageHero, Section } from "@/components/SectionHeading";
 
-export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const params = (await props.params) as { lang: Locale };
   const t = guidesCopy[params.lang];
   return localizedMetadata({ locale: params.lang, path: "/guides", title: t.metaTitle, description: t.description });
 }
@@ -17,7 +18,8 @@ export function generateMetadata({ params }: { params: { lang: Locale } }): Meta
 const row = "focus-ring wipe-row group grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-1 px-1 py-5 sm:px-4 md:py-6";
 
 /** Guides index. Lists this locale's guides, then guides only available in other languages. */
-export default function GuidesPage({ params: { lang } }: { params: { lang: Locale } }) {
+export default async function GuidesPage(props: { params: Promise<{ lang: string }> }) {
+  const { lang } = (await props.params) as { lang: Locale };
   if (!hasGuides()) notFound();
   const dict = getDictionary(lang);
   const t = guidesCopy[lang];

@@ -5,11 +5,12 @@ import { site } from "@/lib/site";
 import { NotFoundContent } from "@/components/NotFoundContent";
 
 /**
- * The component gets no route params in Next 14, but the metadata of a not-found
- * boundary is resolved with its segment's params, so the title follows the URL's locale.
+ * The component gets no route params, but the metadata of a not-found boundary is
+ * resolved with its segment's params, so the title follows the URL's locale.
  */
-export function generateMetadata({ params }: { params?: { lang?: string } }): Metadata {
-  const lang = (locales as readonly string[]).includes(params?.lang ?? "") ? (params!.lang as Locale) : "fr";
+export async function generateMetadata({ params }: { params?: Promise<{ lang?: string }> }): Promise<Metadata> {
+  const requested = (await params)?.lang ?? "";
+  const lang = (locales as readonly string[]).includes(requested) ? (requested as Locale) : "fr";
   return {
     title: { absolute: `${getPageTitles(lang).notFound} | ${site.name}` },
     robots: { index: false, follow: true },

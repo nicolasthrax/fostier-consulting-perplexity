@@ -27,14 +27,16 @@ export function generateStaticParams() {
   );
 }
 
-export function generateMetadata({ params }: { params: Params }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
+  const params = (await props.params) as Params;
   const guide = findGuide(params.lang, params.slug);
   if (!guide) return {};
   const tr = guide.translations[params.lang]!;
   return localizedMetadata({ locale: params.lang, path: guidePaths(guide), title: tr.metaTitle, description: tr.description, type: "article" });
 }
 
-export default function GuidePage({ params }: { params: Params }) {
+export default async function GuidePage(props: { params: Promise<{ lang: string; slug: string }> }) {
+  const params = (await props.params) as Params;
   const guide = findGuide(params.lang, params.slug);
   if (!guide) notFound();
   const { lang } = params;
