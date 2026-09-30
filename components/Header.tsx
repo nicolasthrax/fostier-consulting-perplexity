@@ -11,10 +11,10 @@ import { site, whatsappUrl } from "@/lib/site";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
-const navCopy: Record<Locale, { contact: string; primary: string; mobile: string }> = {
-  fr: { contact: "Contact", primary: "Navigation principale", mobile: "Menu mobile" },
-  en: { contact: "Contact", primary: "Primary", mobile: "Mobile menu" },
-  zh: { contact: "联系我们", primary: "主导航", mobile: "移动端菜单" },
+const navCopy: Record<Locale, { primary: string; mobile: string }> = {
+  fr: { primary: "Navigation principale", mobile: "Menu mobile" },
+  en: { primary: "Primary", mobile: "Mobile menu" },
+  zh: { primary: "主导航", mobile: "移动端菜单" },
 };
 
 export function Header({ locale, dict, guidesLabel }: { locale: Locale; dict: Dictionary; guidesLabel?: string }) {
@@ -40,8 +40,6 @@ export function Header({ locale, dict, guidesLabel }: { locale: Locale; dict: Di
     { href: `/${locale}/services`, label: dict.nav.services },
     { href: `/${locale}/about`, label: dict.nav.about },
     ...(guidesLabel ? [{ href: `/${locale}/guides`, label: guidesLabel }] : []),
-    // Every page carries a #contact block (contact envelope, or the service page sidebar).
-    { href: "#contact", label: t.contact },
   ];
   const isCurrent = (href: string) => (href.startsWith("/") && pathname.startsWith(href) ? "page" : undefined);
 
