@@ -49,7 +49,7 @@ export function organisationJsonLd(locale: Locale) {
         image: `${site.baseUrl}${site.logoPath}`,
         telephone: site.phoneHref.replace("tel:", ""),
         email: site.email,
-        foundingDate: site.foundingYear,
+        foundingDate: site.foundingDate,
         identifier: { "@type": "PropertyValue", propertyID: "Hong Kong Business Registration Number", value: site.brn },
         // Service-area business: district only, matching the Google Business Profile.
         // No hasMap / geo: the profile publishes no pin that matches Central.
@@ -62,13 +62,23 @@ export function organisationJsonLd(locale: Locale) {
         availableLanguage: languages,
         founder: { "@id": personId },
         sameAs: [site.linkedinUrl, site.googleBusinessUrl, site.ufePartnerUrl],
-        contactPoint: {
-          "@type": "ContactPoint",
-          telephone: site.phoneHref.replace("tel:", ""),
-          email: site.email,
-          contactType: "customer service",
-          availableLanguage: languages,
-        },
+        contactPoint: [
+          {
+            "@type": "ContactPoint",
+            name: site.founder,
+            telephone: site.phoneHref.replace("tel:", ""),
+            email: site.email,
+            contactType: "customer service",
+            availableLanguage: languages,
+          },
+          // Backup contact for when the founder is unavailable.
+          {
+            "@type": "ContactPoint",
+            name: site.backupContact.name,
+            email: site.backupContact.email,
+            contactType: "customer service",
+          },
+        ],
         hasOfferCatalog: {
           "@type": "OfferCatalog",
           name: dict.services.pageTitle,
