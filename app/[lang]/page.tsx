@@ -116,11 +116,9 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
           </div>
 
           <div className="fade-in relative [animation-delay:.2s]">
-            <div className="par-avion par-avion-drift rounded-sm p-2">
-              <HeroGlobe className="rounded-[1px]">
-                <AdvisorMapPill locale={lang} />
-              </HeroGlobe>
-            </div>
+            <HeroGlobe className="rounded-sm">
+              <AdvisorMapPill locale={lang} />
+            </HeroGlobe>
           </div>
         </div>
       </section>
