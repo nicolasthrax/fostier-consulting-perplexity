@@ -171,6 +171,7 @@ export function guideJsonLd(locale: Locale, guide: Guide) {
       inLanguage: inLanguage[locale],
       datePublished: guide.published,
       dateModified: guide.updated,
+      ...(guide.tags?.length ? { keywords: guide.tags.join(", ") } : {}),
       author: { "@id": personId },
       publisher: { "@id": orgId },
       isPartOf: { "@id": websiteId },

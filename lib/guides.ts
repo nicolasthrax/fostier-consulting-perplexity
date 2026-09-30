@@ -39,6 +39,8 @@ export type Guide = {
   updated: string;
   /** Index of the related service in `services.items`. */
   service?: number;
+  /** Topic keywords, shared by all translations; output as the Article's `keywords`. */
+  tags?: string[];
   translations: Partial<Record<Locale, GuideTranslation>>;
 };
 
@@ -47,8 +49,9 @@ export const guides: Guide[] = [
     id: "hong-kong-tax-return",
     status: "published",
     published: "2026-09-29",
-    updated: "2026-09-29",
+    updated: "2026-09-30",
     service: 1,
+    tags: ["Hong Kong salaries tax", "BIR60", "eTAX", "provisional tax", "France–Hong Kong tax treaty", "French expats"],
     translations: {
       fr: {
         slug: "declaration-impots-hong-kong-francais",
@@ -158,6 +161,114 @@ export const guides: Guide[] = [
           },
         ],
       },
+      en: {
+        slug: "hong-kong-tax-return-french-expats",
+        title: "Hong Kong Tax Filing for French Expats: A Territorial-Source Guide",
+        metaTitle: "Hong Kong tax filing for French expats",
+        description:
+          "Who must file in Hong Kong, when the BIR60 arrives, deadlines and documents, provisional tax, and what to check on the French side.",
+        lead: "Every French national working in Hong Kong pays salaries tax on income from their local employment and must complete the individual tax return (form BIR60) that the Inland Revenue Department (IRD) issues each year in early May, for the tax year running from 1 April to 31 March. You have one month to file, extended by one month if you file online through eTAX. This guide covers the calendar, the documents to gather, provisional tax, what to check on the French side and the most common mistakes.",
+        sections: [
+          {
+            heading: "Who has to file a tax return in Hong Kong?",
+            paragraphs: [
+              "Hong Kong taxes on a territorial basis: salaries tax applies to income from an employment, office or pension that has its source in Hong Kong, whatever your nationality. A French national on a local contract, a seconded employee working in Hong Kong or a director paid by a Hong Kong company is therefore taxable from the first year.",
+              "As a general rule, individuals are not taxed in Hong Kong on capital gains, dividends or bank interest received privately. Rent from a property in Hong Kong, however, falls under property tax, and income from a business carried on in Hong Kong as a sole proprietor falls under profits tax. All of these are reported on the same BIR60 form.",
+              "If you receive a BIR60, you must complete and return it, even if you believe you owe nothing. If you are chargeable but have not received a return — common in your first year — the law requires you to notify the IRD in writing within four months of the end of the tax year, which means by 31 July for salaries tax (form IR6167). Not receiving a return does not exempt you from tax.",
+              "Arriving or leaving part-way through the year does not change the principle: you only report income for the period spent in Hong Kong. Leaving for good, however, follows a specific tax clearance procedure, covered in our guide to leaving Hong Kong.",
+            ],
+          },
+          {
+            heading: "When does the tax return arrive and what is the deadline?",
+            paragraphs: [
+              "The IRD issues individual returns in a single bulk issue on the first working day of May. For the 2025/26 tax year (1 April 2025 to 31 March 2026), BIR60s were issued on 4 May 2026. The deadline is one month after issue, 4 June 2026, and three months for sole proprietors, 4 August 2026.",
+              "A one-month extension is granted automatically to returns filed online: 4 July 2026 in general, and 4 September 2026 for sole proprietors. If you cannot meet the deadline for another reason (a long absence, illness), apply in writing for an extension before it falls due, giving your reasons: it is not granted as of right.",
+              "Once the return has been processed, the IRD sends a notice of assessment combining final tax for the year just ended and provisional tax for the current year. Payment is usually due in two instalments, the first early in the calendar year and the second in spring; the exact dates are on the notice. If you disagree with the assessment, you must lodge a written objection within one month of the date of the notice.",
+            ],
+          },
+          {
+            heading: "Which documents should you prepare?",
+            paragraphs: [
+              "Most of the figures you will enter come from your employer, who reports your pay to the IRD each year on form IR56B and must give you a copy, usually in April. Gather these documents before you open the return — it is the step that takes longest:",
+            ],
+            list: [
+              "A copy of the IR56B from each employer during the year and, where relevant, the forms for commencement (IR56E), cessation (IR56F) or departure from Hong Kong (IR56G).",
+              "Details of variable pay: bonuses, commissions, allowances, share awards or stock options, and benefits in kind — in particular housing provided or paid for by your employer, which follows its own calculation rules.",
+              "A statement of your mandatory MPF contributions, deductible up to an annual cap.",
+              "Evidence for other deductions: premiums for certified health plans under the Voluntary Health Insurance Scheme (VHIS), tax-deductible voluntary MPF contributions (TVC) or qualifying deferred annuity premiums (QDAP), rent for your home, home loan interest, donations to approved charities, and self-education expenses.",
+              "The information needed for family allowances: your spouse's situation, your children's birth certificates, and dependent parents or grandparents.",
+              "If you work partly outside Hong Kong: a record of your days in and out of Hong Kong, and evidence of any tax paid abroad.",
+              "Your last notice of assessment, to check the provisional tax you have already paid.",
+            ],
+          },
+          {
+            heading: "How do you file your return on eTAX?",
+            paragraphs: [
+              "Online filing is done on eTAX, the IRD's electronic service, which since July 2025 includes a dedicated Individual Tax Portal and a mobile app. You log in with iAM Smart, the Hong Kong government's digital identity, or with your eTAX account. The online form follows the sections of the paper BIR60 and you receive an acknowledgement as soon as you submit.",
+              "Two advantages alone justify filing online: the extra month, and no postal risk. Paper is still accepted, but the IRD rejects items with insufficient postage, and those cause more missed deadlines than anything else.",
+              "Each spouse completes their own return. A married couple can elect for joint assessment when it is more favourable, and someone with other taxable income in Hong Kong, such as rent, can elect for personal assessment. Both elections are made directly in the return; they are worth modelling before you choose them.",
+              "The IRD computes the tax in two ways and charges the lower amount: progressive rates applied to net income after allowances, or a standard rate applied to net income without personal allowances. There is nothing to choose, but a complete return makes sure you get every deduction.",
+            ],
+          },
+          {
+            heading: "What is provisional tax and can you reduce it?",
+            paragraphs: [
+              "Hong Kong does not withhold tax from salaries. Instead, the IRD charges provisional tax for the current year, normally based on the previous year's income, and credits it against final tax the following year. In your first taxable year, the notice therefore combines final tax for the year just ended and provisional tax for the current year: a large sum that is best planned for.",
+              "If your income falls significantly — estimated income below 90% of the previous year's — or if you stop working, you can apply to hold over all or part of your provisional tax. The application must be made no later than 28 days before the payment date, or within 14 days of the date of the notice if that is later.",
+            ],
+          },
+          {
+            heading: "Do you also have to file in France?",
+            paragraphs: [
+              "That depends on your tax residence under French law (article 4 B of the Code général des impôts): you are resident in France if your home or principal place of stay is there, if you carry on your main professional activity there, or if the centre of your economic interests is there. Any one of these criteria is enough.",
+              "If you have become non-resident, you only declare French-source income in France — typically rent from a property in France — online at impots.gouv.fr, where your file is handled by the tax office for non-resident individuals. In the year you leave, a single return covers income received as a resident up to the date of departure, then French-source income only. Remember to give the tax authorities your new address.",
+              "France and Hong Kong signed a double taxation agreement on 21 October 2010, which came into force on 1 December 2011. It resolves situations where both territories would treat you as resident and sets out which one may tax each category of income. To rely on it, the IRD can issue a Hong Kong Certificate of Resident Status.",
+              "If your family has stayed in France, if you are seconded by a French employer or if you have significant income on both sides, your situation calls for advice from a tax lawyer or a chartered accountant qualified in France. Fostier Consulting can help you gather the documents and coordinate the exchanges, but does not replace that advice.",
+            ],
+          },
+          {
+            heading: "What are the most common mistakes?",
+            paragraphs: ["The same oversights come up every year, especially among newcomers:"],
+            list: [
+              "Waiting for a return that never arrives, instead of notifying the IRD of your chargeability before 31 July.",
+              "Leaving out part of your pay: a bonus paid after the end of the tax year but relating to it, share awards, employer-provided housing.",
+              "Not claiming the deductions you are entitled to (VHIS, rent, tax-deductible voluntary MPF contributions, dependent children).",
+              "Underestimating the first notice of assessment, which combines final and provisional tax.",
+              "Moving home without telling the IRD: a change of address must be reported within one month, or you risk missing a notice and its deadlines.",
+              "Filing late: the IRD can then issue an estimated assessment and impose penalties.",
+              "Leaving Hong Kong without settling your tax position, which holds up your final salary payment from your employer.",
+            ],
+          },
+          {
+            heading: "How Fostier Consulting can help",
+            paragraphs: [
+              "We prepare your Hong Kong tax return with you: organising the documents, checking each section and deduction, helping you file on eTAX, and keeping track of the tax calendar and correspondence with the IRD, in French or English. You remain responsible for the accuracy of your return and for signing it; we help you submit it complete and on time.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            q: "When will I receive my Hong Kong tax return?",
+            a: "The IRD issues individual returns (BIR60) on the first working day of May; for 2025/26, that was 4 May 2026. If you are chargeable and have received nothing, you must notify the IRD in writing by 31 July.",
+          },
+          {
+            q: "Is the extra month for eTAX filing automatic?",
+            a: "Yes. For 2025/26, the IRD automatically gave returns filed online an extra month: 4 July 2026 instead of 4 June, and 4 September instead of 4 August for sole proprietors.",
+          },
+          {
+            q: "Do I have to declare bank interest and dividends in Hong Kong?",
+            a: "As a general rule, no: bank interest, dividends and capital gains received privately are not taxed in Hong Kong. They may be taxable in France if you are tax resident there.",
+          },
+          {
+            q: "Do my spouse and I file a joint return?",
+            a: "Each spouse receives and completes their own return. You can elect for joint assessment if it lowers the couple's tax; the election is made in the returns.",
+          },
+          {
+            q: "Is there a tax treaty between France and Hong Kong?",
+            a: "Yes. A double taxation agreement was signed on 21 October 2010 and came into force on 1 December 2011. Among other things, it decides residence where both sides claim you and which territory may tax each type of income.",
+          },
+        ],
+      },
     },
   },
   {
@@ -166,6 +277,7 @@ export const guides: Guide[] = [
     published: "2026-09-29",
     updated: "2026-09-29",
     service: 1,
+    tags: ["leaving Hong Kong", "IR56G", "tax clearance", "MPF withdrawal", "returning to France"],
     translations: {
       fr: {
         slug: "quitter-hong-kong-checklist-demarches",
@@ -271,6 +383,210 @@ export const guides: Guide[] = [
           {
             q: "À partir de quand suis-je de nouveau résident fiscal en France ?",
             a: "En principe à la date de votre retour, lorsque votre foyer ou votre lieu de séjour principal est de nouveau en France. L'année du retour, votre déclaration distingue la période de non-résidence et celle de résidence.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "moving-savings-france-hong-kong",
+    // Draft: new regulatory content, to be checked by Lucie before publishing.
+    status: "draft",
+    published: "2026-09-30",
+    updated: "2026-09-30",
+    service: 2,
+    tags: ["moving money to Hong Kong", "international bank transfer", "Hong Kong bank account", "form 3916", "CRS", "French expats"],
+    translations: {
+      en: {
+        slug: "moving-savings-france-to-hong-kong",
+        title: "Transferring Savings and Capital from France to Hong Kong: Banking and Compliance",
+        metaTitle: "Moving savings from France to Hong Kong",
+        description:
+          "How to move savings from France to Hong Kong: opening a local account, transfer options, source-of-funds checks, and what to declare in France.",
+        lead: "Moving your own savings from France to Hong Kong is not taxed in either place and Hong Kong has no exchange controls, so the transfer itself is simple. The work lies around it: opening a Hong Kong account first, documenting where the money comes from so both banks release it without delay, choosing how to convert euros into Hong Kong or US dollars, and keeping your French reporting obligations in order. This guide takes those steps in the order you will meet them.",
+        sections: [
+          {
+            heading: "Should you move your savings at all?",
+            paragraphs: [
+              "Not necessarily all of them. Money you will spend in Hong Kong — deposits, rent, day-to-day costs — belongs in a Hong Kong account. Savings earmarked for projects in France, such as buying property or a return in a few years, may be better left in euros to avoid converting twice.",
+              "Before moving anything, check with your French bank which accounts and products you can keep as a non-resident. Some regulated savings products are reserved for French tax residents, and some banks restrict or close accounts held by clients living abroad. Life insurance contracts (assurance-vie) and securities accounts are generally kept, but the tax treatment changes with your residence, so each one deserves a review rather than an automatic transfer.",
+            ],
+          },
+          {
+            heading: "How do you open a bank account in Hong Kong?",
+            paragraphs: [
+              "Open the Hong Kong account before you plan the transfer: you cannot send money until you have a local account number. Banks set their own requirements, but you should expect to provide:",
+            ],
+            list: [
+              "Your passport and, once issued, your Hong Kong identity card (HKID).",
+              "Proof of residential address — a tenancy agreement or a recent utility bill; some banks accept a letter from your employer while you are in temporary housing.",
+              "Proof of employment or income: an employment contract, an employer letter or recent payslips.",
+              "Your tax identification numbers for every country where you are tax resident, for the Common Reporting Standard (CRS) self-certification.",
+            ],
+          },
+          {
+            heading: "Which documents prove the source of funds?",
+            paragraphs: [
+              "Anti-money-laundering rules require both the sending and the receiving bank to understand where large amounts come from. A transfer that arrives without explanation can be held while the bank asks questions. Preparing the evidence in advance is the most effective way to avoid delays:",
+            ],
+            list: [
+              "Statements from the French account the funds are leaving, covering the recent months.",
+              "Evidence of how the savings were built up: payslips, a sale deed for a property, a notarial deed for an inheritance or gift, the closing statement of an investment.",
+              "A short written explanation of the purpose of the transfer, such as settling in Hong Kong or a rental deposit.",
+            ],
+          },
+          {
+            heading: "How should you transfer and convert the money?",
+            paragraphs: [
+              "The usual route is an international bank transfer (SWIFT) from your French bank to your Hong Kong account. Compare the total cost, not just the fee: the exchange-rate margin on converting euros often costs more than the transfer charge itself. Online transfer services and multi-currency accounts can be cheaper for converting currency; check that the provider is authorised and that the amount fits within its limits.",
+              "The Hong Kong dollar is pegged to the US dollar within a band of 7.75 to 7.85 under the Linked Exchange Rate System, so converting euros to Hong Kong dollars is, in practice, an exposure to the euro–dollar rate. For large amounts, splitting the conversion over several dates spreads that risk.",
+              "Cash is a different matter: carrying €10,000 or more in cash or equivalent instruments when leaving the European Union must be declared to customs, and Hong Kong has its own declaration for large cash amounts on arrival. A bank transfer avoids both.",
+            ],
+          },
+          {
+            heading: "What do you need to declare in France?",
+            paragraphs: [
+              "As long as you are a French tax resident — including in the year you leave, for the period before departure — you must declare every bank account opened, held, used or closed abroad on form 3916 with your annual income tax return. Failing to do so carries a fixed fine per undeclared account. Once you are no longer a French tax resident, that obligation stops, but it applies again from the year you return.",
+              "Hong Kong and France exchange financial account information automatically under the CRS: your Hong Kong bank reports your accounts to the IRD, which passes the information to the French tax authorities where you are a French tax resident, and the reverse applies to French accounts. Keep your self-certifications up to date whenever your residence changes.",
+              "If you hold large shareholdings when you leave France, the French exit tax on unrealised gains may apply. That situation calls for advice from a tax lawyer or chartered accountant qualified in France before you leave.",
+            ],
+          },
+          {
+            heading: "What are the most common mistakes?",
+            paragraphs: ["Most transfer problems come from timing and paperwork, not from the transfer itself:"],
+            list: [
+              "Planning the transfer before the Hong Kong account is fully open.",
+              "Sending a large amount without source-of-funds evidence, then waiting weeks while the bank reviews it.",
+              "Closing all French accounts too soon, then struggling to pay remaining French taxes, loans or charges.",
+              "Converting everything at once without comparing the exchange-rate margin.",
+              "Forgetting form 3916 for the Hong Kong account in the year of departure or the year of return.",
+            ],
+          },
+          {
+            heading: "How Fostier Consulting can help",
+            paragraphs: [
+              "We help you organise your savings between France and Hong Kong: choosing which accounts to keep, preparing the documents for opening an account and for source-of-funds checks, comparing transfer options and keeping your reporting calendar, in French or English. For questions of French tax law, we refer you to a qualified professional.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            q: "Is transferring my savings to Hong Kong taxable?",
+            a: "No. Moving your own money between your accounts is not income, so it is not taxed in France or in Hong Kong. Income those savings produce may be taxable in France, depending on your tax residence.",
+          },
+          {
+            q: "Does Hong Kong limit how much money I can bring in?",
+            a: "No. Hong Kong has no exchange controls. Banks will, however, ask about the source of large transfers under anti-money-laundering rules.",
+          },
+          {
+            q: "Do I need to declare my Hong Kong bank account in France?",
+            a: "Yes, on form 3916, for every year in which you are a French tax resident and hold, use or close the account — including the year you leave and the year you return.",
+          },
+          {
+            q: "Can I keep my French bank accounts after moving to Hong Kong?",
+            a: "Generally yes, but each bank sets its own conditions for non-resident clients, and some regulated savings products are reserved for French tax residents. Check with your bank before you leave.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "hong-kong-insurance-checklist",
+    // Draft: new regulatory content, to be checked by Lucie before publishing.
+    status: "draft",
+    published: "2026-09-30",
+    updated: "2026-09-30",
+    service: 3,
+    tags: ["expat health insurance Hong Kong", "VHIS", "life insurance", "employees' compensation", "insurance checklist", "French expats"],
+    translations: {
+      en: {
+        slug: "hong-kong-expat-insurance-checklist",
+        title: "Hong Kong Expat Insurance Checklist: Health, Life and Residency Coverage",
+        metaTitle: "Hong Kong expat insurance checklist",
+        description:
+          "The insurance checklist for French expats arriving in Hong Kong: health cover, gaps in employer plans, life cover, compulsory policies and French contracts.",
+        lead: "When you move to Hong Kong, you leave the French Sécurité sociale system and your insurance becomes a set of separate choices. Holders of a Hong Kong identity card can use public hospitals at subsidised rates, but most French families also rely on private health cover, usually starting with an employer's group plan. This checklist covers what to review in your first weeks: health cover and its gaps, life and disability cover, the policies that are compulsory, and what to do with your French contracts.",
+        sections: [
+          {
+            heading: "How does healthcare work for newcomers in Hong Kong?",
+            paragraphs: [
+              "Hong Kong's public hospitals and clinics, run by the Hospital Authority, charge heavily subsidised fees to eligible persons, which includes holders of a Hong Kong identity card. Waiting times for non-urgent care can be long, however, and many expatriates use the private sector, where costs are high and paid by the patient or their insurer.",
+              "Until you receive your HKID, you are charged non-eligible-person rates in the public system. Make sure your private cover starts on your arrival date, not on your first day of work.",
+            ],
+          },
+          {
+            heading: "What should you check in your employer's health plan?",
+            paragraphs: ["A group medical plan is a good start, but it is rarely complete. Check these points against your family's needs:"],
+            list: [
+              "Who is covered: yourself only, or your spouse and children, and at what extra cost.",
+              "Inpatient and outpatient limits, room class, and whether specialists and diagnostics are covered.",
+              "Maternity cover and any waiting period before it applies.",
+              "Pre-existing conditions, which group plans may exclude or cap.",
+              "Geographic scope: whether treatment in France or elsewhere in Asia is covered, including during holidays.",
+              "What happens when you leave the job: group cover usually ends with the contract, and moving to an individual plan later may mean new exclusions.",
+            ],
+          },
+          {
+            heading: "Should you add individual health insurance?",
+            paragraphs: [
+              "An individual plan fills the gaps in a group plan and stays with you if you change employer. Certified individual indemnity plans under the Voluntary Health Insurance Scheme (VHIS) meet minimum standards set by the Hong Kong government, and their premiums are deductible from salaries tax, up to HK$8,000 per insured person per year.",
+              "French nationals can also keep a link with the French system through the Caisse des Français de l'Étranger (CFE), either alone or combined with a private top-up plan. Compare the options on cost, age limits, waiting periods and cover in France before choosing.",
+            ],
+          },
+          {
+            heading: "Do you need life and disability cover?",
+            paragraphs: [
+              "If your family depends on your income, check the life and disability cover provided by your employer, often expressed as a multiple of salary, and whether it is enough for your family's needs and commitments, such as a mortgage in France.",
+              "Individual life policies in Hong Kong are regulated by the Insurance Authority and are often denominated in Hong Kong or US dollars. For most long-term life policies, you have a cooling-off period of 21 calendar days after delivery of the policy or the cooling-off notice, whichever is earlier, during which you can cancel. Check with a qualified adviser how such a contract would be treated in France if you return.",
+            ],
+          },
+          {
+            heading: "Which insurance policies are compulsory in Hong Kong?",
+            paragraphs: ["A few situations make insurance a legal requirement:"],
+            list: [
+              "Employing a domestic helper: the employer must hold employees' compensation insurance for the helper under the Employees' Compensation Ordinance. Most families also add medical cover for the helper.",
+              "Owning or using a car: third-party motor insurance is compulsory.",
+              "Running a business with employees: employees' compensation insurance is compulsory for all staff.",
+            ],
+          },
+          {
+            heading: "Which other policies are worth considering?",
+            paragraphs: ["Depending on your situation:"],
+            list: [
+              "Home contents and personal liability insurance, which landlords sometimes require and which covers damage to neighbours' flats, for example from a water leak.",
+              "Travel insurance, checking that it covers trips to France: some policies exclude your country of nationality.",
+              "Critical illness cover, as a complement to medical insurance, if a serious illness would stop you from working.",
+            ],
+          },
+          {
+            heading: "What should you do with your French insurance contracts?",
+            paragraphs: [
+              "Review every French contract when you leave, rather than cancelling or keeping them all by default. A complementary health plan (mutuelle) tied to French social security generally stops being useful once you leave the system; home insurance ends with the lease; death and disability cover (prévoyance) and borrower insurance on a French mortgage often need to be kept, but some contracts restrict cover for residents abroad. Tell each insurer about your change of residence and check the terms in writing.",
+            ],
+          },
+          {
+            heading: "How Fostier Consulting can help",
+            paragraphs: [
+              "We review your employer's cover with you, identify the gaps, and compare health, life and critical illness solutions suited to your family, in French or English. We also help you sort out your French contracts before and after the move.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            q: "Can I use Hong Kong public hospitals as a French expat?",
+            a: "Yes. Holders of a Hong Kong identity card are eligible persons and pay subsidised fees. Until you have your HKID, you pay non-eligible-person rates.",
+          },
+          {
+            q: "Is health insurance compulsory in Hong Kong?",
+            a: "Not for individuals, but it is strongly advisable because private care is expensive. Employees' compensation insurance is compulsory for employers, including families who employ a domestic helper.",
+          },
+          {
+            q: "Are health insurance premiums tax-deductible in Hong Kong?",
+            a: "Premiums for certified VHIS plans are deductible from salaries tax, up to HK$8,000 per insured person per year, for yourself and eligible dependants.",
+          },
+          {
+            q: "Can I keep French social security while living in Hong Kong?",
+            a: "Not automatically, unless you are a seconded employee. You can join the Caisse des Français de l'Étranger (CFE), which provides optional cover along the lines of French social security.",
           },
         ],
       },

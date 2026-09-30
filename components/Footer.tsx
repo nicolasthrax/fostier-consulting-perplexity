@@ -10,6 +10,7 @@ import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
 const brLabel: Record<Locale, string> = { fr: "N° BR", en: "BR No.", zh: "商业登记号码" };
+const llmsLabel: Record<Locale, string> = { fr: "Infos pour LLMs", en: "LLM info", zh: "AI 助手信息" };
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const year = new Date().getFullYear();
@@ -113,6 +114,12 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
                 </Link>
               </li>
             ))}
+            {/* Plain-text route, not a page: a regular anchor so Next doesn't try to prefetch it. */}
+            <li>
+              <a href="/llms.txt" type="text/plain" className={link}>
+                <span className="link-underline">{llmsLabel[locale]}</span>
+              </a>
+            </li>
           </ul>
         </div>
       </div>
