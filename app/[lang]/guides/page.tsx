@@ -8,7 +8,6 @@ import { localizedMetadata } from "@/lib/metadata";
 import { formatUpdated } from "@/lib/i18n/dates";
 import { guidesCopy, guidesIn, hasGuides, visibleGuides } from "@/lib/guides";
 import { PageHero, Section } from "@/components/SectionHeading";
-import { ContactEnvelope } from "@/components/ContactEnvelope";
 
 export function generateMetadata({ params }: { params: { lang: Locale } }): Metadata {
   const t = guidesCopy[params.lang];
@@ -65,7 +64,6 @@ export default function GuidesPage({ params: { lang } }: { params: { lang: Local
           </>
         )}
       </Section>
-      <ContactEnvelope locale={lang} dict={dict} />
     </>
   );
 }

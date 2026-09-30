@@ -14,7 +14,6 @@ import { site } from "@/lib/site";
 import { PageHero, Section } from "@/components/SectionHeading";
 import { Faq } from "@/components/Faq";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
-import { ContactEnvelope } from "@/components/ContactEnvelope";
 
 type Params = { lang: Locale; slug: string };
 
@@ -110,7 +109,6 @@ export default function GuidePage({ params }: { params: Params }) {
         <LegalDisclaimer dict={dict} className="mt-16" />
       </Section>
 
-      <ContactEnvelope locale={lang} dict={dict} />
     </>
   );
 }

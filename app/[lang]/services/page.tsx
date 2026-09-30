@@ -1,6 +1,5 @@
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { PageHero, Section } from "@/components/SectionHeading";
-import { ContactEnvelope } from "@/components/ContactEnvelope";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import { ServicesExplorer, type ExplorerService } from "@/components/ServicesExplorer";
 import type { Metadata } from "next";
@@ -39,7 +38,6 @@ export default function ServicesPage({ params }: { params: { lang: Locale } }) {
         <LegalDisclaimer dict={dict} className="mt-16" />
       </Section>
 
-      <ContactEnvelope locale={params.lang} dict={dict} />
     </>
   );
 }

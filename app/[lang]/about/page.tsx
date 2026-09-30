@@ -8,7 +8,6 @@ import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import { AdvisorArrow } from "@/components/AdvisorArrow";
 import { UniversityHighlight, BioWithHighlights } from "@/components/UniversityHighlight";
 import { StampPortrait } from "@/components/Stamp";
-import { ContactEnvelope } from "@/components/ContactEnvelope";
 import { CaseStudies } from "@/components/CaseStudies";
 import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
@@ -169,7 +168,6 @@ export default function AboutPage({ params }: { params: { lang: Locale } }) {
 
       <CaseStudies locale={params.lang} dict={dict} />
 
-      <ContactEnvelope locale={params.lang} dict={dict} />
     </>
   );
 }

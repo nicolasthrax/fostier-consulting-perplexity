@@ -16,7 +16,6 @@ import { RiseTitle } from "@/components/RiseTitle";
 import { ServiceIndex } from "@/components/ServiceIndex";
 import { StampPortrait } from "@/components/Stamp";
 import { DualClock } from "@/components/DualClock";
-import { ContactEnvelope } from "@/components/ContactEnvelope";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "@/lib/i18n/founder";
 import { pageDescriptions } from "@/lib/i18n/descriptions";
 import { faqHeading, homeFaq } from "@/lib/i18n/faq";
@@ -238,7 +237,6 @@ export default function HomePage({ params: { lang } }: { params: { lang: Locale 
         </div>
       </section>
 
-      <ContactEnvelope locale={lang} dict={dict} />
     </>
   );
 }
