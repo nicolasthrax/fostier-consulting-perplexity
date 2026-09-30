@@ -9,10 +9,10 @@ import { guidePaths, hasGuides, visibleGuides } from "@/lib/guides";
  * on each legal page (lib/i18n/content.ts); everything else follows site.contentUpdated.
  */
 const legalUpdated: Record<string, string> = {
-  "/privacy": "2026-09-27",
-  "/cookies": "2026-09-27",
-  "/terms": "2026-09-24",
-  "/legal-notice": "2026-09-27",
+  "/privacy": "2026-09-30",
+  "/cookies": "2026-09-30",
+  "/terms": "2026-09-30",
+  "/legal-notice": "2026-09-30",
 };
 
 const sharedRoutes = ["", "/services", "/about", "/privacy", "/cookies", "/terms", "/legal-notice"];
