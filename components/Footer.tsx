@@ -70,7 +70,6 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           </ul>
         </nav>
         <div>
-          <h2 className={heading}>{dict.footer.contactTitle}</h2>
           <ul className="mt-4 space-y-3 text-[15px]">
             <li>
               <a href={site.phoneHref} className={`${target} inline-block tabular font-semibold text-navy`}>
