@@ -6,8 +6,8 @@ import { CareersShell } from "@/components/careers/CareersShell";
 import "../../globals.css";
 
 /**
- * Unlisted recruitment portal, in English (/careers, rewritten to /careers/en by
- * the middleware) and French (/careers/fr). Never linked from the site, the
+ * Unlisted recruitment portal, in French (/careers, rewritten to /careers/fr by
+ * the middleware) and English (/careers/en). Never linked from the site, the
  * sitemap or robots.txt, and marked noindex.
  */
 export function generateStaticParams() {
@@ -19,7 +19,7 @@ export const viewport = { themeColor: "#002395", width: "device-width", initialS
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  const t = careersCopy[isCareersLocale(lang) ? lang : "en"];
+  const t = careersCopy[isCareersLocale(lang) ? lang : "fr"];
   return {
     metadataBase: new URL(site.baseUrl),
     title: { template: `%s | ${site.name}`, default: `${t.careers} | ${site.name}` },

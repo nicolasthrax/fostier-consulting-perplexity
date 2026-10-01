@@ -2,16 +2,16 @@
  * Recruitment portal settings shared by the form, the API and the admin board.
  * Edit job listings and screening questions here; wording lives in ./i18n.ts.
  */
-import { careersCopy, type CareersLocale, type Localized } from "./i18n";
+import { DEFAULT_CAREERS_LOCALE, careersCopy, type CareersLocale, type Localized } from "./i18n";
 
 /** Internal route the portal is served from. A secret public slug can be set with CAREERS_PORTAL_SLUG (see middleware.ts). */
 export const PORTAL_BASE = "/careers";
 export const API_BASE = `${PORTAL_BASE}/api`;
 
-/** Path candidates see in their browser (server components only: reads a server env var). English has no prefix. */
-export function publicBase(lang: CareersLocale = "en") {
+/** Path candidates see in their browser (server components only: reads a server env var). French, the default, has no prefix. */
+export function publicBase(lang: CareersLocale = DEFAULT_CAREERS_LOCALE) {
   const slug = process.env.CAREERS_PORTAL_SLUG?.replace(/^\/+|\/+$/g, "");
-  return `${slug ? `/${slug}` : PORTAL_BASE}${lang === "en" ? "" : `/${lang}`}`;
+  return `${slug ? `/${slug}` : PORTAL_BASE}${lang === DEFAULT_CAREERS_LOCALE ? "" : `/${lang}`}`;
 }
 
 // 4 MB: Vercel functions reject request bodies over 4.5 MB, multipart overhead included.
@@ -69,7 +69,7 @@ export const commissionOptions: Option[] = [
 
 /**
  * Job listings. Candidates can only apply through one of these, at
- * /careers/jobs/<slug> (English) or /careers/fr/jobs/<slug> (French). Set
+ * /careers/jobs/<slug> (French) or /careers/en/jobs/<slug> (English). Set
  * `open: false` to stop accepting applications without losing the listing's
  * past candidates on the admin board.
  */

@@ -9,7 +9,7 @@ import {
   type ApplicationRecord,
   type CvExtension,
 } from "@/lib/careers/config";
-import { careersCopy, isCareersLocale } from "@/lib/careers/i18n";
+import { DEFAULT_CAREERS_LOCALE, careersCopy, isCareersLocale } from "@/lib/careers/i18n";
 import { addApplication, newId, purgeExpired, storageAvailable } from "@/lib/careers/storage";
 import { forwardToWebhook, webhookUrl } from "@/lib/careers/webhook";
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: careersCopy.en.errors.unreadable }, { status: 400 });
   }
-  const lang = isCareersLocale(form.get("lang")) ? (form.get("lang") as "en" | "fr") : "en";
+  const lang = isCareersLocale(form.get("lang")) ? (form.get("lang") as "en" | "fr") : DEFAULT_CAREERS_LOCALE;
   const m = careersCopy[lang].errors;
 
   // Honeypot: real candidates never see this field.

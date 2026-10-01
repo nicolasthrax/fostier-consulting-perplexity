@@ -8,10 +8,10 @@ with candidates.
 
 | Path | What |
 | --- | --- |
-| `/careers` (or `/<CAREERS_PORTAL_SLUG>`) | Open positions, English |
-| `/careers/fr` | Open positions, French |
-| `/careers[/fr]/jobs/<job-slug>` | Job description and 4-step application form |
-| `/careers[/fr]/privacy` | Candidate privacy notice (PICS) |
+| `/careers` (or `/<CAREERS_PORTAL_SLUG>`) | Open positions, French (default) |
+| `/careers/en` | Open positions, English |
+| `/careers[/en]/jobs/<job-slug>` | Job description and 4-step application form |
+| `/careers[/en]/privacy` | Candidate privacy notice (PICS) |
 | `/careers/admin` (or `/<slug>/admin`) | Password-protected candidate pipeline |
 | `/careers/api/*` | Submission and admin endpoints |
 
@@ -88,8 +88,9 @@ For the browser fallback leave `SHARED_SECRET` empty (a browser can't keep a sec
 
 ## Languages
 
-Candidate pages are in English (`/careers`) and French (`/careers/fr`), with a
-language link in the header. Wording is in
+Candidate pages are in French by default (`/careers`) and in English
+(`/careers/en`), with a language link in the header. Old `/careers/fr/...`
+links redirect to `/careers/...`. The default is `DEFAULT_CAREERS_LOCALE` in `i18n.ts`. Wording is in
 [`lib/careers/i18n.ts`](../lib/careers/i18n.ts); job texts are in `config.ts`
 with an `en` and `fr` version of each field. The admin board is English only.
 
@@ -99,7 +100,7 @@ What the portal does, and what stays with you:
 
 | Requirement | Where |
 | --- | --- |
-| PDPO DPP1(3) collection statement, given before collection | Short notice at the top of step 1, full notice at `/careers/privacy` (EN/FR) |
+| PDPO DPP1(3) collection statement, given before collection | Short notice at the top of step 1, full notice at `/careers/privacy` (FR) and `/careers/en/privacy` (EN) |
 | GDPR Art. 13 information (applicants in the EU/EEA) | Same notice: controller, purposes, legal bases, recipients, transfers, retention, rights, CNIL |
 | No automated rejection (GDPR Art. 22) | Knockout answers are only flagged for a person to review |
 | Data minimisation (PCPD Code of Practice on Human Resource Management) | No HKID/passport collected; candidates are asked to leave them and sensitive data out of CVs |

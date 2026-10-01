@@ -18,8 +18,8 @@ const noindex = (res: NextResponse) => {
 const under = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
 
 /**
- * The unlisted recruitment portal lives outside the locale tree: English at
- * /careers (rewritten to /careers/en) and French at /careers/fr. With
+ * The unlisted recruitment portal lives outside the locale tree: French at
+ * /careers (rewritten to /careers/fr) and English at /careers/en. With
  * CAREERS_PORTAL_SLUG set (e.g. "join-7f3k2q"), it is served at /<slug> instead and
  * the default /careers pages 404, so the URL can't be guessed. Its API stays
  * at /careers/api, which the pages call directly.
@@ -38,7 +38,13 @@ function careersPortal(request: NextRequest) {
 
   const rest = pathname.slice(base.length);
   const first = rest.split("/")[1];
-  const target = PORTAL + (["api", "admin", "en", "fr"].includes(first) ? rest : `/en${rest}`);
+  // French is the default and has no prefix: send /careers/fr/... to /careers/... so each page has one URL.
+  if (first === "fr") {
+    const url = request.nextUrl.clone();
+    url.pathname = base + rest.slice(3);
+    return noindex(NextResponse.redirect(url, 308));
+  }
+  const target = PORTAL + (["api", "admin", "en"].includes(first) ? rest : `/fr${rest}`);
   if (target === pathname) return noindex(NextResponse.next());
   const url = request.nextUrl.clone();
   url.pathname = target;

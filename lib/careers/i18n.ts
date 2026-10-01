@@ -6,6 +6,8 @@ import { site } from "@/lib/site";
 
 export const careersLocales = ["en", "fr"] as const;
 export type CareersLocale = (typeof careersLocales)[number];
+/** Served at /careers; the other language gets a prefix (/careers/en). */
+export const DEFAULT_CAREERS_LOCALE: CareersLocale = "fr";
 export const isCareersLocale = (v: unknown): v is CareersLocale => careersLocales.includes(v as CareersLocale);
 export type Localized = Record<CareersLocale, string>;
 
