@@ -45,6 +45,15 @@ export const workAuthorizationOptions: Option[] = [
     },
   },
   {
+    value: "student-visa",
+    label: {
+      en: "Non-local student in Hong Kong (student visa)",
+      fr: "Étudiant non local à Hong Kong (visa étudiant)",
+    },
+    // Not rejected: student visas limit outside work, so a person checks each case.
+    knockout: true,
+  },
+  {
     value: "needs-sponsorship",
     label: { en: "Would need visa sponsorship", fr: "J'aurais besoin d'un parrainage de visa" },
     knockout: true,
@@ -73,50 +82,112 @@ export const commissionOptions: Option[] = [
  * `open: false` to stop accepting applications without losing the listing's
  * past candidates on the admin board.
  */
+export type JobSection = { heading?: string; body?: string; items?: string[] };
+
 export type Job = {
   slug: string;
   title: Localized;
   location: Localized;
   type: Localized;
   summary: Localized;
-  /** Paragraphs shown on the listing page. */
-  description: Record<CareersLocale, string[]>;
-  /** Legal points about pay and licensing, shown under the description. */
+  /** Body of the listing page, in headed sections. */
+  sections: Record<CareersLocale, JobSection[]>;
+  /** Legal points about pay, licensing and conduct, shown under the description. */
   terms: Record<CareersLocale, string[]>;
   open: boolean;
 };
 
 export const jobs: Job[] = [
   {
-    // Placeholder listing: replace with the real job description.
-    slug: "financial-advisor",
-    title: { en: "Financial advisor", fr: "Conseiller financier" },
-    location: { en: "Hong Kong", fr: "Hong Kong" },
+    // Adapted from the LinkedIn posting (linkedin.com/jobs/view/4472502059).
+    slug: "financial-consultant",
+    title: { en: "Financial consultant (internship)", fr: "Consultant financier (stage)" },
+    location: { en: "Hong Kong · Hybrid", fr: "Hong Kong · Hybride" },
     type: { en: "Commission only", fr: "Rémunération à la commission" },
     summary: {
-      en: "Advise clients in Hong Kong on savings, investment and retirement.",
-      fr: "Conseillez des clients à Hong Kong sur leur épargne, leurs placements et leur retraite.",
+      en: "Introduce our investment and financial planning services to new private clients. Flexible hours, for students and young adults in Hong Kong.",
+      fr: "Présentez nos services d'investissement et de planification financière à de nouveaux clients privés. Horaires flexibles, pour étudiants et jeunes adultes à Hong Kong.",
     },
-    description: {
+    sections: {
       en: [
-        "You will build and look after your own portfolio of clients in Hong Kong, helping them with savings, investment and retirement.",
-        "We're looking for outgoing people who enjoy meeting others and find it easy to start a conversation.",
-        "No experience is needed, and students are welcome to apply.",
+        {
+          heading: "About the role",
+          body: "We are looking for motivated students and young adults to introduce our investment and financial planning services to new private clients and help grow our client base. This is a commission-based internship with flexible hours and a hybrid working arrangement in Hong Kong.",
+        },
+        {
+          heading: "Location requirement",
+          body: "You must currently live or study in Hong Kong. This is a hybrid role, so you must be able to attend in-person meetings and events in Hong Kong. We are unable to consider applicants based outside Hong Kong.",
+        },
+        {
+          heading: "What you will do",
+          items: [
+            "Connect with prospective private clients through LinkedIn, networking and referrals.",
+            "Introduce our investment and financial planning services and book consultations.",
+            "Build and maintain your own pipeline of leads.",
+          ],
+        },
+        {
+          heading: "What we are looking for",
+          items: [
+            "Students or young adults currently living or studying in Hong Kong. Any major, no experience required.",
+            "Strong communication skills and a self-starter attitude.",
+            "Comfortable with sales and outreach.",
+          ],
+        },
+        {
+          heading: "What you get",
+          items: [
+            "Commission on every client you bring in (commission only, no base salary).",
+            "Hands-on experience in financial services sales.",
+            "Flexible hours and training from our team.",
+          ],
+        },
       ],
       fr: [
-        "Vous développerez et suivrez votre propre portefeuille de clients à Hong Kong, en les accompagnant sur leur épargne, leurs placements et leur retraite.",
-        "Nous recherchons des personnes ouvertes, qui aiment les rencontres et engagent facilement la conversation.",
-        "Aucune expérience n'est requise, et les étudiants sont les bienvenus.",
+        {
+          heading: "Le poste",
+          body: "Nous recherchons des étudiants et jeunes adultes motivés pour présenter nos services d'investissement et de planification financière à de nouveaux clients privés et contribuer au développement de notre clientèle. Il s'agit d'un stage rémunéré à la commission, avec des horaires flexibles et un fonctionnement hybride à Hong Kong.",
+        },
+        {
+          heading: "Lieu",
+          body: "Vous devez actuellement vivre ou étudier à Hong Kong. Le poste étant hybride, vous devez pouvoir participer à des rendez-vous et événements en personne à Hong Kong. Nous ne pouvons pas étudier les candidatures de personnes basées hors de Hong Kong.",
+        },
+        {
+          heading: "Vos missions",
+          items: [
+            "Entrer en contact avec de futurs clients privés via LinkedIn, le réseautage et les recommandations.",
+            "Présenter nos services d'investissement et de planification financière, et fixer des rendez-vous de consultation.",
+            "Constituer et suivre votre propre portefeuille de prospects.",
+          ],
+        },
+        {
+          heading: "Profil recherché",
+          items: [
+            "Étudiants ou jeunes adultes vivant ou étudiant actuellement à Hong Kong. Toutes filières, aucune expérience requise.",
+            "Excellentes qualités de communication et esprit d'initiative.",
+            "À l'aise avec la vente et la prospection.",
+          ],
+        },
+        {
+          heading: "Ce que nous offrons",
+          items: [
+            "Une commission sur chaque client que vous nous apportez (uniquement à la commission, sans salaire fixe).",
+            "Une expérience concrète de la vente dans les services financiers.",
+            "Des horaires flexibles et une formation par notre équipe.",
+          ],
+        },
       ],
     },
     terms: {
       en: [
         "Pay is commission only: there is no base salary. The terms of engagement are confirmed in writing before you start.",
-        "Advising clients on insurance or investment products in Hong Kong requires a licence from the Insurance Authority or the Securities and Futures Commission. You will need to hold the relevant licence before advising clients.",
+        "This role introduces our services and books consultations; it does not involve advising on insurance or investment products, which in Hong Kong requires a licence from the Insurance Authority or the Securities and Futures Commission.",
+        "Outreach to prospective clients must follow Hong Kong's privacy and direct marketing rules. We show you how as part of your training.",
       ],
       fr: [
         "La rémunération se fait uniquement à la commission : il n'y a pas de salaire fixe. Les conditions de la collaboration sont confirmées par écrit avant votre début.",
-        "À Hong Kong, conseiller des clients sur des produits d'assurance ou d'investissement nécessite une licence de l'Insurance Authority ou de la Securities and Futures Commission. Vous devrez détenir la licence requise avant de conseiller des clients.",
+        "Ce poste consiste à présenter nos services et à fixer des rendez-vous ; il n'implique pas de conseiller sur des produits d'assurance ou d'investissement, ce qui nécessite à Hong Kong une licence de l'Insurance Authority ou de la Securities and Futures Commission.",
+        "La prospection doit respecter les règles de Hong Kong en matière de données personnelles et de marketing direct. Nous vous les expliquons pendant votre formation.",
       ],
     },
     open: true,

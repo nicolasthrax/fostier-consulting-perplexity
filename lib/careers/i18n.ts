@@ -37,7 +37,7 @@ const en = {
   },
   job: {
     back: "All positions",
-    termsHeading: "Pay and licensing",
+    termsHeading: "Pay and conduct",
   },
   equalOpportunity:
     "We welcome applications from everyone and assess candidates on merit. In line with Hong Kong's anti-discrimination ordinances, we do not discriminate on grounds of sex, pregnancy, breastfeeding, marital status, disability, family status or race.",
@@ -224,7 +224,7 @@ const fr: Copy = {
   },
   job: {
     back: "Tous les postes",
-    termsHeading: "Rémunération et licence",
+    termsHeading: "Rémunération et règles",
   },
   equalOpportunity:
     "Nous accueillons toutes les candidatures et évaluons chaque personne sur ses mérites. Conformément aux ordonnances anti-discrimination de Hong Kong, nous ne faisons aucune discrimination fondée sur le sexe, la grossesse, l'allaitement, la situation matrimoniale, le handicap, la situation familiale ou l'origine.",

@@ -106,7 +106,7 @@ What the portal does, and what stays with you:
 | Retention: unsuccessful applications kept ≤ 2 years under the PCPD code; notice promises 12 months | `RETENTION_DAYS` in `config.ts`; local records and CVs are purged automatically on every submission and admin load. For Google Sheets, add the daily trigger in `google-apps-script.gs` |
 | Access, correction and erasure requests (PDPO; GDPR) | Admin → candidate → **Export data** (JSON) and **Delete** |
 | Anti-discrimination ordinances (SDO, DDO, FSDO, RDO) | Equal-opportunity statement on every listing; no questions on age, sex, family or ethnicity |
-| Job ad pay and licensing transparency | "Pay and licensing" block on each listing (`terms` in `config.ts`) |
+| Job ad pay, licensing and conduct transparency | "Pay and conduct" block on each listing (`terms` in `config.ts`) |
 | Main site privacy policy consistency | `/privacy` now mentions job applications and points to the separate notice |
 
 **For the owner to confirm**

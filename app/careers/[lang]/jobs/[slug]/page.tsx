@@ -37,11 +37,21 @@ export default async function JobPage({ params }: Props) {
           </Link>
           <h1 className="h-serif text-4xl leading-[1.05] sm:text-5xl">{job.title[lang]}</h1>
           <p className="label">{job.location[lang]} · {job.type[lang]}</p>
-          {job.description[lang].map((p, i) => (
-            <p key={i} className={i === 0 ? "body-lead max-w-md" : "max-w-md text-[15px] leading-relaxed text-slate"}>{p}</p>
+          {job.sections[lang].map((sec, i) => (
+            <section key={i} className="max-w-md">
+              {sec.heading && <h2 className="font-serif text-xl text-ink">{sec.heading}</h2>}
+              {sec.body && (
+                <p className={`${sec.heading ? "mt-2 " : ""}${i === 0 ? "body-lead" : "text-[15px] leading-relaxed text-slate"}`}>{sec.body}</p>
+              )}
+              {sec.items && (
+                <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-slate marker:text-fred">
+                  {sec.items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              )}
+            </section>
           ))}
           <div className="max-w-md border-t border-line pt-5">
-            <h2 className="font-serif text-lg text-ink">{t.job.termsHeading}</h2>
+            <h2 className="font-serif text-xl text-ink">{t.job.termsHeading}</h2>
             <ul className="mt-2 space-y-2 text-sm leading-relaxed text-slate">
               {job.terms[lang].map((p, i) => <li key={i}>{p}</li>)}
             </ul>
