@@ -19,7 +19,7 @@ const nextConfig = {
       },
       {
         // Unlisted recruitment portal: never indexed, never cached by shared caches.
-        source: "/careers-portal/:path*",
+        source: "/careers/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
           { key: "Cache-Control", value: "private, no-store" },

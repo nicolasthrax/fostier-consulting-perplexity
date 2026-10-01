@@ -8,17 +8,17 @@ with candidates.
 
 | Path | What |
 | --- | --- |
-| `/careers-portal` (or `/<CAREERS_PORTAL_SLUG>`) | List of open positions |
-| `/careers-portal/jobs/<job-slug>` | Job description and 4-step application form |
-| `/careers-portal/admin` (or `/<slug>/admin`) | Password-protected candidate pipeline |
-| `/careers-portal/api/*` | Submission and admin endpoints |
+| `/careers` (or `/<CAREERS_PORTAL_SLUG>`) | List of open positions |
+| `/careers/jobs/<job-slug>` | Job description and 4-step application form |
+| `/careers/admin` (or `/<slug>/admin`) | Password-protected candidate pipeline |
+| `/careers/api/*` | Submission and admin endpoints |
 
 ## Configuration (environment variables)
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `CAREERS_ADMIN_PASSWORD` | for admin | Shared admin password (8+ chars). Unset = admin disabled. |
-| `CAREERS_PORTAL_SLUG` | no | Serve the portal at an unguessable path, e.g. `join-7f3k2q`. `/careers-portal` pages then 404. Don't use `fr`, `en` or `zh`. |
+| `CAREERS_PORTAL_SLUG` | no | Serve the portal at an unguessable path, e.g. `join-7f3k2q`. `/careers` pages then 404. Don't use `fr`, `en` or `zh`. |
 | `CAREERS_DATA_DIR` | no | Where records and CVs are stored. Default `./data`. |
 | `CAREERS_WEBHOOK_URL` | no | Server-side copy of each application (JSON + base64 CV) to a free endpoint. |
 | `CAREERS_WEBHOOK_SECRET` | no | Sent as `secret` in the webhook payload so the receiver can reject forgeries. |

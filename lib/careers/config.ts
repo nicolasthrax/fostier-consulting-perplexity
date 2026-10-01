@@ -4,7 +4,7 @@
  */
 
 /** Internal route the portal is served from. A secret public slug can be set with CAREERS_PORTAL_SLUG (see middleware.ts). */
-export const PORTAL_BASE = "/careers-portal";
+export const PORTAL_BASE = "/careers";
 export const API_BASE = `${PORTAL_BASE}/api`;
 
 /** Path candidates see in their browser (server components only: reads a server env var). */
@@ -41,7 +41,7 @@ export const commissionOptions: Option[] = [
 
 /**
  * Job listings. Candidates can only apply through one of these, at
- * /careers-portal/jobs/<slug>. Set `open: false` to stop accepting applications
+ * /careers/jobs/<slug>. Set `open: false` to stop accepting applications
  * without losing the listing's past candidates on the admin board.
  */
 export type Job = {
@@ -62,11 +62,12 @@ export const jobs: Job[] = [
     title: "Financial advisor",
     location: "Hong Kong (Central)",
     type: "Commission only",
-    summary: "Advise French-speaking clients in Hong Kong on savings, investment and retirement.",
+    summary: "Advise clients in Hong Kong on savings, investment and retirement.",
     description: [
-      "You will build and look after a portfolio of French-speaking clients in Hong Kong, helping them with savings, investment, retirement and cross-border tax questions.",
+      "You will build and look after your own portfolio of clients in Hong Kong, helping them with savings, investment and retirement.",
       "This role is paid on commission only: there is no base salary.",
-      "We are looking for someone fluent in French and English, at ease with numbers, and comfortable building their own client base.",
+      "We're looking for outgoing people who enjoy meeting others and find it easy to start a conversation.",
+      "No experience is needed, and students are welcome to apply.",
     ],
     open: true,
   },

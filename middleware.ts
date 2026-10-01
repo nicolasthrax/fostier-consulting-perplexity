@@ -10,7 +10,7 @@ const knownPaths = new Set([
   ...serviceSlugs.map((s) => `/services/${s.fr}`),
 ]);
 
-const PORTAL = "/careers-portal";
+const PORTAL = "/careers";
 const noindex = (res: NextResponse) => {
   res.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
   return res;
@@ -20,8 +20,8 @@ const under = (pathname: string, base: string) => pathname === base || pathname.
 /**
  * The unlisted recruitment portal lives outside the locale tree. With
  * CAREERS_PORTAL_SLUG set (e.g. "join-7f3k2q"), it is served at /<slug> instead and
- * the default /careers-portal pages 404, so the URL can't be guessed. Its API stays
- * at /careers-portal/api, which the pages call directly.
+ * the default /careers pages 404, so the URL can't be guessed. Its API stays
+ * at /careers/api, which the pages call directly.
  */
 function careersPortal(request: NextRequest) {
   const { pathname } = request.nextUrl;
