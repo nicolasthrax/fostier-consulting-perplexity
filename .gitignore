@@ -6,3 +6,6 @@ out/
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# Recruitment portal: candidate records and CVs (personal data) — never commit.
+/data/
