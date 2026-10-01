@@ -13,8 +13,8 @@ export function Logo({ locale, className = "h-[46px] w-[96px] sm:h-[54px] sm:w-[
       <Image
         src="/brand/fostier-consulting-logo.png"
         alt="Fostier Consulting"
-        width={500}
-        height={500}
+        width={2000}
+        height={2000}
         priority
         sizes="140px"
         className={`object-cover [object-position:50%_36%] ${className}`}
