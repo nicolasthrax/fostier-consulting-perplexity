@@ -18,7 +18,8 @@ const noindex = (res: NextResponse) => {
 const under = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
 
 /**
- * The unlisted recruitment portal lives outside the locale tree. With
+ * The unlisted recruitment portal lives outside the locale tree: English at
+ * /careers (rewritten to /careers/en) and French at /careers/fr. With
  * CAREERS_PORTAL_SLUG set (e.g. "join-7f3k2q"), it is served at /<slug> instead and
  * the default /careers pages 404, so the URL can't be guessed. Its API stays
  * at /careers/api, which the pages call directly.
@@ -28,14 +29,20 @@ function careersPortal(request: NextRequest) {
   const slug = process.env.CAREERS_PORTAL_SLUG?.replace(/^\/+|\/+$/g, "");
   const custom = slug && slug !== PORTAL.slice(1) ? `/${slug}` : null;
 
-  if (custom && under(pathname, custom)) {
-    const url = request.nextUrl.clone();
-    url.pathname = PORTAL + pathname.slice(custom.length);
-    return noindex(NextResponse.rewrite(url));
-  }
-  if (!under(pathname, PORTAL)) return null;
-  if (custom && !under(pathname, `${PORTAL}/api`)) return noindex(new NextResponse("Not found", { status: 404 }));
-  return noindex(NextResponse.next());
+  let base: string;
+  if (custom && under(pathname, custom)) base = custom;
+  else if (under(pathname, PORTAL)) {
+    if (custom && !under(pathname, `${PORTAL}/api`)) return noindex(new NextResponse("Not found", { status: 404 }));
+    base = PORTAL;
+  } else return null;
+
+  const rest = pathname.slice(base.length);
+  const first = rest.split("/")[1];
+  const target = PORTAL + (["api", "admin", "en", "fr"].includes(first) ? rest : `/en${rest}`);
+  if (target === pathname) return noindex(NextResponse.next());
+  const url = request.nextUrl.clone();
+  url.pathname = target;
+  return noindex(NextResponse.rewrite(url));
 }
 
 /**

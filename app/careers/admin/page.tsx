@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { adminEnabled, isAdmin } from "@/lib/careers/auth";
-import { readApplications } from "@/lib/careers/storage";
-import { commissionOptions, jobs, pipelineStages, workAuthorizationOptions } from "@/lib/careers/config";
+import { purgeExpired, readApplications } from "@/lib/careers/storage";
+import { RETENTION_DAYS, commissionOptions, jobs, pipelineStages, workAuthorizationOptions } from "@/lib/careers/config";
 import { AdminLogin } from "@/components/careers/AdminLogin";
 import { AdminBoard } from "@/components/careers/AdminBoard";
 
@@ -22,6 +22,7 @@ export default async function CareersAdminPage() {
   }
   if (!(await isAdmin())) return <AdminLogin />;
 
+  await purgeExpired().catch(() => undefined);
   let applications = await readApplications().catch(() => null);
   const storageError = applications === null;
   applications ??= [];
@@ -32,7 +33,8 @@ export default async function CareersAdminPage() {
       initial={applications}
       storageError={storageError}
       stages={[...pipelineStages]}
-      jobs={jobs.map(({ slug, title, open }) => ({ slug, title, open }))}
+      jobs={jobs.map(({ slug, title, open }) => ({ slug, title: title.en, open }))}
+      retentionDays={RETENTION_DAYS}
       commissionOptions={commissionOptions}
       workAuthorizations={workAuthorizationOptions}
     />

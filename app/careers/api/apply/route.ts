@@ -9,7 +9,8 @@ import {
   type ApplicationRecord,
   type CvExtension,
 } from "@/lib/careers/config";
-import { addApplication, newId, saveCv } from "@/lib/careers/storage";
+import { careersCopy, isCareersLocale } from "@/lib/careers/i18n";
+import { addApplication, newId, purgeExpired, saveCv } from "@/lib/careers/storage";
 import { forwardToWebhook, webhookUrl } from "@/lib/careers/webhook";
 
 export const runtime = "nodejs";
@@ -31,36 +32,38 @@ export async function POST(request: Request) {
   try {
     form = await request.formData();
   } catch {
-    return NextResponse.json({ error: "The submission could not be read." }, { status: 400 });
+    return NextResponse.json({ error: careersCopy.en.errors.unreadable }, { status: 400 });
   }
+  const lang = isCareersLocale(form.get("lang")) ? (form.get("lang") as "en" | "fr") : "en";
+  const m = careersCopy[lang].errors;
 
   // Honeypot: real candidates never see this field.
   if (String(form.get("company_website") ?? "")) return NextResponse.json({ ok: true, id: "received" });
-  if (form.get("consent") !== "yes")
-    return NextResponse.json({ error: "Consent to data processing is required." }, { status: 400 });
+  if (form.get("consent") !== "yes") return NextResponse.json({ error: m.declaration }, { status: 400 });
 
   const job = openJob(String(form.get("job") ?? ""));
-  if (!job) return NextResponse.json({ error: "This job listing is closed or no longer exists." }, { status: 400 });
+  if (!job) return NextResponse.json({ error: m.jobClosed }, { status: 400 });
 
   const input = Object.fromEntries(FIELDS.map((k) => [k, String(form.get(k) ?? "").trim()])) as ApplicationInput;
-  const errors = validateFields(input);
-  if (Object.keys(errors).length) return NextResponse.json({ error: "Some answers need attention.", errors }, { status: 400 });
+  const errors = validateFields(input, lang);
+  if (Object.keys(errors).length) return NextResponse.json({ error: m.attention, errors }, { status: 400 });
 
   const file = form.get("cv");
-  if (!(file instanceof File)) return NextResponse.json({ error: "Attach your CV." }, { status: 400 });
-  const cvError = validateCvMeta(file.name, file.size);
+  if (!(file instanceof File)) return NextResponse.json({ error: m.cvMissing }, { status: 400 });
+  const cvError = validateCvMeta(file.name, file.size, lang);
   if (cvError) return NextResponse.json({ error: cvError }, { status: 400 });
   const ext = file.name.split(".").pop()!.toLowerCase() as CvExtension;
   const data = Buffer.from(await file.arrayBuffer());
-  if (!sniff(data, ext)) return NextResponse.json({ error: "That file doesn't look like a valid PDF or DOCX." }, { status: 400 });
+  if (!sniff(data, ext)) return NextResponse.json({ error: m.cvInvalid }, { status: 400 });
 
   const id = newId();
   const now = new Date().toISOString();
   const record: ApplicationRecord = {
     ...input,
     id,
+    lang,
     jobSlug: job.slug,
-    jobTitle: job.title,
+    jobTitle: job.title.en,
     submittedAt: now,
     updatedAt: now,
     status: "applied",
@@ -74,6 +77,7 @@ export async function POST(request: Request) {
     record.cv = { file: stored, originalName: file.name.slice(0, 200), size: file.size, type: CV_TYPES[ext] };
     await addApplication(record);
     storedLocally = true;
+    await purgeExpired().catch(() => undefined);
   } catch (err) {
     // Expected on read-only hosts; the webhook below is then the only copy.
     console.error("[careers] local save failed:", (err as Error).message);
@@ -89,6 +93,6 @@ export async function POST(request: Request) {
   }
 
   if (!storedLocally && !forwarded)
-    return NextResponse.json({ error: "We couldn't save your application. Please try again later." }, { status: 503 });
+    return NextResponse.json({ error: m.saveFailed }, { status: 503 });
   return NextResponse.json({ ok: true, id });
 }

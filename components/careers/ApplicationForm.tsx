@@ -8,17 +8,18 @@ import {
   validateCvMeta,
   validateFields,
   type ApplicationInput,
-  type Option,
+  type PublicOption,
 } from "@/lib/careers/config";
+import { careersCopy, type CareersLocale } from "@/lib/careers/i18n";
 
 type Field = keyof ApplicationInput;
 type Errors = Partial<Record<Field | "cv" | "consent", string>>;
 
-const steps = [
-  { title: "Basic info", fields: ["fullName", "email", "phone", "linkedinUrl", "portfolioUrl"] as Field[] },
-  { title: "CV", fields: [] as Field[] },
-  { title: "Screening", fields: ["workAuthorization", "commissionOnly"] as Field[] },
-  { title: "Review", fields: [] as Field[] },
+const steps: { fields: Field[] }[] = [
+  { fields: ["fullName", "email", "phone", "linkedinUrl", "portfolioUrl"] },
+  { fields: [] },
+  { fields: ["workAuthorization", "commissionOnly"] },
+  { fields: [] },
 ];
 
 const empty: ApplicationInput = {
@@ -29,7 +30,10 @@ const empty: ApplicationInput = {
 const inputClass =
   "focus-ring mt-2 block w-full rounded-sm border border-line bg-white px-3.5 py-3 text-[15px] text-ink placeholder:text-muted/70 hover:border-muted aria-[invalid=true]:border-fred-700";
 
-const formatSize = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
+const formatSize = (bytes: number, lang: CareersLocale) => {
+  const [kb, mb] = lang === "fr" ? ["Ko", "Mo"] : ["KB", "MB"];
+  return bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} ${kb}` : `${(bytes / 1024 / 1024).toFixed(1)} ${mb}`;
+};
 
 function toBase64(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -40,27 +44,35 @@ function toBase64(file: File) {
   });
 }
 
-function Label({ htmlFor, children, optional }: { htmlFor: string; children: React.ReactNode; optional?: boolean }) {
+function Label({ htmlFor, children, optional, lang }: { htmlFor: string; children: React.ReactNode; optional?: boolean; lang: CareersLocale }) {
+  const t = careersCopy[lang].form;
   return (
     <label htmlFor={htmlFor} className="block text-[15px] font-semibold text-ink">
       {children}
-      {optional ? <span className="font-normal text-muted"> (optional)</span> : <span className="sr-only"> (required)</span>}
+      {optional ? <span className="font-normal text-muted">{t.optional}</span> : <span className="sr-only">{t.required}</span>}
     </label>
   );
 }
 
 export function ApplicationForm({
+  lang,
+  noticeHref,
   job,
   workAuthorizations,
   commissionOptions,
   staticWebhook,
 }: {
-  job: { slug: string; title: string };
-  workAuthorizations: Option[];
-  commissionOptions: Option[];
+  lang: CareersLocale;
+  /** Candidate privacy notice in the same language. */
+  noticeHref: string;
+  job: { slug: string; title: string; titleEn: string };
+  workAuthorizations: PublicOption[];
+  commissionOptions: PublicOption[];
   /** Used only when the site is hosted statically and the local API is missing. */
   staticWebhook: string;
 }) {
+  const t = careersCopy[lang].form;
+  const m = careersCopy[lang].errors;
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<ApplicationInput>(empty);
   const [cv, setCv] = useState<File | null>(null);
@@ -97,14 +109,14 @@ export function ApplicationForm({
   };
 
   const validateStep = (i: number): Errors => {
-    const all = validateFields(values);
+    const all = validateFields(values, lang);
     const errs: Errors = {};
     for (const f of steps[i].fields) if (all[f]) errs[f] = all[f];
     if (i === 1) {
-      const e = cv ? validateCvMeta(cv.name, cv.size) : "Upload your CV to continue.";
+      const e = cv ? validateCvMeta(cv.name, cv.size, lang) : m.cvMissing;
       if (e) errs.cv = e;
     }
-    if (i === 3 && !consent) errs.consent = "Please confirm you agree before submitting.";
+    if (i === 3 && !consent) errs.consent = m.declaration;
     return errs;
   };
 
@@ -122,7 +134,7 @@ export function ApplicationForm({
 
   const pickFile = (file: File | undefined) => {
     if (!file) return;
-    const e = validateCvMeta(file.name, file.size);
+    const e = validateCvMeta(file.name, file.size, lang);
     setErrors((er) => ({ ...er, cv: e ?? undefined }));
     setCv(e ? null : file);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -136,7 +148,7 @@ export function ApplicationForm({
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         source: "fostier-careers-portal",
-        application: { ...values, jobSlug: job.slug, jobTitle: job.title, submittedAt: new Date().toISOString() },
+        application: { ...values, lang, jobSlug: job.slug, jobTitle: job.titleEn, submittedAt: new Date().toISOString() },
         cv: cv ? { name: cv.name, type: cv.type, base64: await toBase64(cv) } : null,
       }),
     });
@@ -161,6 +173,7 @@ export function ApplicationForm({
       const body = new FormData();
       for (const [k, v] of Object.entries(values)) body.append(k, v.trim());
       body.append("job", job.slug);
+      body.append("lang", lang);
       body.append("cv", cv!);
       body.append("consent", "yes");
       body.append("company_website", honeypot);
@@ -175,7 +188,7 @@ export function ApplicationForm({
         setDoneId(await submitToWebhook());
         return;
       }
-      if (!res) throw new Error("We couldn't reach the server. Check your connection and try again.");
+      if (!res) throw new Error(t.networkError);
       const data = (await res.json().catch(() => ({}))) as { id?: string; error?: string; errors?: Errors };
       if (!res.ok) {
         if (data.errors && Object.keys(data.errors).length) {
@@ -184,7 +197,7 @@ export function ApplicationForm({
           if (i >= 0) setStep(i);
           focusFirstError(data.errors);
         }
-        throw new Error(data.error || "Something went wrong. Please try again.");
+        throw new Error(data.error || t.genericError);
       }
       setDoneId(data.id ?? "sent");
     } catch (err) {
@@ -200,12 +213,13 @@ export function ApplicationForm({
         <span className="inline-flex h-12 w-12 items-center justify-center rounded-sm bg-navy text-white">
           <Check className="h-6 w-6" aria-hidden="true" />
         </span>
-        <h2 ref={headingRef} tabIndex={-1} className="h-serif text-3xl outline-none">Application sent</h2>
+        <h2 ref={headingRef} tabIndex={-1} className="h-serif text-3xl outline-none">{t.successTitle}</h2>
         <p className="body-lead">
-          Thank you, {values.fullName.split(" ")[0]}. Your application for {job.title} is with us. We read every application and will reply by email to{" "}
-          <strong className="font-semibold text-ink">{values.email}</strong>, usually within two weeks.
+          {t.success(values.fullName.split(" ")[0], job.title)}
+          <strong className="font-semibold text-ink">{values.email}</strong>
+          {t.successAfter}
         </p>
-        {doneId !== "sent" && <p className="label tabular">Reference: {doneId}</p>}
+        {doneId !== "sent" && <p className="label tabular">{t.reference} {doneId}</p>}
       </div>
     );
   }
@@ -223,45 +237,46 @@ export function ApplicationForm({
     "aria-describedby": [errors[name] && fid(`${name}-error`), hint && fid(`${name}-hint`)].filter(Boolean).join(" ") || undefined,
   });
 
+  const pics = t.pics(noticeHref);
   const reviewRows: { step: number; items: [string, string][] }[] = [
     {
       step: 0,
       items: [
-        ["Full name", values.fullName],
-        ["Email", values.email],
-        ["Phone", values.phone],
-        ["LinkedIn", values.linkedinUrl],
-        ["Portfolio / GitHub", values.portfolioUrl || "—"],
+        [t.review.fullName, values.fullName],
+        [t.review.email, values.email],
+        [t.review.phone, values.phone],
+        [t.review.linkedin, values.linkedinUrl],
+        [t.review.portfolio, values.portfolioUrl || "—"],
       ],
     },
-    { step: 1, items: [["CV", cv ? `${cv.name} (${formatSize(cv.size)})` : "—"]] },
+    { step: 1, items: [[t.review.cv, cv ? `${cv.name} (${formatSize(cv.size, lang)})` : "—"]] },
     {
       step: 2,
       items: [
-        ["Work authorisation", labelFor(workAuthorizations, values.workAuthorization)],
-        ["Commission-only pay", labelFor(commissionOptions, values.commissionOnly)],
+        [t.review.workAuthorization, labelFor(workAuthorizations, values.workAuthorization)],
+        [t.review.commission, labelFor(commissionOptions, values.commissionOnly)],
       ],
     },
   ];
 
   return (
-    <form onSubmit={submit} aria-label={`Apply for ${job.title}`} noValidate aria-describedby={submitError ? fid("submit-error") : undefined}>
+    <form onSubmit={submit} aria-label={t.ariaLabel(job.title)} noValidate aria-describedby={submitError ? fid("submit-error") : undefined}>
       {/* Progress */}
-      <ol className="mb-8 grid grid-cols-4 gap-2" aria-label="Application steps">
+      <ol className="mb-8 grid grid-cols-4 gap-2" aria-label={t.stepsLabel}>
         {steps.map((s, i) => (
-          <li key={s.title} aria-current={i === step ? "step" : undefined}>
+          <li key={i} aria-current={i === step ? "step" : undefined}>
             <span className={`block h-1 rounded-sm ${i <= step ? "bg-navy" : "bg-line"}`} aria-hidden="true" />
             <span className={`mt-2 block text-xs sm:text-sm ${i === step ? "font-semibold text-ink" : "text-muted"}`}>
-              <span className="sr-only">Step {i + 1} of {steps.length}: </span>
-              {s.title}
-              {i < step && <span className="sr-only"> (completed)</span>}
+              <span className="sr-only">{t.stepOf(i + 1, steps.length)}</span>
+              {t.steps[i]}
+              {i < step && <span className="sr-only">{t.completed}</span>}
             </span>
           </li>
         ))}
       </ol>
 
       <h2 ref={headingRef} tabIndex={-1} className="h-serif mb-6 text-2xl outline-none sm:text-3xl">
-        {["About you", "Your CV", "A few questions", "Check your application"][step]}
+        {t.headings[step]}
       </h2>
 
       {/* Honeypot, hidden from people and assistive tech. */}
@@ -274,30 +289,35 @@ export function ApplicationForm({
 
       {step === 0 && (
         <div className="space-y-5">
+          <p className="rounded-sm bg-mist px-4 py-3 text-sm leading-relaxed text-slate">
+            {pics.before}
+            <a href={pics.href} target="_blank" rel="noopener" className="focus-ring font-semibold text-navy link-underline">{pics.link}</a>
+            {pics.after}
+          </p>
           <div>
-            <Label htmlFor={fid("fullName")}>Full name</Label>
+            <Label lang={lang} htmlFor={fid("fullName")}>{t.fullName}</Label>
             <input {...a11y("fullName")} className={inputClass} autoComplete="name" value={values.fullName} onChange={set("fullName")} required />
             {err("fullName")}
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <Label htmlFor={fid("email")}>Email</Label>
+              <Label lang={lang} htmlFor={fid("email")}>{t.email}</Label>
               <input {...a11y("email")} type="email" className={inputClass} autoComplete="email" value={values.email} onChange={set("email")} required />
               {err("email")}
             </div>
             <div>
-              <Label htmlFor={fid("phone")}>Phone number</Label>
+              <Label lang={lang} htmlFor={fid("phone")}>{t.phone}</Label>
               <input {...a11y("phone")} type="tel" className={`${inputClass} tabular`} autoComplete="tel" placeholder="+852 6123 4567" value={values.phone} onChange={set("phone")} required />
               {err("phone")}
             </div>
           </div>
           <div>
-            <Label htmlFor={fid("linkedinUrl")}>LinkedIn profile URL</Label>
+            <Label lang={lang} htmlFor={fid("linkedinUrl")}>{t.linkedin}</Label>
             <input {...a11y("linkedinUrl")} type="url" className={inputClass} placeholder="https://www.linkedin.com/in/…" value={values.linkedinUrl} onChange={set("linkedinUrl")} required />
             {err("linkedinUrl")}
           </div>
           <div>
-            <Label htmlFor={fid("portfolioUrl")} optional>Portfolio or GitHub URL</Label>
+            <Label lang={lang} htmlFor={fid("portfolioUrl")} optional>{t.portfolio}</Label>
             <input {...a11y("portfolioUrl")} type="url" className={inputClass} placeholder="https://" value={values.portfolioUrl} onChange={set("portfolioUrl")} />
             {err("portfolioUrl")}
           </div>
@@ -323,18 +343,18 @@ export function ApplicationForm({
           >
             <Upload className="mx-auto h-8 w-8 text-navy" aria-hidden="true" />
             <p className="mt-3 text-[15px] text-ink">
-              <span className="hidden sm:inline">Drag your CV here, or </span>
+              <span className="hidden sm:inline">{t.dropHere}</span>
               <button
                 type="button"
                 id={fid("cv-button")}
                 onClick={() => fileInputRef.current?.click()}
-                aria-describedby={[fid("cv-hint"), errors.cv && fid("cv-error")].filter(Boolean).join(" ")}
+                aria-describedby={[fid("cv-hint"), fid("cv-sensitive"), errors.cv && fid("cv-error")].filter(Boolean).join(" ")}
                 className="focus-ring font-semibold text-navy link-underline"
               >
-                choose a file
+                {t.choose}
               </button>
             </p>
-            <p id={fid("cv-hint")} className="mt-1 text-sm text-muted">PDF or Word (.docx), 5 MB maximum</p>
+            <p id={fid("cv-hint")} className="mt-1 text-sm text-muted">{t.cvHint}</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -346,18 +366,19 @@ export function ApplicationForm({
             />
           </div>
           {err("cv")}
+          <p id={fid("cv-sensitive")} className="mt-3 text-sm leading-relaxed text-muted">{t.cvSensitive}</p>
           {cv && (
             <div className="mt-4 flex items-center gap-3 rounded-sm border border-line bg-mist px-4 py-3">
               <FileText className="h-5 w-5 shrink-0 text-navy" aria-hidden="true" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px] font-medium text-ink">{cv.name}</p>
-                <p className="text-sm text-muted tabular">{formatSize(cv.size)}</p>
+                <p className="text-sm text-muted tabular">{formatSize(cv.size, lang)}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setCv(null)}
                 className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-sm text-slate hover:bg-white hover:text-fred-700"
-                aria-label={`Remove ${cv.name}`}
+                aria-label={t.remove(cv.name)}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -369,9 +390,9 @@ export function ApplicationForm({
       {step === 2 && (
         <div className="space-y-5">
           <div>
-            <Label htmlFor={fid("workAuthorization")}>Work authorisation in Hong Kong</Label>
+            <Label lang={lang} htmlFor={fid("workAuthorization")}>{t.workAuthorization}</Label>
             <select {...a11y("workAuthorization")} className={inputClass} value={values.workAuthorization} onChange={set("workAuthorization")} required>
-              <option value="">Select…</option>
+              <option value="">{t.select}</option>
               {workAuthorizations.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
             {err("workAuthorization")}
@@ -381,8 +402,8 @@ export function ApplicationForm({
             aria-describedby={errors.commissionOnly ? fid("commissionOnly-error") : undefined}
           >
             <legend className="text-[15px] font-semibold text-ink">
-              Are you comfortable with commission-only pay, with no base salary?
-              <span className="sr-only"> (required)</span>
+              {t.commission}
+              <span className="sr-only">{t.required}</span>
             </legend>
             <div className="mt-3 space-y-2">
               {commissionOptions.map((o, i) => (
@@ -413,9 +434,9 @@ export function ApplicationForm({
           {reviewRows.map((group) => (
             <section key={group.step} aria-labelledby={fid(`review-${group.step}`)} className="border-t border-line pt-4">
               <div className="flex items-baseline justify-between gap-4">
-                <h3 id={fid(`review-${group.step}`)} className="font-serif text-lg text-ink">{steps[group.step].title}</h3>
+                <h3 id={fid(`review-${group.step}`)} className="font-serif text-lg text-ink">{t.steps[group.step]}</h3>
                 <button type="button" onClick={() => setStep(group.step)} className="focus-ring text-sm font-semibold text-navy link-underline">
-                  Edit<span className="sr-only"> {steps[group.step].title}</span>
+                  {t.edit}<span className="sr-only"> {t.steps[group.step]}</span>
                 </button>
               </div>
               <dl className="mt-3 space-y-2.5">
@@ -443,8 +464,9 @@ export function ApplicationForm({
                 className="focus-ring mt-1 h-4 w-4 shrink-0 accent-navy"
               />
               <span>
-                I confirm these details are accurate and agree that Fostier Consulting may store and use them to assess
-                my application. They are kept no longer than 12 months.
+                {t.declaration.before}
+                <a href={noticeHref} target="_blank" rel="noopener" className="focus-ring font-semibold text-navy link-underline">{t.declaration.link}</a>
+                {t.declaration.after}
               </span>
             </label>
             {err("consent")}
@@ -462,20 +484,20 @@ export function ApplicationForm({
         {step > 0 ? (
           <button type="button" onClick={back} className="btn-outline focus-ring">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back
+            {t.back}
           </button>
         ) : (
           <span />
         )}
         {step < steps.length - 1 ? (
           <button type="submit" className="btn-primary focus-ring">
-            Continue
+            {t.continue}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </button>
         ) : (
           <button type="submit" className="btn-primary focus-ring" disabled={submitting} aria-busy={submitting}>
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
-            {submitting ? "Sending…" : "Submit application"}
+            {submitting ? t.sending : t.submit}
           </button>
         )}
       </div>

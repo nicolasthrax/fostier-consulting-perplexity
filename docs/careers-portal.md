@@ -8,8 +8,10 @@ with candidates.
 
 | Path | What |
 | --- | --- |
-| `/careers` (or `/<CAREERS_PORTAL_SLUG>`) | List of open positions |
-| `/careers/jobs/<job-slug>` | Job description and 4-step application form |
+| `/careers` (or `/<CAREERS_PORTAL_SLUG>`) | Open positions, English |
+| `/careers/fr` | Open positions, French |
+| `/careers[/fr]/jobs/<job-slug>` | Job description and 4-step application form |
+| `/careers[/fr]/privacy` | Candidate privacy notice (PICS) |
 | `/careers/admin` (or `/<slug>/admin`) | Password-protected candidate pipeline |
 | `/careers/api/*` | Submission and admin endpoints |
 
@@ -18,7 +20,7 @@ with candidates.
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `CAREERS_ADMIN_PASSWORD` | for admin | Shared admin password (8+ chars). Unset = admin disabled. |
-| `CAREERS_PORTAL_SLUG` | no | Serve the portal at an unguessable path, e.g. `join-7f3k2q`. `/careers` pages then 404. Don't use `fr`, `en` or `zh`. |
+| `CAREERS_PORTAL_SLUG` | no | Serve the portal at an unguessable path, e.g. `join-7f3k2q`. `/careers` pages then 404. Don't use `fr`, `en` or `zh`. Read at build time: redeploy after changing it. |
 | `CAREERS_DATA_DIR` | no | Where records and CVs are stored. Default `./data`. |
 | `CAREERS_WEBHOOK_URL` | no | Server-side copy of each application (JSON + base64 CV) to a free endpoint. |
 | `CAREERS_WEBHOOK_SECRET` | no | Sent as `secret` in the webhook payload so the receiver can reject forgeries. |
@@ -69,3 +71,39 @@ Google Sheet and saves the CV to a Drive folder.
 4. Use the `/exec` URL as `CAREERS_WEBHOOK_URL`.
 
 For the browser fallback leave `SHARED_SECRET` empty (a browser can't keep a secret).
+
+## Languages
+
+Candidate pages are in English (`/careers`) and French (`/careers/fr`), with a
+language link in the header. Wording is in
+[`lib/careers/i18n.ts`](../lib/careers/i18n.ts); job texts are in `config.ts`
+with an `en` and `fr` version of each field. The admin board is English only.
+
+## Legal and compliance
+
+What the portal does, and what stays with you:
+
+| Requirement | Where |
+| --- | --- |
+| PDPO DPP1(3) collection statement, given before collection | Short notice at the top of step 1, full notice at `/careers/privacy` (EN/FR) |
+| GDPR Art. 13 information (applicants in the EU/EEA) | Same notice: controller, purposes, legal bases, recipients, transfers, retention, rights, CNIL |
+| No automated rejection (GDPR Art. 22) | Knockout answers are only flagged for a person to review |
+| Data minimisation (PCPD Code of Practice on Human Resource Management) | No HKID/passport collected; candidates are asked to leave them and sensitive data out of CVs |
+| Retention: unsuccessful applications kept ≤ 2 years under the PCPD code; notice promises 12 months | `RETENTION_DAYS` in `config.ts`; local records and CVs are purged automatically on every submission and admin load. For Google Sheets, add the daily trigger in `google-apps-script.gs` |
+| Access, correction and erasure requests (PDPO; GDPR) | Admin → candidate → **Export data** (JSON) and **Delete** |
+| Anti-discrimination ordinances (SDO, DDO, FSDO, RDO) | Equal-opportunity statement on every listing; no questions on age, sex, family or ethnicity |
+| Job ad pay and licensing transparency | "Pay and licensing" block on each listing (`terms` in `config.ts`) |
+| Main site privacy policy consistency | `/privacy` now mentions job applications and points to the separate notice |
+
+**For the owner to confirm**
+
+- *Engagement type for commission-only roles.* If the person is an **employee**,
+  Hong Kong's Minimum Wage Ordinance applies: commission must at least equal the
+  statutory minimum wage for hours worked, otherwise the difference must be paid.
+  A zero-base arrangement is only straightforward for genuinely self-employed
+  agents/consultants. Get the contract reviewed before hiring.
+- *Licensing.* Advising on insurance or investment products requires an IA or
+  SFC licence (and MPF intermediary registration for MPF). The listing says so;
+  adjust it to how you actually onboard and sponsor licences.
+- *Google Workspace.* The notice lists Google as a processor "where we use it".
+  If you never set up the webhook, you may remove that line.

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Download, ExternalLink, LayoutGrid, LogOut, Rows3, X } from "lucide-react";
+import { AlertTriangle, Download, ExternalLink, FileJson, LayoutGrid, LogOut, Rows3, Trash2, X } from "lucide-react";
 import { API_BASE, labelFor, type ApplicationRecord, type Option, type Stage } from "@/lib/careers/config";
 
 type StageOption = { value: Stage; label: string };
@@ -16,6 +16,7 @@ export function AdminBoard({
   jobs,
   workAuthorizations,
   commissionOptions,
+  retentionDays,
 }: {
   initial: ApplicationRecord[];
   storageError: boolean;
@@ -23,6 +24,7 @@ export function AdminBoard({
   jobs: { slug: string; title: string; open: boolean }[];
   workAuthorizations: Option[];
   commissionOptions: Option[];
+  retentionDays: number;
 }) {
   const router = useRouter();
   const [apps, setApps] = useState(initial);
@@ -64,6 +66,16 @@ export function AdminBoard({
     }
   };
 
+  const remove = async (app: ApplicationRecord) => {
+    if (!window.confirm(`Delete ${app.fullName}'s application and CV permanently? Use this when a candidate withdraws or asks for erasure.`)) return;
+    setSaveError("");
+    const res = await fetch(`${API_BASE}/admin/applications/${app.id}`, { method: "DELETE" }).catch(() => null);
+    if (res?.status === 401) return router.refresh();
+    if (!res?.ok) return setSaveError("The application couldn't be deleted. Check the server can write to the data folder.");
+    setOpenId(null);
+    setApps((list) => list.filter((a) => a.id !== app.id));
+  };
+
   const logout = async () => {
     await fetch(`${API_BASE}/admin/logout`, { method: "POST" }).catch(() => null);
     router.refresh();
@@ -102,6 +114,10 @@ export function AdminBoard({
         <div>
           <h1 className="h-serif text-3xl sm:text-4xl">Candidates</h1>
           <p className="label mt-1 tabular">{apps.length} application{apps.length === 1 ? "" : "s"}</p>
+          <p className="mt-1 text-sm text-muted">
+            Applications are deleted automatically {retentionDays} days after submission, as the candidate privacy notice promises.
+            Move hired candidates&apos; documents to their personnel file before then.
+          </p>
         </div>
         <button type="button" onClick={logout} className="btn-outline focus-ring !py-2.5">
           <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -234,6 +250,14 @@ export function AdminBoard({
                 ) : (
                   <span className="text-sm text-muted">No CV stored locally</span>
                 )}
+                <a href={`${API_BASE}/admin/applications/${open.id}`} className="btn-outline focus-ring !py-2.5" title="For data access requests">
+                  <FileJson className="h-4 w-4" aria-hidden="true" />
+                  Export data
+                </a>
+                <button type="button" onClick={() => remove(open)} className="btn-outline focus-ring !py-2.5 hover:!border-fred-700 hover:!text-fred-700">
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Delete
+                </button>
               </div>
               {open.knockouts.length > 0 && (
                 <div className="rounded-sm border border-fred-700/30 px-4 py-3 text-sm text-fred-700">
@@ -248,6 +272,7 @@ export function AdminBoard({
                     ["Phone", <a key="p" className="focus-ring tabular text-navy link-underline" href={`tel:${open.phone.replace(/[^\d+]/g, "")}`}>{open.phone}</a>],
                     ["LinkedIn", <ExtLink key="l" href={open.linkedinUrl} />],
                     ["Portfolio", open.portfolioUrl ? <ExtLink key="f" href={open.portfolioUrl} /> : "—"],
+                    ["Applied in", open.lang === "fr" ? "French" : "English"],
                     ["Work authorisation", labelFor(workAuthorizations, open.workAuthorization)],
                     ["Commission-only pay", labelFor(commissionOptions, open.commissionOnly)],
                     ["Submitted", dateFmt.format(new Date(open.submittedAt))],

@@ -9,7 +9,7 @@ import { guidePaths, hasGuides, visibleGuides } from "@/lib/guides";
  * on each legal page (lib/i18n/content.ts); everything else follows site.contentUpdated.
  */
 const legalUpdated: Record<string, string> = {
-  "/privacy": "2026-09-30",
+  "/privacy": "2026-10-01",
   "/cookies": "2026-09-30",
   "/terms": "2026-09-30",
   "/legal-notice": "2026-09-30",

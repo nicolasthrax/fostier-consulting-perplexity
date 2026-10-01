@@ -1,16 +1,17 @@
 /**
  * Recruitment portal settings shared by the form, the API and the admin board.
- * Edit the screening questions here; nothing else needs to change.
+ * Edit job listings and screening questions here; wording lives in ./i18n.ts.
  */
+import { careersCopy, type CareersLocale, type Localized } from "./i18n";
 
 /** Internal route the portal is served from. A secret public slug can be set with CAREERS_PORTAL_SLUG (see middleware.ts). */
 export const PORTAL_BASE = "/careers";
 export const API_BASE = `${PORTAL_BASE}/api`;
 
-/** Path candidates see in their browser (server components only: reads a server env var). */
-export function publicBase() {
+/** Path candidates see in their browser (server components only: reads a server env var). English has no prefix. */
+export function publicBase(lang: CareersLocale = "en") {
   const slug = process.env.CAREERS_PORTAL_SLUG?.replace(/^\/+|\/+$/g, "");
-  return slug ? `/${slug}` : PORTAL_BASE;
+  return `${slug ? `/${slug}` : PORTAL_BASE}${lang === "en" ? "" : `/${lang}`}`;
 }
 
 export const MAX_CV_BYTES = 5 * 1024 * 1024;
@@ -20,38 +21,67 @@ export const CV_TYPES = {
 } as const;
 export type CvExtension = keyof typeof CV_TYPES;
 
+/**
+ * Unsuccessful applications and their CVs are deleted automatically after this
+ * many days (the PCPD's HR code allows up to two years; the candidate notice says 12 months).
+ */
+export const RETENTION_DAYS = 365;
+
 export type Option = {
   value: string;
-  label: string;
-  /** A knockout answer is not rejected; it is flagged on the admin board. */
+  label: Localized;
+  /** A knockout answer is not rejected; it is flagged on the admin board for a person to review. */
   knockout?: boolean;
 };
 
 export const workAuthorizationOptions: Option[] = [
-  { value: "hk-permanent", label: "Hong Kong permanent resident" },
-  { value: "hk-visa", label: "Valid Hong Kong work visa / dependant visa with right to work" },
-  { value: "needs-sponsorship", label: "Would need visa sponsorship", knockout: true },
-  { value: "remote-other", label: "Based outside Hong Kong, remote only", knockout: true },
+  { value: "hk-permanent", label: { en: "Hong Kong permanent resident", fr: "Résident permanent de Hong Kong" } },
+  {
+    value: "hk-visa",
+    label: {
+      en: "Valid Hong Kong visa with the right to work (work, dependant, IANG…)",
+      fr: "Visa de Hong Kong valide autorisant à travailler (travail, dépendant, IANG…)",
+    },
+  },
+  {
+    value: "needs-sponsorship",
+    label: { en: "Would need visa sponsorship", fr: "J'aurais besoin d'un parrainage de visa" },
+    knockout: true,
+  },
+  {
+    value: "remote-other",
+    label: { en: "Based outside Hong Kong, remote only", fr: "Basé hors de Hong Kong, à distance uniquement" },
+    knockout: true,
+  },
 ];
 
 export const commissionOptions: Option[] = [
-  { value: "yes", label: "Yes, I'm comfortable with commission-only pay and no base salary" },
-  { value: "no", label: "No, I need a base salary", knockout: true },
+  {
+    value: "yes",
+    label: {
+      en: "Yes, I'm comfortable with commission-only pay and no base salary",
+      fr: "Oui, une rémunération uniquement à la commission, sans salaire fixe, me convient",
+    },
+  },
+  { value: "no", label: { en: "No, I need a base salary", fr: "Non, j'ai besoin d'un salaire fixe" }, knockout: true },
 ];
 
 /**
  * Job listings. Candidates can only apply through one of these, at
- * /careers/jobs/<slug>. Set `open: false` to stop accepting applications
- * without losing the listing's past candidates on the admin board.
+ * /careers/jobs/<slug> (English) or /careers/fr/jobs/<slug> (French). Set
+ * `open: false` to stop accepting applications without losing the listing's
+ * past candidates on the admin board.
  */
 export type Job = {
   slug: string;
-  title: string;
-  location: string;
-  type: string;
-  summary: string;
+  title: Localized;
+  location: Localized;
+  type: Localized;
+  summary: Localized;
   /** Paragraphs shown on the listing page. */
-  description: string[];
+  description: Record<CareersLocale, string[]>;
+  /** Legal points about pay and licensing, shown under the description. */
+  terms: Record<CareersLocale, string[]>;
   open: boolean;
 };
 
@@ -59,16 +89,35 @@ export const jobs: Job[] = [
   {
     // Placeholder listing: replace with the real job description.
     slug: "financial-advisor",
-    title: "Financial advisor",
-    location: "Hong Kong (Central)",
-    type: "Commission only",
-    summary: "Advise clients in Hong Kong on savings, investment and retirement.",
-    description: [
-      "You will build and look after your own portfolio of clients in Hong Kong, helping them with savings, investment and retirement.",
-      "This role is paid on commission only: there is no base salary.",
-      "We're looking for outgoing people who enjoy meeting others and find it easy to start a conversation.",
-      "No experience is needed, and students are welcome to apply.",
-    ],
+    title: { en: "Financial advisor", fr: "Conseiller financier" },
+    location: { en: "Hong Kong (Central)", fr: "Hong Kong (Central)" },
+    type: { en: "Commission only", fr: "Rémunération à la commission" },
+    summary: {
+      en: "Advise clients in Hong Kong on savings, investment and retirement.",
+      fr: "Conseillez des clients à Hong Kong sur leur épargne, leurs placements et leur retraite.",
+    },
+    description: {
+      en: [
+        "You will build and look after your own portfolio of clients in Hong Kong, helping them with savings, investment and retirement.",
+        "We're looking for outgoing people who enjoy meeting others and find it easy to start a conversation.",
+        "No experience is needed, and students are welcome to apply.",
+      ],
+      fr: [
+        "Vous développerez et suivrez votre propre portefeuille de clients à Hong Kong, en les accompagnant sur leur épargne, leurs placements et leur retraite.",
+        "Nous recherchons des personnes ouvertes, qui aiment les rencontres et engagent facilement la conversation.",
+        "Aucune expérience n'est requise, et les étudiants sont les bienvenus.",
+      ],
+    },
+    terms: {
+      en: [
+        "Pay is commission only: there is no base salary. The terms of engagement are confirmed in writing before you start.",
+        "Advising clients on insurance or investment products in Hong Kong requires a licence from the Insurance Authority or the Securities and Futures Commission. You will need to hold the relevant licence before advising clients.",
+      ],
+      fr: [
+        "La rémunération se fait uniquement à la commission : il n'y a pas de salaire fixe. Les conditions de la collaboration sont confirmées par écrit avant votre début.",
+        "À Hong Kong, conseiller des clients sur des produits d'assurance ou d'investissement nécessite une licence de l'Insurance Authority ou de la Securities and Futures Commission. Vous devrez détenir la licence requise avant de conseiller des clients.",
+      ],
+    },
     open: true,
   },
 ];
@@ -89,7 +138,15 @@ export const pipelineStages = [
 export type Stage = (typeof pipelineStages)[number]["value"];
 export const isStage = (v: unknown): v is Stage => pipelineStages.some((s) => s.value === v);
 
-export const labelFor = (options: Option[], value: string) => options.find((o) => o.value === value)?.label ?? value;
+/** Options as sent to the browser: labels in one language, knockout flags left out. */
+export type PublicOption = { value: string; label: string };
+export const publicOptions = (options: Option[], lang: CareersLocale): PublicOption[] =>
+  options.map(({ value, label }) => ({ value, label: label[lang] }));
+
+export const labelFor = (options: { value: string; label: string | Localized }[], value: string, lang: CareersLocale = "en") => {
+  const label = options.find((o) => o.value === value)?.label;
+  return label === undefined ? value : typeof label === "string" ? label : label[lang];
+};
 
 /** Fields the candidate fills in, as sent to the API (the CV travels alongside as a file). */
 export type ApplicationInput = {
@@ -104,7 +161,9 @@ export type ApplicationInput = {
 
 export type ApplicationRecord = ApplicationInput & {
   id: string;
-  /** The listing applied through; the title is copied so it survives edits to the listing. */
+  /** Language the candidate applied in. */
+  lang: CareersLocale;
+  /** The listing applied through; the English title is copied so it survives edits to the listing. */
   jobSlug: string;
   jobTitle: string;
   submittedAt: string;
@@ -127,43 +186,46 @@ const isHttpUrl = (v: string) => {
 };
 
 /** Field-level validation, run in the browser per step and again on the server. */
-export function validateFields(input: Partial<ApplicationInput>): Partial<Record<keyof ApplicationInput, string>> {
+export function validateFields(
+  input: Partial<ApplicationInput>,
+  lang: CareersLocale = "en"
+): Partial<Record<keyof ApplicationInput, string>> {
+  const m = careersCopy[lang].errors;
   const e: Partial<Record<keyof ApplicationInput, string>> = {};
   const v = (k: keyof ApplicationInput) => (input[k] ?? "").trim();
 
-  if (v("fullName").length < 2) e.fullName = "Enter your full name.";
-  else if (v("fullName").length > 120) e.fullName = "Keep your name under 120 characters.";
-  if (!EMAIL_RE.test(v("email"))) e.email = "Enter a valid email address, like name@example.com.";
-  if (!PHONE_RE.test(v("phone"))) e.phone = "Enter a phone number with country code, like +852 6123 4567.";
+  if (v("fullName").length < 2) e.fullName = m.fullName;
+  else if (v("fullName").length > 120) e.fullName = m.fullNameLong;
+  if (!EMAIL_RE.test(v("email"))) e.email = m.email;
+  if (!PHONE_RE.test(v("phone"))) e.phone = m.phone;
   const linkedin = v("linkedinUrl");
-  if (!linkedin) e.linkedinUrl = "Enter your LinkedIn profile URL.";
-  else if (!isHttpUrl(linkedin) || !/(^|\.)linkedin\.com$/i.test(new URL(linkedin).hostname))
-    e.linkedinUrl = "Enter a linkedin.com profile URL, starting with https://.";
+  if (!linkedin) e.linkedinUrl = m.linkedinMissing;
+  else if (!isHttpUrl(linkedin) || !/(^|\.)linkedin\.com$/i.test(new URL(linkedin).hostname)) e.linkedinUrl = m.linkedin;
   const portfolio = v("portfolioUrl");
-  if (portfolio && !isHttpUrl(portfolio)) e.portfolioUrl = "Enter a full URL starting with https://, or leave it empty.";
+  if (portfolio && !isHttpUrl(portfolio)) e.portfolioUrl = m.portfolio;
 
-  if (!workAuthorizationOptions.some((o) => o.value === v("workAuthorization")))
-    e.workAuthorization = "Select your work authorisation status.";
-  if (!commissionOptions.some((o) => o.value === v("commissionOnly")))
-    e.commissionOnly = "Tell us whether commission-only pay works for you.";
+  if (!workAuthorizationOptions.some((o) => o.value === v("workAuthorization"))) e.workAuthorization = m.workAuthorization;
+  if (!commissionOptions.some((o) => o.value === v("commissionOnly"))) e.commissionOnly = m.commissionOnly;
 
   return e;
 }
 
 /** Returns an error message, or null when the file is acceptable. */
-export function validateCvMeta(name: string, size: number): string | null {
+export function validateCvMeta(name: string, size: number, lang: CareersLocale = "en"): string | null {
+  const m = careersCopy[lang].errors;
   const ext = name.split(".").pop()?.toLowerCase();
-  if (ext !== "pdf" && ext !== "docx") return "Upload a PDF or Word (.docx) file.";
-  if (size === 0) return "That file is empty.";
-  if (size > MAX_CV_BYTES) return "The file is larger than 5 MB.";
+  if (ext !== "pdf" && ext !== "docx") return m.cvType;
+  if (size === 0) return m.cvEmpty;
+  if (size > MAX_CV_BYTES) return m.cvSize;
   return null;
 }
 
+/** Knockout labels, in English for the admin board. */
 export function knockoutsFor(input: Pick<ApplicationInput, "workAuthorization" | "commissionOnly">): string[] {
   return [
     workAuthorizationOptions.find((o) => o.value === input.workAuthorization),
     commissionOptions.find((o) => o.value === input.commissionOnly),
   ]
     .filter((o): o is Option => !!o?.knockout)
-    .map((o) => o.label);
+    .map((o) => o.label.en);
 }

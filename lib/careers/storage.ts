@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
-import type { ApplicationRecord, Stage } from "./config";
+import { RETENTION_DAYS, type ApplicationRecord, type Stage } from "./config";
 
 /**
  * Local-first storage: one JSON file of records plus a folder of CV files,
@@ -78,5 +78,39 @@ export function updateStatus(id: string, status: Stage) {
     rec.updatedAt = new Date().toISOString();
     await writeApplications(all);
     return rec;
+  });
+}
+
+async function removeCv(rec: ApplicationRecord) {
+  if (!rec.cv) return;
+  await fs.rm(path.join(CV_DIR, path.basename(rec.cv.file)), { force: true });
+}
+
+/** Deletes one application and its CV (withdrawal or erasure request). */
+export function deleteApplication(id: string) {
+  return withLock(async () => {
+    const all = await readApplications();
+    const rec = all.find((r) => r.id === id);
+    if (!rec) return false;
+    await removeCv(rec);
+    await writeApplications(all.filter((r) => r.id !== id));
+    return true;
+  });
+}
+
+/**
+ * Enforces the retention period promised in the candidate privacy notice: deletes
+ * applications (and CVs) submitted more than RETENTION_DAYS ago. Runs on each new
+ * submission and each admin page load, so no scheduler is needed.
+ */
+export function purgeExpired(now = Date.now()) {
+  return withLock(async () => {
+    const all = await readApplications();
+    const cutoff = now - RETENTION_DAYS * 24 * 60 * 60 * 1000;
+    const expired = all.filter((r) => Date.parse(r.submittedAt) < cutoff);
+    if (!expired.length) return 0;
+    for (const rec of expired) await removeCv(rec);
+    await writeApplications(all.filter((r) => !expired.includes(r)));
+    return expired.length;
   });
 }
