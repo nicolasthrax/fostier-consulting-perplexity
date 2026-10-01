@@ -8,7 +8,8 @@ with candidates.
 
 | Path | What |
 | --- | --- |
-| `/careers-portal` (or `/<CAREERS_PORTAL_SLUG>`) | 4-step application form |
+| `/careers-portal` (or `/<CAREERS_PORTAL_SLUG>`) | List of open positions |
+| `/careers-portal/jobs/<job-slug>` | Job description and 4-step application form |
 | `/careers-portal/admin` (or `/<slug>/admin`) | Password-protected candidate pipeline |
 | `/careers-portal/api/*` | Submission and admin endpoints |
 
@@ -23,8 +24,18 @@ with candidates.
 | `CAREERS_WEBHOOK_SECRET` | no | Sent as `secret` in the webhook payload so the receiver can reject forgeries. |
 | `NEXT_PUBLIC_CAREERS_WEBHOOK_URL` | no | Browser fallback used only when the API route is missing (static hosting). Public by nature: don't put secrets in it. |
 
-Screening questions, roles, knockout answers and pipeline stages are in
-[`lib/careers/config.ts`](../lib/careers/config.ts).
+Job listings, screening questions, knockout answers and pipeline stages are in
+[`lib/careers/config.ts`](../lib/careers/config.ts). There are no general
+applications: candidates apply through a specific listing, and you can share a
+listing's URL directly. Set a listing's `open` to `false` to stop applications
+(its page then 404s; past candidates stay on the admin board).
+
+Screening questions (step 3):
+
+- Work authorisation in Hong Kong. "Would need visa sponsorship" and "remote only" are flagged.
+- Comfortable with commission-only pay and no base salary? "No" is flagged.
+
+Flagged answers are not rejected; they show as knockouts on the admin board.
 
 ## Storage
 

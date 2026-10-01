@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   CV_TYPES,
   knockoutsFor,
+  openJob,
   validateCvMeta,
   validateFields,
   type ApplicationInput,
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 const FIELDS: (keyof ApplicationInput)[] = [
   "fullName", "email", "phone", "linkedinUrl", "portfolioUrl",
-  "workAuthorization", "role", "yearsExperience", "motivation",
+  "workAuthorization", "commissionOnly",
 ];
 
 /** Checks the file's first bytes, so a renamed executable isn't stored as a "PDF". */
@@ -38,6 +39,9 @@ export async function POST(request: Request) {
   if (form.get("consent") !== "yes")
     return NextResponse.json({ error: "Consent to data processing is required." }, { status: 400 });
 
+  const job = openJob(String(form.get("job") ?? ""));
+  if (!job) return NextResponse.json({ error: "This job listing is closed or no longer exists." }, { status: 400 });
+
   const input = Object.fromEntries(FIELDS.map((k) => [k, String(form.get(k) ?? "").trim()])) as ApplicationInput;
   const errors = validateFields(input);
   if (Object.keys(errors).length) return NextResponse.json({ error: "Some answers need attention.", errors }, { status: 400 });
@@ -52,15 +56,15 @@ export async function POST(request: Request) {
 
   const id = newId();
   const now = new Date().toISOString();
-  const yearsExperience = Number(input.yearsExperience);
   const record: ApplicationRecord = {
     ...input,
     id,
-    yearsExperience,
+    jobSlug: job.slug,
+    jobTitle: job.title,
     submittedAt: now,
     updatedAt: now,
     status: "applied",
-    knockouts: knockoutsFor({ ...input, yearsExperience }),
+    knockouts: knockoutsFor(input),
     cv: null,
   };
 

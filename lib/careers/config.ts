@@ -7,14 +7,18 @@
 export const PORTAL_BASE = "/careers-portal";
 export const API_BASE = `${PORTAL_BASE}/api`;
 
+/** Path candidates see in their browser (server components only: reads a server env var). */
+export function publicBase() {
+  const slug = process.env.CAREERS_PORTAL_SLUG?.replace(/^\/+|\/+$/g, "");
+  return slug ? `/${slug}` : PORTAL_BASE;
+}
+
 export const MAX_CV_BYTES = 5 * 1024 * 1024;
 export const CV_TYPES = {
   pdf: "application/pdf",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 } as const;
 export type CvExtension = keyof typeof CV_TYPES;
-
-export const MAX_MOTIVATION_WORDS = 250;
 
 export type Option = {
   value: string;
@@ -30,18 +34,49 @@ export const workAuthorizationOptions: Option[] = [
   { value: "remote-other", label: "Based outside Hong Kong, remote only", knockout: true },
 ];
 
-export const roleOptions: Option[] = [
-  { value: "financial-analyst", label: "Financial analyst" },
-  { value: "client-advisor", label: "Client advisor (French-speaking)" },
-  { value: "operations-associate", label: "Operations & compliance associate" },
-  { value: "business-development", label: "Business development (France–China)" },
-  { value: "intern", label: "Internship" },
-  { value: "open", label: "Open application" },
+export const commissionOptions: Option[] = [
+  { value: "yes", label: "Yes, I'm comfortable with commission-only pay and no base salary" },
+  { value: "no", label: "No, I need a base salary", knockout: true },
 ];
 
-/** Candidates below this (except for internships) are flagged as a knockout. */
-export const MIN_YEARS_EXPERIENCE = 1;
-export const MIN_YEARS_EXEMPT_ROLES = ["intern", "open"];
+/**
+ * Job listings. Candidates can only apply through one of these, at
+ * /careers-portal/jobs/<slug>. Set `open: false` to stop accepting applications
+ * without losing the listing's past candidates on the admin board.
+ */
+export type Job = {
+  slug: string;
+  title: string;
+  location: string;
+  type: string;
+  summary: string;
+  /** Paragraphs shown on the listing page. */
+  description: string[];
+  open: boolean;
+};
+
+export const jobs: Job[] = [
+  {
+    // Placeholder listing: replace with the real job description.
+    slug: "financial-advisor",
+    title: "Financial advisor",
+    location: "Hong Kong (Central)",
+    type: "Commission only",
+    summary: "Advise French-speaking clients in Hong Kong on savings, investment and retirement.",
+    description: [
+      "You will build and look after a portfolio of French-speaking clients in Hong Kong, helping them with savings, investment, retirement and cross-border tax questions.",
+      "This role is paid on commission only: there is no base salary.",
+      "We are looking for someone fluent in French and English, at ease with numbers, and comfortable building their own client base.",
+    ],
+    open: true,
+  },
+];
+
+export const findJob = (slug: string) => jobs.find((j) => j.slug === slug);
+export const openJob = (slug: string) => {
+  const job = findJob(slug);
+  return job?.open ? job : undefined;
+};
 
 export const pipelineStages = [
   { value: "applied", label: "Applied" },
@@ -55,8 +90,6 @@ export const isStage = (v: unknown): v is Stage => pipelineStages.some((s) => s.
 
 export const labelFor = (options: Option[], value: string) => options.find((o) => o.value === value)?.label ?? value;
 
-export const countWords = (text: string) => (text.trim() ? text.trim().split(/\s+/).length : 0);
-
 /** Fields the candidate fills in, as sent to the API (the CV travels alongside as a file). */
 export type ApplicationInput = {
   fullName: string;
@@ -65,16 +98,16 @@ export type ApplicationInput = {
   linkedinUrl: string;
   portfolioUrl: string;
   workAuthorization: string;
-  role: string;
-  yearsExperience: string;
-  motivation: string;
+  commissionOnly: string;
 };
 
-export type ApplicationRecord = Omit<ApplicationInput, "yearsExperience"> & {
+export type ApplicationRecord = ApplicationInput & {
   id: string;
+  /** The listing applied through; the title is copied so it survives edits to the listing. */
+  jobSlug: string;
+  jobTitle: string;
   submittedAt: string;
   updatedAt: string;
-  yearsExperience: number;
   status: Stage;
   knockouts: string[];
   cv: { file: string; originalName: string; size: number; type: string } | null;
@@ -110,13 +143,8 @@ export function validateFields(input: Partial<ApplicationInput>): Partial<Record
 
   if (!workAuthorizationOptions.some((o) => o.value === v("workAuthorization")))
     e.workAuthorization = "Select your work authorisation status.";
-  if (!roleOptions.some((o) => o.value === v("role"))) e.role = "Select the role you are applying for.";
-  const years = Number(v("yearsExperience"));
-  if (v("yearsExperience") === "" || !Number.isFinite(years) || years < 0 || years > 60)
-    e.yearsExperience = "Enter a number of years between 0 and 60.";
-  const words = countWords(v("motivation"));
-  if (words < 20) e.motivation = "Write at least 20 words.";
-  else if (words > MAX_MOTIVATION_WORDS) e.motivation = `Keep your answer to ${MAX_MOTIVATION_WORDS} words or fewer (currently ${words}).`;
+  if (!commissionOptions.some((o) => o.value === v("commissionOnly")))
+    e.commissionOnly = "Tell us whether commission-only pay works for you.";
 
   return e;
 }
@@ -130,11 +158,11 @@ export function validateCvMeta(name: string, size: number): string | null {
   return null;
 }
 
-export function knockoutsFor(input: Pick<ApplicationInput, "workAuthorization" | "role"> & { yearsExperience: number }): string[] {
-  const k: string[] = [];
-  const auth = workAuthorizationOptions.find((o) => o.value === input.workAuthorization);
-  if (auth?.knockout) k.push(auth.label);
-  if (input.yearsExperience < MIN_YEARS_EXPERIENCE && !MIN_YEARS_EXEMPT_ROLES.includes(input.role))
-    k.push(`Under ${MIN_YEARS_EXPERIENCE} year of experience`);
-  return k;
+export function knockoutsFor(input: Pick<ApplicationInput, "workAuthorization" | "commissionOnly">): string[] {
+  return [
+    workAuthorizationOptions.find((o) => o.value === input.workAuthorization),
+    commissionOptions.find((o) => o.value === input.commissionOnly),
+  ]
+    .filter((o): o is Option => !!o?.knockout)
+    .map((o) => o.label);
 }

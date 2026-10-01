@@ -4,8 +4,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, FileText, Loader2, Upload, X } from "lucide-react";
 import {
   API_BASE,
-  MAX_MOTIVATION_WORDS,
-  countWords,
   labelFor,
   validateCvMeta,
   validateFields,
@@ -19,13 +17,13 @@ type Errors = Partial<Record<Field | "cv" | "consent", string>>;
 const steps = [
   { title: "Basic info", fields: ["fullName", "email", "phone", "linkedinUrl", "portfolioUrl"] as Field[] },
   { title: "CV", fields: [] as Field[] },
-  { title: "Screening", fields: ["workAuthorization", "role", "yearsExperience", "motivation"] as Field[] },
+  { title: "Screening", fields: ["workAuthorization", "commissionOnly"] as Field[] },
   { title: "Review", fields: [] as Field[] },
 ];
 
 const empty: ApplicationInput = {
   fullName: "", email: "", phone: "", linkedinUrl: "", portfolioUrl: "",
-  workAuthorization: "", role: "", yearsExperience: "", motivation: "",
+  workAuthorization: "", commissionOnly: "",
 };
 
 const inputClass =
@@ -52,12 +50,14 @@ function Label({ htmlFor, children, optional }: { htmlFor: string; children: Rea
 }
 
 export function ApplicationForm({
-  roles,
+  job,
   workAuthorizations,
+  commissionOptions,
   staticWebhook,
 }: {
-  roles: Option[];
+  job: { slug: string; title: string };
   workAuthorizations: Option[];
+  commissionOptions: Option[];
   /** Used only when the site is hosted statically and the local API is missing. */
   staticWebhook: string;
 }) {
@@ -136,7 +136,7 @@ export function ApplicationForm({
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         source: "fostier-careers-portal",
-        application: { ...values, submittedAt: new Date().toISOString() },
+        application: { ...values, jobSlug: job.slug, jobTitle: job.title, submittedAt: new Date().toISOString() },
         cv: cv ? { name: cv.name, type: cv.type, base64: await toBase64(cv) } : null,
       }),
     });
@@ -160,6 +160,7 @@ export function ApplicationForm({
     try {
       const body = new FormData();
       for (const [k, v] of Object.entries(values)) body.append(k, v.trim());
+      body.append("job", job.slug);
       body.append("cv", cv!);
       body.append("consent", "yes");
       body.append("company_website", honeypot);
@@ -201,7 +202,7 @@ export function ApplicationForm({
         </span>
         <h2 ref={headingRef} tabIndex={-1} className="h-serif text-3xl outline-none">Application sent</h2>
         <p className="body-lead">
-          Thank you, {values.fullName.split(" ")[0]}. We read every application and will reply by email to{" "}
+          Thank you, {values.fullName.split(" ")[0]}. Your application for {job.title} is with us. We read every application and will reply by email to{" "}
           <strong className="font-semibold text-ink">{values.email}</strong>, usually within two weeks.
         </p>
         {doneId !== "sent" && <p className="label tabular">Reference: {doneId}</p>}
@@ -222,7 +223,6 @@ export function ApplicationForm({
     "aria-describedby": [errors[name] && fid(`${name}-error`), hint && fid(`${name}-hint`)].filter(Boolean).join(" ") || undefined,
   });
 
-  const words = countWords(values.motivation);
   const reviewRows: { step: number; items: [string, string][] }[] = [
     {
       step: 0,
@@ -239,15 +239,13 @@ export function ApplicationForm({
       step: 2,
       items: [
         ["Work authorisation", labelFor(workAuthorizations, values.workAuthorization)],
-        ["Role", labelFor(roles, values.role)],
-        ["Years of relevant experience", values.yearsExperience],
-        ["Why Fostier Consulting", values.motivation],
+        ["Commission-only pay", labelFor(commissionOptions, values.commissionOnly)],
       ],
     },
   ];
 
   return (
-    <form onSubmit={submit} noValidate aria-describedby={submitError ? fid("submit-error") : undefined}>
+    <form onSubmit={submit} aria-label={`Apply for ${job.title}`} noValidate aria-describedby={submitError ? fid("submit-error") : undefined}>
       {/* Progress */}
       <ol className="mb-8 grid grid-cols-4 gap-2" aria-label="Application steps">
         {steps.map((s, i) => (
@@ -378,29 +376,35 @@ export function ApplicationForm({
             </select>
             {err("workAuthorization")}
           </div>
-          <div className="grid gap-5 sm:grid-cols-[1fr_12rem]">
-            <div>
-              <Label htmlFor={fid("role")}>Role</Label>
-              <select {...a11y("role")} className={inputClass} value={values.role} onChange={set("role")} required>
-                <option value="">Select…</option>
-                {roles.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              {err("role")}
+          <fieldset
+            aria-invalid={!!errors.commissionOnly}
+            aria-describedby={errors.commissionOnly ? fid("commissionOnly-error") : undefined}
+          >
+            <legend className="text-[15px] font-semibold text-ink">
+              Are you comfortable with commission-only pay, with no base salary?
+              <span className="sr-only"> (required)</span>
+            </legend>
+            <div className="mt-3 space-y-2">
+              {commissionOptions.map((o, i) => (
+                <label
+                  key={o.value}
+                  className={`flex cursor-pointer items-start gap-3 rounded-sm border px-4 py-3 text-[15px] text-ink transition-colors hover:border-muted has-[:checked]:border-navy has-[:checked]:bg-mist ${errors.commissionOnly ? "border-fred-700" : "border-line"}`}
+                >
+                  <input
+                    type="radio"
+                    name="commissionOnly"
+                    id={i === 0 ? fid("commissionOnly") : undefined}
+                    value={o.value}
+                    checked={values.commissionOnly === o.value}
+                    onChange={set("commissionOnly")}
+                    className="focus-ring mt-1 h-4 w-4 shrink-0 accent-navy"
+                  />
+                  {o.label}
+                </label>
+              ))}
             </div>
-            <div>
-              <Label htmlFor={fid("yearsExperience")}>Years of relevant experience</Label>
-              <input {...a11y("yearsExperience")} type="number" inputMode="decimal" min={0} max={60} step={0.5} className={`${inputClass} tabular`} value={values.yearsExperience} onChange={set("yearsExperience")} required />
-              {err("yearsExperience")}
-            </div>
-          </div>
-          <div>
-            <Label htmlFor={fid("motivation")}>Why Fostier Consulting, and what relevant projects or analytical skills do you bring?</Label>
-            <textarea {...a11y("motivation", true)} rows={8} className={`${inputClass} resize-y leading-relaxed`} value={values.motivation} onChange={set("motivation")} required />
-            <p id={fid("motivation-hint")} className={`mt-1.5 text-sm tabular ${words > MAX_MOTIVATION_WORDS ? "font-medium text-fred-700" : "text-muted"}`} aria-live="polite">
-              {words} / {MAX_MOTIVATION_WORDS} words
-            </p>
-            {err("motivation")}
-          </div>
+            {err("commissionOnly")}
+          </fieldset>
         </div>
       )}
 

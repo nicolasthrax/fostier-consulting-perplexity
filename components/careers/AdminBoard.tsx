@@ -13,20 +13,22 @@ export function AdminBoard({
   initial,
   storageError,
   stages,
-  roles,
+  jobs,
   workAuthorizations,
+  commissionOptions,
 }: {
   initial: ApplicationRecord[];
   storageError: boolean;
   stages: StageOption[];
-  roles: Option[];
+  jobs: { slug: string; title: string; open: boolean }[];
   workAuthorizations: Option[];
+  commissionOptions: Option[];
 }) {
   const router = useRouter();
   const [apps, setApps] = useState(initial);
   const [view, setView] = useState<"board" | "table">("board");
   const [query, setQuery] = useState("");
-  const [role, setRole] = useState("");
+  const [job, setJob] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -34,9 +36,9 @@ export function AdminBoard({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return apps.filter(
-      (a) => (!role || a.role === role) && (!q || `${a.fullName} ${a.email}`.toLowerCase().includes(q))
+      (a) => (!job || a.jobSlug === job) && (!q || `${a.fullName} ${a.email}`.toLowerCase().includes(q))
     );
-  }, [apps, query, role]);
+  }, [apps, query, job]);
   const open = apps.find((a) => a.id === openId) ?? null;
 
   useEffect(() => {
@@ -126,10 +128,10 @@ export function AdminBoard({
           onChange={(e) => setQuery(e.target.value)}
           className="focus-ring min-w-0 flex-1 rounded-sm border border-line bg-white px-3 py-2.5 text-[15px] text-ink sm:max-w-xs"
         />
-        <label className="sr-only" htmlFor="admin-role">Filter by role</label>
-        <select id="admin-role" value={role} onChange={(e) => setRole(e.target.value)} className="focus-ring rounded-sm border border-line bg-white px-3 py-2.5 text-[15px] text-ink">
-          <option value="">All roles</option>
-          {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+        <label className="sr-only" htmlFor="admin-job">Filter by job</label>
+        <select id="admin-job" value={job} onChange={(e) => setJob(e.target.value)} className="focus-ring rounded-sm border border-line bg-white px-3 py-2.5 text-[15px] text-ink">
+          <option value="">All jobs</option>
+          {jobs.map((j) => <option key={j.slug} value={j.slug}>{j.title}{j.open ? "" : " (closed)"}</option>)}
         </select>
         <div className="ml-auto inline-flex rounded-sm border border-line bg-white p-0.5" role="group" aria-label="View">
           {([["board", LayoutGrid, "Pipeline"], ["table", Rows3, "Table"]] as const).map(([v, Icon, label]) => (
@@ -161,9 +163,9 @@ export function AdminBoard({
                   {items.map((a) => (
                     <li key={a.id} className="space-y-2 rounded-sm border border-line p-3">
                       {nameButton(a)}
-                      <p className="text-sm text-slate">{labelFor(roles, a.role)}</p>
+                      <p className="text-sm text-slate">{a.jobTitle}</p>
                       <p className="text-xs text-muted tabular">
-                        {a.yearsExperience} yr · {dateFmt.format(new Date(a.submittedAt))}
+                        {dateFmt.format(new Date(a.submittedAt))}
                       </p>
                       {flag(a)}
                       {statusSelect(a, true)}
@@ -180,7 +182,7 @@ export function AdminBoard({
           <table className="w-full min-w-[48rem] text-left text-[15px]">
             <thead className="border-b border-line text-sm text-muted">
               <tr>
-                {["Name", "Role", "Experience", "Submitted", "Flags", "Status"].map((h) => (
+                {["Name", "Job", "Submitted", "Flags", "Status"].map((h) => (
                   <th key={h} scope="col" className="px-4 py-3 font-medium">{h}</th>
                 ))}
               </tr>
@@ -189,15 +191,14 @@ export function AdminBoard({
               {filtered.map((a) => (
                 <tr key={a.id} className="border-b border-line last:border-0">
                   <td className="px-4 py-3">{nameButton(a)}<div className="text-sm text-muted">{a.email}</div></td>
-                  <td className="px-4 py-3 text-slate">{labelFor(roles, a.role)}</td>
-                  <td className="px-4 py-3 tabular text-slate">{a.yearsExperience} yr</td>
+                  <td className="px-4 py-3 text-slate">{a.jobTitle}</td>
                   <td className="px-4 py-3 tabular text-slate">{dateFmt.format(new Date(a.submittedAt))}</td>
                   <td className="px-4 py-3">{flag(a)}</td>
                   <td className="px-4 py-3">{statusSelect(a, true)}</td>
                 </tr>
               ))}
               {!filtered.length && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted">No candidates match.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted">No candidates match.</td></tr>
               )}
             </tbody>
           </table>
@@ -216,7 +217,7 @@ export function AdminBoard({
             <div className="flex items-start justify-between gap-4 p-6 pb-4">
               <div>
                 <h2 id="candidate-title" className="h-serif text-3xl">{open.fullName}</h2>
-                <p className="mt-1 text-slate">{labelFor(roles, open.role)}</p>
+                <p className="mt-1 text-slate">{open.jobTitle}</p>
               </div>
               <button type="button" onClick={() => setOpenId(null)} className="btn-icon focus-ring !h-10 !w-10" aria-label="Close">
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -248,7 +249,7 @@ export function AdminBoard({
                     ["LinkedIn", <ExtLink key="l" href={open.linkedinUrl} />],
                     ["Portfolio", open.portfolioUrl ? <ExtLink key="f" href={open.portfolioUrl} /> : "—"],
                     ["Work authorisation", labelFor(workAuthorizations, open.workAuthorization)],
-                    ["Experience", `${open.yearsExperience} years`],
+                    ["Commission-only pay", labelFor(commissionOptions, open.commissionOnly)],
                     ["Submitted", dateFmt.format(new Date(open.submittedAt))],
                     ["CV file", open.cv ? open.cv.originalName : "—"],
                   ] as [string, React.ReactNode][]
@@ -259,10 +260,6 @@ export function AdminBoard({
                   </div>
                 ))}
               </dl>
-              <div className="border-t border-line pt-5">
-                <h3 className="font-serif text-lg text-ink">Why Fostier Consulting</h3>
-                <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-slate">{open.motivation}</p>
-              </div>
             </div>
           </div>
         )}

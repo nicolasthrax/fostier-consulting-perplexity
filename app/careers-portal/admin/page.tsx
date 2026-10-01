@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { adminEnabled, isAdmin } from "@/lib/careers/auth";
 import { readApplications } from "@/lib/careers/storage";
-import { pipelineStages, roleOptions, workAuthorizationOptions } from "@/lib/careers/config";
+import { commissionOptions, jobs, pipelineStages, workAuthorizationOptions } from "@/lib/careers/config";
 import { AdminLogin } from "@/components/careers/AdminLogin";
 import { AdminBoard } from "@/components/careers/AdminBoard";
 
@@ -32,7 +32,8 @@ export default async function CareersAdminPage() {
       initial={applications}
       storageError={storageError}
       stages={[...pipelineStages]}
-      roles={roleOptions}
+      jobs={jobs.map(({ slug, title, open }) => ({ slug, title, open }))}
+      commissionOptions={commissionOptions}
       workAuthorizations={workAuthorizationOptions}
     />
   );
