@@ -17,6 +17,8 @@ import { serviceJsonLd } from "@/lib/structured-data";
 import { site, whatsappUrl } from "@/lib/site";
 import { PageHero, Section } from "@/components/SectionHeading";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
+import { RiskWarning } from "@/components/RiskWarning";
+import { BackupContactLine } from "@/components/TrustSignals";
 import { WeChatContactButton } from "@/components/WeChatContact";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
@@ -94,6 +96,7 @@ export default async function ServicePage(props: { params: Promise<{ lang: strin
               </>
             )}
             <p className={`${detail ? "mt-12" : "mt-8"} max-w-2xl text-sm leading-relaxed text-muted`}>{service.disclaimer}</p>
+            <RiskWarning locale={lang} className="mt-6" />
           </div>
 
           <aside id="contact" className="envelope h-fit scroll-mt-28 lg:sticky lg:top-28">
@@ -128,6 +131,7 @@ export default async function ServicePage(props: { params: Promise<{ lang: strin
                 </a>
                 <WeChatContactButton locale={lang} />
               </div>
+              <BackupContactLine locale={lang} className="border-t border-line pt-4" />
             </div>
             </div>
           </aside>

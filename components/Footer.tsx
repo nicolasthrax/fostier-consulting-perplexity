@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Linkedin, Mail, MapPin, Phone } from "lucide-react";
 import { Logo } from "./Logo";
@@ -6,6 +7,8 @@ import { WeChatContactChip } from "./WeChatContact";
 import { site, whatsappUrl } from "@/lib/site";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { guidesCopy, hasGuides } from "@/lib/guides";
+import { trustCopy } from "@/lib/i18n/trust";
+import { RiskWarning } from "./RiskWarning";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
@@ -75,6 +78,18 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             <li className="[&>button]:min-h-6">
               <WeChatContactChip locale={locale} />
             </li>
+            <li className="text-sm leading-relaxed text-slate">
+              {trustCopy[locale].backupShort}{" "}
+              <a href={site.backupContact.emailHref} className={`${target} link-underline inline-block font-medium text-navy`}>
+                {site.backupContact.name}
+              </a>
+            </li>
+            <li>
+              <a href={dict.hero.ufePartnerUrl || site.ufePartnerUrl} target="_blank" rel="noopener noreferrer" className={iconLink}>
+                <Image src="/brand/ufe-logo.svg" alt="" width={16} height={16} className="h-4 w-4 object-contain" />
+                <span className="link-underline">{dict.hero.ufePartnerBadge}</span>
+              </a>
+            </li>
             <li>
               <a href={site.linkedinUrl} target="_blank" rel="noopener noreferrer" className={iconLink}>
                 <Linkedin className="h-4 w-4" aria-hidden="true" />
@@ -112,7 +127,8 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
       {/* Regulatory-style disclosure: its own labelled band, ahead of the copyright line. */}
       <div className="border-y border-line bg-mist">
         <div className="container-site py-8">
-          <h2 className="text-sm font-semibold text-ink">{noticeLabel[locale]}</h2>
+          <RiskWarning locale={locale} variant="footer" />
+          <h2 className="mt-6 text-sm font-semibold text-ink">{noticeLabel[locale]}</h2>
           <p className="mt-2 max-w-4xl text-sm leading-relaxed text-slate">{dict.legal.disclaimer}</p>
         </div>
       </div>

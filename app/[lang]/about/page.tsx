@@ -9,6 +9,7 @@ import { AdvisorArrow } from "@/components/AdvisorArrow";
 import { UniversityHighlight, BioWithHighlights } from "@/components/UniversityHighlight";
 import { StampPortrait } from "@/components/Stamp";
 import { CaseStudies } from "@/components/CaseStudies";
+import { TrustSignals } from "@/components/TrustSignals";
 import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
 import { localizedMetadata } from "@/lib/metadata";
@@ -167,6 +168,8 @@ export default async function AboutPage(props: { params: Promise<{ lang: string 
           </div>
         </div>
       </section>
+
+      <TrustSignals locale={params.lang} dict={dict} />
 
       <CaseStudies locale={params.lang} dict={dict} />
 

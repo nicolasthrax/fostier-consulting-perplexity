@@ -19,9 +19,17 @@ export const site = {
   email: "lucie@fostierconsulting.com",
   emailHref: "mailto:lucie@fostierconsulting.com",
   founder: "Lucie Fostier",
+  /** Second point of contact for when the founder is unavailable. */
+  backupContact: {
+    name: "Nicolas Fostier",
+    email: "nicolas@fostierconsulting.com",
+    emailHref: "mailto:nicolas@fostierconsulting.com",
+  },
   logoPath: "/brand/fostier-consulting-logo.png",
   district: "Central",
   foundingYear: "2015",
+  /** Founding month, ISO 8601 (year-month), for schema `foundingDate`. */
+  foundingDate: "2015-05",
   /** Hong Kong Business Registration number. */
   brn: "38375423",
   linkedinUrl: "https://www.linkedin.com/company/fostierconsulting",
