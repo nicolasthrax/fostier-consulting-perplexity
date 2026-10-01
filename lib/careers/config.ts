@@ -91,7 +91,7 @@ export const jobs: Job[] = [
     // Placeholder listing: replace with the real job description.
     slug: "financial-advisor",
     title: { en: "Financial advisor", fr: "Conseiller financier" },
-    location: { en: "Hong Kong (Central)", fr: "Hong Kong (Central)" },
+    location: { en: "Hong Kong", fr: "Hong Kong" },
     type: { en: "Commission only", fr: "Rémunération à la commission" },
     summary: {
       en: "Advise clients in Hong Kong on savings, investment and retirement.",

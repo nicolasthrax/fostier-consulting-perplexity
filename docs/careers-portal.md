@@ -1,10 +1,9 @@
-# Recruitment portal (unlisted)
+# Recruitment portal
 
-A self-contained, zero-cost application portal. It is **not linked** from the
-header, footer, sitemap or robots.txt, every response carries
-`X-Robots-Tag: noindex, nofollow` and the page head has
-`<meta name="robots" content="noindex, nofollow">`. Share the URL directly
-with candidates.
+A self-contained, zero-cost application portal. It is linked from the site
+footer ("Carrières" / "Careers" / "招聘"), but kept out of the sitemap and
+search results: every response carries `X-Robots-Tag: noindex, nofollow` and
+the page head has `<meta name="robots" content="noindex, nofollow">`.
 
 | Path | What |
 | --- | --- |

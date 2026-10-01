@@ -9,11 +9,13 @@ import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { guidesCopy, hasGuides } from "@/lib/guides";
 import { trustCopy } from "@/lib/i18n/trust";
 import { RiskWarning } from "./RiskWarning";
+import { publicBase } from "@/lib/careers/config";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
 const brLabel: Record<Locale, string> = { fr: "N° BR", en: "BR No.", zh: "商业登记号码" };
 const llmsLabel: Record<Locale, string> = { fr: "Infos pour LLMs", en: "LLM info", zh: "AI 助手信息" };
+const careersLabel: Record<Locale, string> = { fr: "Carrières", en: "Careers", zh: "招聘" };
 const noticeLabel: Record<Locale, string> = { fr: "Informations importantes", en: "Important information", zh: "重要信息" };
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
@@ -22,6 +24,8 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
     { href: `/${locale}/services`, label: dict.nav.services },
     { href: `/${locale}/about`, label: dict.nav.about },
     ...(hasGuides() ? [{ href: `/${locale}/guides`, label: guidesCopy[locale].nav }] : []),
+    // The recruitment portal is French and English only; Chinese readers get the English pages.
+    { href: publicBase(locale === "fr" ? "fr" : "en"), label: careersLabel[locale] },
   ];
   const legal = [
     { href: `/${locale}/privacy`, label: dict.footer.links.privacy },
