@@ -19,7 +19,7 @@ export function AdminBoard({
   retentionDays,
 }: {
   initial: ApplicationRecord[];
-  storageError: boolean;
+  storageError: string;
   stages: StageOption[];
   jobs: { slug: string; title: string; open: boolean }[];
   workAuthorizations: Option[];
@@ -127,7 +127,7 @@ export function AdminBoard({
 
       {storageError && (
         <p role="alert" className="mt-6 rounded-sm border border-fred-700/30 bg-white px-4 py-3 text-sm font-medium text-fred-700">
-          The application database couldn&apos;t be read. Check CAREERS_DATA_DIR and file permissions.
+          {storageError}
         </p>
       )}
       {saveError && (

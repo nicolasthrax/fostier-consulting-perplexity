@@ -62,7 +62,7 @@ const en = {
     portfolio: "Portfolio or GitHub URL",
     dropHere: "Drag your CV here, or ",
     choose: "choose a file",
-    cvHint: "PDF or Word (.docx), 5 MB maximum",
+    cvHint: "PDF or Word (.docx), 4 MB maximum",
     cvSensitive:
       "Please leave out your HKID or passport number and any sensitive details (health, religion, political views). We don't need them at this stage.",
     remove: (name: string) => `Remove ${name}`,
@@ -96,6 +96,8 @@ const en = {
     reference: "Reference:",
     networkError: "We couldn't reach the server. Check your connection and try again.",
     genericError: "Something went wrong. Please try again.",
+    emailFallback: "You can also apply by email: send your CV and answers to",
+    emailSubject: (job: string) => `Application: ${job}`,
   },
   errors: {
     fullName: "Enter your full name.",
@@ -110,7 +112,7 @@ const en = {
     cvMissing: "Upload your CV to continue.",
     cvType: "Upload a PDF or Word (.docx) file.",
     cvEmpty: "That file is empty.",
-    cvSize: "The file is larger than 5 MB.",
+    cvSize: "The file is larger than 4 MB.",
     cvInvalid: "That file doesn't look like a valid PDF or DOCX.",
     declaration: "Please confirm you have read the privacy notice before submitting.",
     jobClosed: "This job listing is closed or no longer exists.",
@@ -247,7 +249,7 @@ const fr: Copy = {
     portfolio: "URL de votre portfolio ou GitHub",
     dropHere: "Glissez votre CV ici, ou ",
     choose: "choisissez un fichier",
-    cvHint: "PDF ou Word (.docx), 5 Mo maximum",
+    cvHint: "PDF ou Word (.docx), 4 Mo maximum",
     cvSensitive:
       "Merci de ne pas indiquer votre numéro de carte d'identité de Hong Kong (HKID) ou de passeport, ni d'informations sensibles (santé, religion, opinions politiques). Nous n'en avons pas besoin à ce stade.",
     remove: (name: string) => `Retirer ${name}`,
@@ -281,6 +283,8 @@ const fr: Copy = {
     reference: "Référence :",
     networkError: "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.",
     genericError: "Une erreur s'est produite. Veuillez réessayer.",
+    emailFallback: "Vous pouvez aussi postuler par e-mail : envoyez votre CV et vos réponses à",
+    emailSubject: (job: string) => `Candidature : ${job}`,
   },
   errors: {
     fullName: "Indiquez votre nom complet.",
@@ -295,7 +299,7 @@ const fr: Copy = {
     cvMissing: "Ajoutez votre CV pour continuer.",
     cvType: "Ajoutez un fichier PDF ou Word (.docx).",
     cvEmpty: "Ce fichier est vide.",
-    cvSize: "Le fichier dépasse 5 Mo.",
+    cvSize: "Le fichier dépasse 4 Mo.",
     cvInvalid: "Ce fichier ne semble pas être un PDF ou un DOCX valide.",
     declaration: "Veuillez confirmer avoir lu la notice de confidentialité avant d'envoyer.",
     jobClosed: "Cette offre est fermée ou n'existe plus.",

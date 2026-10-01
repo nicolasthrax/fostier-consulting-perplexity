@@ -11,6 +11,7 @@ import {
   type PublicOption,
 } from "@/lib/careers/config";
 import { careersCopy, type CareersLocale } from "@/lib/careers/i18n";
+import { site } from "@/lib/site";
 
 type Field = keyof ApplicationInput;
 type Errors = Partial<Record<Field | "cv" | "consent", string>>;
@@ -81,6 +82,8 @@ export function ApplicationForm({
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Shown when the server can't store applications: candidates can still apply by email.
+  const [showEmailFallback, setShowEmailFallback] = useState(false);
   const [doneId, setDoneId] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -169,6 +172,7 @@ export function ApplicationForm({
     }
     setSubmitting(true);
     setSubmitError("");
+    setShowEmailFallback(false);
     try {
       const body = new FormData();
       for (const [k, v] of Object.entries(values)) body.append(k, v.trim());
@@ -188,8 +192,12 @@ export function ApplicationForm({
         setDoneId(await submitToWebhook());
         return;
       }
-      if (!res) throw new Error(t.networkError);
-      const data = (await res.json().catch(() => ({}))) as { id?: string; error?: string; errors?: Errors };
+      if (!res) {
+        setShowEmailFallback(true);
+        throw new Error(t.networkError);
+      }
+      const data = (await res.json().catch(() => ({}))) as { id?: string; error?: string; errors?: Errors; fallbackEmail?: boolean };
+      if (data.fallbackEmail || res.status >= 500) setShowEmailFallback(true);
       if (!res.ok) {
         if (data.errors && Object.keys(data.errors).length) {
           setErrors(data.errors);
@@ -238,6 +246,20 @@ export function ApplicationForm({
   });
 
   const pics = t.pics(noticeHref);
+  // Prefilled email so a candidate who hits a server error only has to attach the CV.
+  const emailHref = `mailto:${site.email}?subject=${encodeURIComponent(t.emailSubject(job.title))}&body=${encodeURIComponent(
+    [
+      `${t.review.fullName}: ${values.fullName}`,
+      `${t.review.email}: ${values.email}`,
+      `${t.review.phone}: ${values.phone}`,
+      `${t.review.linkedin}: ${values.linkedinUrl}`,
+      values.portfolioUrl && `${t.review.portfolio}: ${values.portfolioUrl}`,
+      `${t.review.workAuthorization}: ${labelFor(workAuthorizations, values.workAuthorization)}`,
+      `${t.review.commission}: ${labelFor(commissionOptions, values.commissionOnly)}`,
+    ]
+      .filter(Boolean)
+      .join("\n")
+  )}`;
   const reviewRows: { step: number; items: [string, string][] }[] = [
     {
       step: 0,
@@ -477,6 +499,12 @@ export function ApplicationForm({
       {submitError && (
         <p id={fid("submit-error")} role="alert" className="mt-6 rounded-sm border border-fred-700/30 bg-fred/5 px-4 py-3 text-sm font-medium text-fred-700">
           {submitError}
+          {showEmailFallback && (
+            <span className="mt-2 block font-normal text-slate">
+              {t.emailFallback}{" "}
+              <a href={emailHref} className="focus-ring break-all font-semibold text-navy link-underline">{site.email}</a>.
+            </span>
+          )}
         </p>
       )}
 

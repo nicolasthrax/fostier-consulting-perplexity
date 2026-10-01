@@ -10,7 +10,7 @@ import {
   type CvExtension,
 } from "@/lib/careers/config";
 import { careersCopy, isCareersLocale } from "@/lib/careers/i18n";
-import { addApplication, newId, purgeExpired, saveCv } from "@/lib/careers/storage";
+import { addApplication, newId, purgeExpired, storageAvailable } from "@/lib/careers/storage";
 import { forwardToWebhook, webhookUrl } from "@/lib/careers/webhook";
 
 export const runtime = "nodejs";
@@ -71,16 +71,18 @@ export async function POST(request: Request) {
     cv: null,
   };
 
+  record.cv = { file: `${id}.${ext}`, originalName: file.name.slice(0, 200), size: file.size, type: CV_TYPES[ext] };
   let storedLocally = false;
-  try {
-    const stored = await saveCv(id, ext, data);
-    record.cv = { file: stored, originalName: file.name.slice(0, 200), size: file.size, type: CV_TYPES[ext] };
-    await addApplication(record);
-    storedLocally = true;
-    await purgeExpired().catch(() => undefined);
-  } catch (err) {
-    // Expected on read-only hosts; the webhook below is then the only copy.
-    console.error("[careers] local save failed:", (err as Error).message);
+  if (storageAvailable()) {
+    try {
+      await addApplication(record, data);
+      storedLocally = true;
+      await purgeExpired().catch(() => undefined);
+    } catch (err) {
+      console.error("[careers] save failed:", (err as Error).message);
+    }
+  } else {
+    console.error("[careers] no storage configured: connect a Vercel Blob store or set CAREERS_WEBHOOK_URL");
   }
 
   let forwarded = false;
@@ -93,6 +95,6 @@ export async function POST(request: Request) {
   }
 
   if (!storedLocally && !forwarded)
-    return NextResponse.json({ error: m.saveFailed }, { status: 503 });
+    return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 503 });
   return NextResponse.json({ ok: true, id });
 }

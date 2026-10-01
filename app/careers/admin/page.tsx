@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { adminEnabled, isAdmin } from "@/lib/careers/auth";
-import { purgeExpired, readApplications } from "@/lib/careers/storage";
+import { purgeExpired, readApplications, storageAvailable } from "@/lib/careers/storage";
 import { RETENTION_DAYS, commissionOptions, jobs, pipelineStages, workAuthorizationOptions } from "@/lib/careers/config";
 import { AdminLogin } from "@/components/careers/AdminLogin";
 import { AdminBoard } from "@/components/careers/AdminBoard";
@@ -24,7 +24,11 @@ export default async function CareersAdminPage() {
 
   await purgeExpired().catch(() => undefined);
   let applications = await readApplications().catch(() => null);
-  const storageError = applications === null;
+  const storageError = !storageAvailable()
+    ? "No storage is connected, so applications can't be saved. In Vercel, open the project → Storage → Create Database → Blob (private), connect it to this project, then redeploy."
+    : applications === null
+      ? "The application store couldn't be read. Check the Blob store connection or CAREERS_DATA_DIR permissions."
+      : "";
   applications ??= [];
   applications.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
 

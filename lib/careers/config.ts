@@ -14,7 +14,8 @@ export function publicBase(lang: CareersLocale = "en") {
   return `${slug ? `/${slug}` : PORTAL_BASE}${lang === "en" ? "" : `/${lang}`}`;
 }
 
-export const MAX_CV_BYTES = 5 * 1024 * 1024;
+// 4 MB: Vercel functions reject request bodies over 4.5 MB, multipart overhead included.
+export const MAX_CV_BYTES = 4 * 1024 * 1024;
 export const CV_TYPES = {
   pdf: "application/pdf",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

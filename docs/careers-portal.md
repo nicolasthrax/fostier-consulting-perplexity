@@ -44,18 +44,32 @@ Flagged answers are not rejected; they show as knockouts on the admin board.
 When the app runs on a Node server (`next start`, a VPS, Docker…):
 
 - `data/applications/applications.json` — candidate records and pipeline status
-- `data/cvs/<id>.pdf|docx` — uploaded CVs (type checked by extension *and* file signature, max 5 MB)
+- `data/cvs/<id>.pdf|docx` — uploaded CVs (type checked by extension *and* file signature, max 4 MB)
 
 `/data/` is git-ignored and files are written with `0600` permissions. Back the
 folder up, and delete records after 12 months (the retention period candidates
 agree to).
 
-### Vercel / read-only hosting
+### Vercel: connect a private Blob store (free tier)
 
-Vercel's filesystem is read-only and per-instance, so local storage won't
-persist there. Set `CAREERS_WEBHOOK_URL` and each application is forwarded to it;
-the admin board is then only useful on a self-hosted instance. Vercel also caps
-request bodies at 4.5 MB, so CVs close to 5 MB will be rejected there.
+Vercel's filesystem is read-only, so on Vercel applications are stored in
+**Vercel Blob**. One-time setup, about a minute:
+
+1. Vercel dashboard → this project → **Storage** → **Create Database** → **Blob**.
+2. Choose **Private** access (CVs must not be publicly reachable) and region `hkg1`.
+3. Connect it to the project (Production and Preview). Vercel adds
+   `BLOB_READ_WRITE_TOKEN` automatically.
+4. Redeploy.
+
+The portal switches to Blob automatically when that variable exists: one
+private JSON blob per application in `careers/apps/` and the CV in
+`careers/cvs/`. The admin board, CV downloads, status changes, exports,
+deletions and the 12-month purge all work the same as locally.
+
+Until storage is connected, submissions fail with a message inviting the
+candidate to apply by email (with their answers prefilled), and the admin page
+shows a warning. CVs are capped at 4 MB because Vercel rejects larger request
+bodies.
 
 On fully static hosting (no API routes), the form posts directly to
 `NEXT_PUBLIC_CAREERS_WEBHOOK_URL`.
