@@ -12,6 +12,7 @@ const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short
 export function AdminBoard({
   initial,
   storageError,
+  storageStatus,
   stages,
   jobs,
   workAuthorizations,
@@ -20,6 +21,7 @@ export function AdminBoard({
 }: {
   initial: ApplicationRecord[];
   storageError: string;
+  storageStatus: string;
   stages: StageOption[];
   jobs: { slug: string; title: string; open: boolean }[];
   workAuthorizations: Option[];
@@ -118,6 +120,7 @@ export function AdminBoard({
             Applications are deleted automatically {retentionDays} days after submission, as the candidate privacy notice promises.
             Move hired candidates&apos; documents to their personnel file before then.
           </p>
+          {storageStatus && <p className="mt-1 text-sm font-medium text-wechat-700">✓ {storageStatus}</p>}
         </div>
         <button type="button" onClick={logout} className="btn-outline focus-ring !py-2.5">
           <LogOut className="h-4 w-4" aria-hidden="true" />

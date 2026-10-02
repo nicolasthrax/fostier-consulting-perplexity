@@ -7,15 +7,27 @@ import { RETENTION_DAYS, type ApplicationRecord, type Stage } from "./config";
 /**
  * Application storage, server code only. Two backends, picked automatically:
  *
- * - Vercel Blob (private store) when BLOB_READ_WRITE_TOKEN or BLOB_STORE_ID is
- *   set, which Vercel does when a Blob store is connected to the project. Needed
- *   on Vercel, whose filesystem is read-only. One JSON blob per application
- *   under careers/apps/ and one blob per CV under careers/cvs/.
+ * - Vercel Blob (private store) when a Blob store is connected to the project,
+ *   which adds BLOB_READ_WRITE_TOKEN (or <PREFIX>_READ_WRITE_TOKEN if a custom
+ *   prefix was chosen), or BLOB_STORE_ID with OIDC. Needed on Vercel, whose
+ *   filesystem is read-only. One JSON blob per application under careers/apps/
+ *   and one blob per CV under careers/cvs/.
  * - Local files otherwise (self-hosted / dev): one JSON file of records plus a
  *   folder of CVs under CAREERS_DATA_DIR (default ./data, git-ignored).
  */
-export const storageBackend = () =>
-  process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID ? "blob" : "local";
+
+/** Blob credentials, found under the default names or any custom prefix. */
+function blobAuth(): { token: string } | { storeId: string } | null {
+  const env = process.env;
+  if (env.BLOB_READ_WRITE_TOKEN) return { token: env.BLOB_READ_WRITE_TOKEN };
+  const token = Object.entries(env).find(([k, v]) => k.endsWith("_READ_WRITE_TOKEN") && v?.startsWith("vercel_blob_rw_"))?.[1];
+  if (token) return { token };
+  if (env.BLOB_STORE_ID) return { storeId: env.BLOB_STORE_ID };
+  const storeId = Object.entries(env).find(([k, v]) => k.endsWith("_STORE_ID") && v?.startsWith("store_"))?.[1];
+  return storeId ? { storeId } : null;
+}
+
+export const storageBackend = () => (blobAuth() ? "blob" : "local");
 
 /** Whether this deployment can store applications at all. */
 export const storageAvailable = () => storageBackend() === "blob" || !process.env.VERCEL;
@@ -36,7 +48,7 @@ const CVS = "careers/cvs/";
 const appPath = (id: string) => `${APPS}${id}.json`;
 
 async function blobText(pathname: string) {
-  const res = await get(pathname, { access: "private", useCache: false });
+  const res = await get(pathname, { access: "private", useCache: false, ...blobAuth() });
   return res?.statusCode === 200 ? new Response(res.stream).text() : null;
 }
 
@@ -44,7 +56,7 @@ async function blobList(prefix: string) {
   const out: { pathname: string; url: string }[] = [];
   let cursor: string | undefined;
   do {
-    const page = await list({ prefix, cursor, limit: 1000 });
+    const page = await list({ prefix, cursor, limit: 1000, ...blobAuth() });
     out.push(...page.blobs.map(({ pathname, url }) => ({ pathname, url })));
     cursor = page.hasMore ? page.cursor : undefined;
   } while (cursor);
@@ -57,6 +69,7 @@ const putJson = (record: ApplicationRecord) =>
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
+    ...blobAuth(),
   });
 
 const blob = {
@@ -75,11 +88,12 @@ const blob = {
       contentType: record.cv!.type,
       addRandomSuffix: false,
       allowOverwrite: true,
+      ...blobAuth(),
     });
     await putJson(record);
   },
   async readCv(file: string) {
-    const res = await get(`${CVS}${path.basename(file)}`, { access: "private", useCache: false });
+    const res = await get(`${CVS}${path.basename(file)}`, { access: "private", useCache: false, ...blobAuth() });
     return res?.statusCode === 200 ? Buffer.from(await new Response(res.stream).arrayBuffer()) : null;
   },
   async update(record: ApplicationRecord) {
@@ -89,7 +103,7 @@ const blob = {
     if (!ids.length) return;
     const set = new Set(ids);
     const cvs = (await blobList(CVS)).filter((b) => set.has(path.basename(b.pathname).replace(/\.[^.]+$/, "")));
-    await del([...ids.map(appPath), ...cvs.map((b) => b.pathname)]);
+    await del([...ids.map(appPath), ...cvs.map((b) => b.pathname)], { ...blobAuth() });
   },
   async allIds() {
     return (await blobList(APPS)).map((b) => path.basename(b.pathname, ".json"));
@@ -206,4 +220,42 @@ export async function purgeExpired(now = Date.now()) {
   const expired = (await backend().allIds()).filter((id) => idTime(id) < cutoff);
   await backend().remove(expired);
   return expired.length;
+}
+
+/**
+ * Writes, reads back and deletes a tiny private blob (or local file), so the admin
+ * page can show whether storage really works and, if not, the exact error.
+ */
+export function storageSelfTest(): Promise<{ backend: string; ok: boolean; detail: string }> {
+  // Hard cap: the Blob SDK can keep retrying when the network is unreachable.
+  const timeout = new Promise<{ backend: string; ok: boolean; detail: string }>((resolve) =>
+    setTimeout(() => resolve({ backend: storageBackend(), ok: false, detail: "Timed out reaching Vercel Blob after 10 seconds." }), 10_000)
+  );
+  return Promise.race([runSelfTest(), timeout]);
+}
+
+async function runSelfTest(): Promise<{ backend: string; ok: boolean; detail: string }> {
+  const backend = storageBackend();
+  if (backend === "local" && process.env.VERCEL)
+    return { backend: "none", ok: false, detail: "No Vercel Blob store is connected to this deployment (no *_READ_WRITE_TOKEN or BLOB_STORE_ID variable found)." };
+  try {
+    if (backend === "blob") {
+      const p = `careers/_selftest-${Date.now()}.txt`;
+      // Bounded, so a broken connection shows an error instead of hanging the admin page.
+      const abortSignal = AbortSignal.timeout(8000);
+      await put(p, "ok", { access: "private", contentType: "text/plain", addRandomSuffix: false, allowOverwrite: true, abortSignal, ...blobAuth() });
+      const res = await get(p, { access: "private", useCache: false, abortSignal, ...blobAuth() });
+      const text = res?.statusCode === 200 ? await new Response(res.stream).text() : null;
+      await del(p, { abortSignal, ...blobAuth() });
+      if (text !== "ok") return { backend, ok: false, detail: "Wrote a test file but could not read it back." };
+      return { backend, ok: true, detail: "Vercel Blob (private) is connected and working." };
+    }
+    await ensureDirs();
+    const p = path.join(APPLICATIONS_DIR, ".selftest");
+    await fs.writeFile(p, "ok");
+    await fs.rm(p, { force: true });
+    return { backend, ok: true, detail: `Local files in ${DATA_DIR}.` };
+  } catch (err) {
+    return { backend, ok: false, detail: (err as Error).message };
+  }
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { adminEnabled, isAdmin } from "@/lib/careers/auth";
-import { purgeExpired, readApplications, storageAvailable } from "@/lib/careers/storage";
+import { purgeExpired, readApplications, storageSelfTest } from "@/lib/careers/storage";
 import { RETENTION_DAYS, commissionOptions, jobs, pipelineStages, workAuthorizationOptions } from "@/lib/careers/config";
 import { AdminLogin } from "@/components/careers/AdminLogin";
 import { AdminBoard } from "@/components/careers/AdminBoard";
@@ -22,12 +22,13 @@ export default async function CareersAdminPage() {
   }
   if (!(await isAdmin())) return <AdminLogin />;
 
-  await purgeExpired().catch(() => undefined);
-  let applications = await readApplications().catch(() => null);
-  const storageError = !storageAvailable()
-    ? "No storage is connected, so applications can't be saved. In Vercel, open the project → Storage → Create Database → Blob (private), connect it to this project, then redeploy."
+  const check = await storageSelfTest();
+  if (check.ok) await purgeExpired().catch(() => undefined);
+  let applications = check.ok ? await readApplications().catch(() => null) : [];
+  const storageError = !check.ok
+    ? `Storage check failed: ${check.detail} Fix: in Vercel, open Storage → your Blob store (Private) → Connect Project → this project, then redeploy.`
     : applications === null
-      ? "The application store couldn't be read. Check the Blob store connection or CAREERS_DATA_DIR permissions."
+      ? "The application store couldn't be read."
       : "";
   applications ??= [];
   applications.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
@@ -36,6 +37,7 @@ export default async function CareersAdminPage() {
     <AdminBoard
       initial={applications}
       storageError={storageError}
+      storageStatus={check.ok ? check.detail : ""}
       stages={[...pipelineStages]}
       jobs={jobs.map(({ slug, title, open }) => ({ slug, title: title.en, open }))}
       retentionDays={RETENTION_DAYS}
