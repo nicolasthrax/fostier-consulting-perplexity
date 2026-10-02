@@ -31,7 +31,7 @@ const en = {
     metaTitle: "Careers",
     title: "Work with Fostier Consulting",
     intro:
-      "We advise French residents in Hong Kong on their finances, and companies working between France and China. No experience is needed, and students are welcome to apply. Choose an open position below.",
+      "We advise French residents in Hong Kong on their finances, and companies working between France and China. Students are welcome to apply. Choose an open position below.",
     none: "There are no open positions right now.",
     questions: "Questions? Write to",
   },
@@ -71,8 +71,8 @@ const en = {
     workAuthorization: "Work authorisation in Hong Kong",
     select: "Select…",
     commission: "Are you comfortable with commission-only pay, with no base salary?",
-    age: "Age",
-    ageHint: "In years. Applicants under 18 will need a parent's or guardian's agreement.",
+    adult: "Are you 18 or over?",
+    adultHint: "Applicants under 18 will need a parent's or guardian's agreement.",
     university: "University",
     universityHint: "Where you study or studied, for example The University of Hong Kong. Leave it empty if you haven't been to university.",
     edit: "Edit",
@@ -85,7 +85,7 @@ const en = {
       cv: "CV",
       workAuthorization: "Work authorisation",
       commission: "Commission-only pay",
-      age: "Age",
+      adult: "18 or over",
       university: "University",
     },
     declaration: {
@@ -117,7 +117,7 @@ const en = {
     portfolio: "Enter a full URL starting with https://, or leave it empty.",
     workAuthorization: "Select your work authorisation status.",
     commissionOnly: "Tell us whether commission-only pay works for you.",
-    age: "Enter your age in years (between 15 and 99).",
+    adult: "Tell us whether you are 18 or over.",
     university: "Keep the university name under 150 characters.",
     cvMissing: "Upload your CV to continue.",
     cvType: "Upload a PDF or Word (.docx) file.",
@@ -147,7 +147,7 @@ const en = {
           "Identity and contact details: name, email address, phone number.",
           "Professional links, if you choose to give them: LinkedIn profile, portfolio or GitHub page.",
           "Your CV and whatever it contains.",
-          "Your answers to the screening questions (age, university, work authorisation in Hong Kong, whether commission-only pay suits you) and the position you applied for. We ask your age to check the legal requirements that apply to younger applicants.",
+          "Your answers to the screening questions (whether you are 18 or over, university, work authorisation in Hong Kong, whether commission-only pay suits you) and the position you applied for. We ask whether you are 18 or over because younger applicants need a parent's or guardian's agreement.",
           "Technical data processed by our hosting provider to deliver the pages and keep them secure, such as IP addresses in server logs.",
         ],
       },
@@ -173,9 +173,10 @@ const en = {
       },
       {
         heading: "Who sees your data",
-        body: "Your data is never sold or shared for commercial purposes. It is seen only by the Fostier Consulting staff involved in recruitment, and processed by:",
+        body: "Your data is never sold or shared for commercial purposes. It is seen only by the Fostier Consulting staff involved in recruitment, who each sign in with their own account and record their status changes and internal notes on your application. These notes are part of your data, and you can ask to see them. Your data is processed by:",
         items: [
-          "Vercel Inc. (United States): hosting of these pages and server logs.",
+          "Vercel Inc. (United States): hosting of these pages, server logs and bot protection.",
+          "Resend, Inc. (United States): sending the emails that confirm your application and notify our team.",
           "Where we use it, Google LLC (United States): cloud storage of applications in Google Workspace.",
           "Public authorities, only where the law requires it.",
         ],
@@ -186,7 +187,7 @@ const en = {
       },
       {
         heading: "How long we keep it",
-        body: "If your application is unsuccessful, we delete it and your CV 12 months after you apply, which lets us contact you about another suitable opening in that time. You can ask us to delete it sooner at any time. If you join us, the relevant data becomes part of your personnel file and its own retention rules apply.",
+        body: "If your application is unsuccessful, we delete it and your CV 12 months after you apply, which lets us contact you about another suitable opening in that time. You can ask us to delete it sooner at any time. If we make you an offer or you join us, your application is not deleted after 12 months: it is kept with your offer or, if you join us, your personnel file, and the retention rules for those records apply.",
       },
       {
         heading: "Your rights",
@@ -199,13 +200,33 @@ const en = {
       },
       {
         heading: "Security and cookies",
-        body: "Applications are stored with access restricted to the people who handle recruitment and are sent over encrypted connections. The application pages set no cookies and use no analytics.",
+        body: "Applications are stored with access restricted to the people who handle recruitment and are sent over encrypted connections. The application pages use no analytics and set no advertising or tracking cookies. To block automated submissions, a bot-protection check from Vercel runs in your browser on these pages: it reads technical signals from your browser and device (not the answers you type) and may store a technical identifier, only to tell people from scripts.",
       },
       {
         heading: "Changes and language",
         body: "We may update this notice; the date at the top shows the latest revision. It is published in English and French; if the versions differ, the English version prevails.",
       },
     ] as Section[],
+  },
+  /**
+   * Confirmation emailed to the candidate. It goes to whatever address was typed,
+   * so it only contains our own wording, the job title and the reference: nothing the candidate entered.
+   */
+  confirmation: {
+    subject: (job: string) => `We received your application: ${job}`,
+    text: (job: string, reference: string) =>
+      [
+        "Hello,",
+        "",
+        `We received your application for ${job}. Your reference is ${reference}.`,
+        "",
+        "We read every application and reply by email, usually within two weeks.",
+        "",
+        "If you didn't apply, you can ignore this email.",
+        `To withdraw your application or ask about your data, reply to this email or write to ${site.email}.`,
+        "",
+        "Fostier Consulting",
+      ].join("\n"),
   },
 };
 
@@ -226,7 +247,7 @@ const fr: Copy = {
     metaTitle: "Carrières",
     title: "Rejoindre Fostier Consulting",
     intro:
-      "Nous accompagnons les résidents français à Hong Kong dans leurs finances, ainsi que les entreprises qui travaillent entre la France et la Chine. Aucune expérience n'est requise, et les étudiants sont les bienvenus. Choisissez un poste ci-dessous.",
+      "Nous accompagnons les résidents français à Hong Kong dans leurs finances, ainsi que les entreprises qui travaillent entre la France et la Chine. Les étudiants sont les bienvenus. Choisissez un poste ci-dessous.",
     none: "Aucun poste n'est ouvert pour le moment.",
     questions: "Des questions ? Écrivez à",
   },
@@ -266,8 +287,8 @@ const fr: Copy = {
     workAuthorization: "Autorisation de travail à Hong Kong",
     select: "Choisir…",
     commission: "Une rémunération uniquement à la commission, sans salaire fixe, vous convient-elle ?",
-    age: "Âge",
-    ageHint: "En années. Les candidats de moins de 18 ans auront besoin de l'accord d'un parent ou tuteur.",
+    adult: "Avez-vous 18 ans ou plus ?",
+    adultHint: "Si vous avez moins de 18 ans, vous aurez besoin de l'accord d'un parent ou de votre tuteur légal.",
     university: "Université",
     universityHint: "L'université où vous étudiez ou avez étudié, par exemple The University of Hong Kong. Laissez vide si vous n'avez pas fait d'études universitaires.",
     edit: "Modifier",
@@ -280,7 +301,7 @@ const fr: Copy = {
       cv: "CV",
       workAuthorization: "Autorisation de travail",
       commission: "Rémunération à la commission",
-      age: "Âge",
+      adult: "18 ans ou plus",
       university: "Université",
     },
     declaration: {
@@ -312,7 +333,7 @@ const fr: Copy = {
     portfolio: "Indiquez une URL complète commençant par https://, ou laissez ce champ vide.",
     workAuthorization: "Choisissez votre situation d'autorisation de travail.",
     commissionOnly: "Indiquez si une rémunération à la commission vous convient.",
-    age: "Indiquez votre âge en années (entre 15 et 99).",
+    adult: "Indiquez si vous avez 18 ans ou plus.",
     university: "Le nom de l'université doit faire moins de 150 caractères.",
     cvMissing: "Ajoutez votre CV pour continuer.",
     cvType: "Ajoutez un fichier PDF ou Word (.docx).",
@@ -342,7 +363,7 @@ const fr: Copy = {
           "Identité et coordonnées : nom, adresse e-mail, numéro de téléphone.",
           "Liens professionnels, si vous choisissez de les indiquer : profil LinkedIn, portfolio ou page GitHub.",
           "Votre CV et son contenu.",
-          "Vos réponses aux questions de présélection (âge, université, autorisation de travail à Hong Kong, rémunération à la commission) et le poste visé. Nous demandons votre âge pour vérifier les règles applicables aux candidats les plus jeunes.",
+          "Vos réponses aux questions de présélection (si vous avez 18 ans ou plus, université, autorisation de travail à Hong Kong, rémunération à la commission) et le poste visé. Nous vous demandons si vous avez 18 ans ou plus, car les candidats plus jeunes ont besoin de l'accord d'un parent ou de leur tuteur légal.",
           "Données techniques traitées par notre hébergeur pour afficher les pages et les sécuriser, comme les adresses IP dans les journaux du serveur.",
         ],
       },
@@ -368,9 +389,10 @@ const fr: Copy = {
       },
       {
         heading: "Destinataires",
-        body: "Vos données ne sont jamais vendues ni partagées à des fins commerciales. Elles ne sont consultées que par les personnes de Fostier Consulting chargées du recrutement, et traitées par :",
+        body: "Vos données ne sont jamais vendues ni partagées à des fins commerciales. Elles ne sont consultées que par les personnes de Fostier Consulting chargées du recrutement, qui se connectent chacune avec leur propre compte et consignent sur votre candidature leurs changements de statut et leurs notes internes. Ces notes font partie de vos données, et vous pouvez demander à les consulter. Vos données sont traitées par :",
         items: [
-          "Vercel Inc. (États-Unis) : hébergement de ces pages et journaux du serveur.",
+          "Vercel Inc. (États-Unis) : hébergement de ces pages, journaux du serveur et protection contre les robots.",
+          "Resend, Inc. (États-Unis) : envoi des e-mails qui confirment votre candidature et préviennent notre équipe.",
           "Le cas échéant, Google LLC (États-Unis) : stockage des candidatures dans Google Workspace.",
           "Les autorités publiques, uniquement lorsque la loi l'exige.",
         ],
@@ -381,7 +403,7 @@ const fr: Copy = {
       },
       {
         heading: "Durée de conservation",
-        body: "Si votre candidature n'est pas retenue, nous la supprimons, ainsi que votre CV, 12 mois après votre candidature, ce qui nous permet de vous recontacter si un autre poste adapté s'ouvre entre-temps. Vous pouvez demander une suppression plus rapide à tout moment. Si vous nous rejoignez, les données utiles sont versées à votre dossier du personnel, qui a ses propres règles de conservation.",
+        body: "Si votre candidature n'est pas retenue, nous la supprimons, ainsi que votre CV, 12 mois après votre candidature, ce qui nous permet de vous recontacter si un autre poste adapté s'ouvre entre-temps. Vous pouvez demander une suppression plus rapide à tout moment. Si nous vous faisons une offre ou si vous nous rejoignez, votre candidature n'est pas supprimée au bout de 12 mois : elle est conservée avec votre offre ou, si vous nous rejoignez, avec votre dossier du personnel, selon les règles de conservation propres à ces documents.",
       },
       {
         heading: "Vos droits",
@@ -394,13 +416,29 @@ const fr: Copy = {
       },
       {
         heading: "Sécurité et cookies",
-        body: "Les candidatures sont stockées avec un accès réservé aux personnes chargées du recrutement et transmises par des connexions chiffrées. Les pages de candidature ne déposent aucun cookie et n'utilisent aucun outil de mesure d'audience.",
+        body: "Les candidatures sont stockées avec un accès réservé aux personnes chargées du recrutement et transmises par des connexions chiffrées. Les pages de candidature n'utilisent aucun outil de mesure d'audience et ne déposent aucun cookie publicitaire ou de suivi. Pour bloquer les envois automatisés, un contrôle anti-robots de Vercel s'exécute dans votre navigateur sur ces pages : il lit des signaux techniques de votre navigateur et de votre appareil (pas les réponses que vous saisissez) et peut enregistrer un identifiant technique, uniquement pour distinguer une personne d'un script.",
       },
       {
         heading: "Modifications et langue",
         body: "Cette notice peut évoluer ; la date en haut de page indique la dernière révision. Elle est publiée en anglais et en français ; en cas de divergence, la version anglaise prévaut.",
       },
     ],
+  },
+  confirmation: {
+    subject: (job: string) => `Nous avons bien reçu votre candidature : ${job}`,
+    text: (job: string, reference: string) =>
+      [
+        "Bonjour,",
+        "",
+        `Nous avons bien reçu votre candidature au poste de ${job}. Votre référence est ${reference}.`,
+        "",
+        "Nous lisons chaque candidature et répondons par e-mail, en général sous deux semaines.",
+        "",
+        "Si vous n'avez pas postulé, vous pouvez ignorer cet e-mail.",
+        `Pour retirer votre candidature ou pour toute question sur vos données, répondez à cet e-mail ou écrivez à ${site.email}.`,
+        "",
+        "Fostier Consulting",
+      ].join("\n"),
   },
 };
 

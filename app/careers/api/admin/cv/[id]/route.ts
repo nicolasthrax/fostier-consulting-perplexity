@@ -24,6 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${name.replace(/[^\x20-\x7e]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(name)}`,
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
+      // Content-Security-Policy (with `sandbox`) is set in next.config.mjs, which would override one set here.
     },
   });
 }

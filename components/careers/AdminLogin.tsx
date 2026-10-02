@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Loader2, Lock } from "lucide-react";
 import { API_BASE } from "@/lib/careers/config";
 
-export function AdminLogin() {
+/** `named`: several people have their own login (CAREERS_ADMIN_USERS), so ask who is signing in. */
+export function AdminLogin({ named = false }: { named?: boolean }) {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -18,7 +20,7 @@ export function AdminLogin() {
     const res = await fetch(`${API_BASE}/admin/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ name: named ? name : "", password }),
     }).catch(() => null);
     if (res?.ok) return router.refresh();
     setBusy(false);
@@ -30,7 +32,25 @@ export function AdminLogin() {
       <form onSubmit={submit} className="w-full max-w-sm rounded-sm border border-line bg-white p-6 sm:p-8">
         <Lock className="h-6 w-6 text-navy" aria-hidden="true" />
         <h1 className="h-serif mt-4 text-3xl">Candidate dashboard</h1>
-        <label htmlFor="admin-password" className="mt-6 block text-[15px] font-semibold text-ink">Password</label>
+        {named && (
+          <>
+            <label htmlFor="admin-name" className="mt-6 block text-[15px] font-semibold text-ink">Name</label>
+            <input
+              id="admin-name"
+              type="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              aria-invalid={!!error}
+              aria-describedby={error ? "admin-password-error" : undefined}
+              className="focus-ring mt-2 block w-full rounded-sm border border-line px-3.5 py-3 text-[15px] text-ink aria-[invalid=true]:border-fred-700"
+              required
+            />
+          </>
+        )}
+        <label htmlFor="admin-password" className={`${named ? "mt-4" : "mt-6"} block text-[15px] font-semibold text-ink`}>Password</label>
         <input
           id="admin-password"
           type="password"

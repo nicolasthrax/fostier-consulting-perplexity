@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileJson, Loader2, Trash2 } from "lucide-react";
-import { API_BASE, type Stage } from "@/lib/careers/config";
+import { Archive, FileJson, Loader2, Trash2 } from "lucide-react";
+import { API_BASE, RETAINED_STAGES, type Stage } from "@/lib/careers/config";
 
 /** Status, export and delete controls on a candidate's page. */
 export function AdminActions({
@@ -39,7 +39,10 @@ export function AdminActions({
     if (!res?.ok) {
       setStatus(prev);
       setError("The status couldn't be saved. Try again.");
+      return;
     }
+    // Re-renders the server page so the activity list shows the change.
+    router.refresh();
   };
 
   const remove = async () => {
@@ -75,6 +78,12 @@ export function AdminActions({
           Delete
         </button>
       </div>
+      {RETAINED_STAGES.includes(status) && (
+        <p className="mt-2 flex items-center gap-1.5 text-sm text-slate">
+          <Archive className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+          Kept after the 12-month purge. Move a hire&rsquo;s data to their personnel file.
+        </p>
+      )}
       {error && <p role="alert" className="mt-2 text-sm font-medium text-fred-700">{error}</p>}
     </div>
   );

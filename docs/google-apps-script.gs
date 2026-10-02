@@ -24,10 +24,10 @@ function doPost(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(["Submitted", "ID", "Language", "Name", "Email", "Phone", "LinkedIn", "Portfolio",
-      "Job", "Age", "Work authorisation", "Commission only OK", "Knockouts", "CV", "Status", "University"]);
+      "Job", "18 or over", "Work authorisation", "Commission only OK", "Knockouts", "CV", "Status", "University"]);
   }
   sheet.appendRow([a.submittedAt || new Date().toISOString(), a.id || "", a.lang || "", a.fullName, a.email, a.phone,
-    a.linkedinUrl, a.portfolioUrl, a.jobTitle || a.jobSlug, a.age || "", a.workAuthorization, a.commissionOnly,
+    a.linkedinUrl, a.portfolioUrl, a.jobTitle || a.jobSlug, a.adult || a.age || "", a.workAuthorization, a.commissionOnly,
     (a.knockouts || []).join("; "), cvUrl, a.status || "applied", a.university || ""]);
   return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
 }

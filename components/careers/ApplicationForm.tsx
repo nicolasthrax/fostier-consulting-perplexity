@@ -19,13 +19,13 @@ type Errors = Partial<Record<Field | "cv" | "consent", string>>;
 const steps: { fields: Field[] }[] = [
   { fields: ["fullName", "email", "phone", "linkedinUrl", "portfolioUrl"] },
   { fields: [] },
-  { fields: ["age", "university", "workAuthorization", "commissionOnly"] },
+  { fields: ["adult", "university", "workAuthorization", "commissionOnly"] },
   { fields: [] },
 ];
 
 const empty: ApplicationInput = {
   fullName: "", email: "", phone: "", linkedinUrl: "", portfolioUrl: "",
-  workAuthorization: "", commissionOnly: "", age: "", university: "",
+  workAuthorization: "", commissionOnly: "", adult: "", university: "",
 };
 
 const inputClass =
@@ -35,15 +35,6 @@ const formatSize = (bytes: number, lang: CareersLocale) => {
   const [kb, mb] = lang === "fr" ? ["Ko", "Mo"] : ["KB", "MB"];
   return bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} ${kb}` : `${(bytes / 1024 / 1024).toFixed(1)} ${mb}`;
 };
-
-function toBase64(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
 
 function Label({ htmlFor, children, optional, lang }: { htmlFor: string; children: React.ReactNode; optional?: boolean; lang: CareersLocale }) {
   const t = careersCopy[lang].form;
@@ -61,16 +52,15 @@ export function ApplicationForm({
   job,
   workAuthorizations,
   commissionOptions,
-  staticWebhook,
+  adultOptions,
 }: {
   lang: CareersLocale;
   /** Candidate privacy notice in the same language. */
   noticeHref: string;
-  job: { slug: string; title: string; titleEn: string };
+  job: { slug: string; title: string };
   workAuthorizations: PublicOption[];
   commissionOptions: PublicOption[];
-  /** Used only when the site is hosted statically and the local API is missing. */
-  staticWebhook: string;
+  adultOptions: PublicOption[];
 }) {
   const t = careersCopy[lang].form;
   const m = careersCopy[lang].errors;
@@ -143,21 +133,6 @@ export function ApplicationForm({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const submitToWebhook = async () => {
-    await fetch(staticWebhook, {
-      method: "POST",
-      // no-cors: Apps Script and most free relays don't send CORS headers. The response is opaque.
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        source: "fostier-careers-portal",
-        application: { ...values, lang, jobSlug: job.slug, jobTitle: job.titleEn, submittedAt: new Date().toISOString() },
-        cv: cv ? { name: cv.name, type: cv.type, base64: await toBase64(cv) } : null,
-      }),
-    });
-    return "sent";
-  };
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step < steps.length - 1) return next();
@@ -186,11 +161,6 @@ export function ApplicationForm({
         res = await fetch(`${API_BASE}/apply`, { method: "POST", body });
       } catch {
         res = null;
-      }
-      // Static hosting: no API route exists, so fall back to the configured webhook.
-      if ((!res || res.status === 404 || res.status === 405) && staticWebhook) {
-        setDoneId(await submitToWebhook());
-        return;
       }
       if (!res) {
         setShowEmailFallback(true);
@@ -254,7 +224,7 @@ export function ApplicationForm({
       `${t.review.phone}: ${values.phone}`,
       values.linkedinUrl && `${t.review.linkedin}: ${values.linkedinUrl}`,
       values.portfolioUrl && `${t.review.portfolio}: ${values.portfolioUrl}`,
-      `${t.review.age}: ${values.age}`,
+      `${t.review.adult}: ${labelFor(adultOptions, values.adult)}`,
       values.university && `${t.review.university}: ${values.university}`,
       `${t.review.workAuthorization}: ${labelFor(workAuthorizations, values.workAuthorization)}`,
       `${t.review.commission}: ${labelFor(commissionOptions, values.commissionOnly)}`,
@@ -277,7 +247,7 @@ export function ApplicationForm({
     {
       step: 2,
       items: [
-        [t.review.age, values.age],
+        [t.review.adult, labelFor(adultOptions, values.adult)],
         [t.review.university, values.university || "—"],
         [t.review.workAuthorization, labelFor(workAuthorizations, values.workAuthorization)],
         [t.review.commission, labelFor(commissionOptions, values.commissionOnly)],
@@ -415,12 +385,36 @@ export function ApplicationForm({
 
       {step === 2 && (
         <div className="space-y-5">
-          <div>
-            <Label lang={lang} htmlFor={fid("age")}>{t.age}</Label>
-            <input {...a11y("age", true)} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={2} className={`${inputClass} tabular max-w-[8rem]`} value={values.age} onChange={set("age")} required />
-            <p id={fid("age-hint")} className="mt-1.5 text-sm text-muted">{t.ageHint}</p>
-            {err("age")}
-          </div>
+          <fieldset
+            aria-invalid={!!errors.adult}
+            aria-describedby={[errors.adult && fid("adult-error"), fid("adult-hint")].filter(Boolean).join(" ")}
+          >
+            <legend className="text-[15px] font-semibold text-ink">
+              {t.adult}
+              <span className="sr-only">{t.required}</span>
+            </legend>
+            <p id={fid("adult-hint")} className="mt-1.5 text-sm text-muted">{t.adultHint}</p>
+            <div className="mt-3 space-y-2">
+              {adultOptions.map((o, i) => (
+                <label
+                  key={o.value}
+                  className={`flex cursor-pointer items-start gap-3 rounded-sm border px-4 py-3 text-[15px] text-ink transition-colors hover:border-muted has-[:checked]:border-navy has-[:checked]:bg-mist ${errors.adult ? "border-fred-700" : "border-line"}`}
+                >
+                  <input
+                    type="radio"
+                    name="adult"
+                    id={i === 0 ? fid("adult") : undefined}
+                    value={o.value}
+                    checked={values.adult === o.value}
+                    onChange={set("adult")}
+                    className="focus-ring mt-1 h-4 w-4 shrink-0 accent-navy"
+                  />
+                  {o.label}
+                </label>
+              ))}
+            </div>
+            {err("adult")}
+          </fieldset>
           <div>
             <Label lang={lang} htmlFor={fid("university")} optional>{t.university}</Label>
             <input {...a11y("university", true)} className={inputClass} maxLength={150} value={values.university} onChange={set("university")} />

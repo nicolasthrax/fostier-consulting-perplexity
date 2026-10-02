@@ -1,3 +1,5 @@
+import { withBotId } from "botid/next/config";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -32,8 +34,15 @@ const nextConfig = {
           { key: "Cache-Control", value: "private, no-store" },
         ],
       },
+      {
+        // Candidates' CVs: a crafted file runs nothing on this origin (no scripts, forms or
+        // same-origin access). Listed last so it replaces the site-wide policy above.
+        source: "/careers/api/admin/cv/:id",
+        headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'self'; sandbox" }],
+      },
     ];
   },
 };
 
-export default nextConfig;
+// BotID: proxies its challenge script through this origin (see components/careers/CareersShell.tsx).
+export default withBotId(nextConfig);

@@ -1,9 +1,19 @@
 import Image from "next/image";
+import { BotIdClient } from "botid/client";
 import { newsreader, bricolage } from "@/lib/fonts";
 import { site } from "@/lib/site";
 import { careersCopy, type CareersLocale } from "@/lib/careers/i18n";
-import { publicBase } from "@/lib/careers/config";
+import { API_BASE, publicBase } from "@/lib/careers/config";
 import { LanguageSwitch } from "./LanguageSwitch";
+
+/**
+ * Requests BotID checks (botid/server) on: anything not listed here fails the check.
+ * Loaded on the portal only, not on the public site.
+ */
+const botProtected = [
+  { path: `${API_BASE}/apply`, method: "POST" },
+  { path: `${API_BASE}/admin/login`, method: "POST" },
+] as const;
 
 /**
  * Page frame for the unlisted recruitment portal: its own <html>, so it shares none
@@ -22,6 +32,9 @@ export function CareersShell({
   const link = "focus-ring min-h-6 inline-block hover:text-navy";
   return (
     <html lang={t.htmlLang} className={`${newsreader.variable} ${bricolage.variable} font-sans`}>
+      <head>
+        <BotIdClient protect={[...botProtected]} />
+      </head>
       <body className="flex min-h-screen flex-col bg-mist">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-sm focus:bg-navy focus:px-5 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
           {t.skip}
