@@ -3,17 +3,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Bell, BellRing, ChevronRight, FileText, LayoutGrid, LogOut, Rows3, X } from "lucide-react";
-import { API_BASE, labelFor, type ApplicationRecord, type Option, type Stage } from "@/lib/careers/config";
+import { AlertTriangle, Bell, BellRing, ChevronRight, Download, FileText, LayoutGrid, LogOut, Rows3, X } from "lucide-react";
+import { API_BASE, ageLabel, duplicateCounts, labelFor, type ApplicationRecord, type Option, type Stage } from "@/lib/careers/config";
+import { applicationsCsv } from "@/lib/careers/csv";
 import { matchTargetUniversities } from "@/lib/careers/universities";
 import { UniversityBadges } from "./UniversityBadges";
 
 type StageOption = { value: Stage; label: string };
 
 const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Hong_Kong" });
+/** YYYY-MM-DD in Hong Kong time, for the export's file name. */
+const isoDay = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Asia/Hong_Kong" });
 
-/** How often the open dashboard checks for new applications. */
-const POLL_MS = 60_000;
+/**
+ * How often the open dashboard checks for new applications. Each check reads the
+ * Blob index (one simple operation, or a cheap 304), and the Hobby plan's Blob
+ * quota is monthly and blocks the store for 30 days when exceeded, so a tab left
+ * open all day must stay frugal: every 3 minutes while visible, every 15 in the
+ * background (desktop alerts still arrive, just later), plus a check when the tab
+ * comes back into view.
+ */
+const POLL_VISIBLE_MS = 3 * 60_000;
+const POLL_HIDDEN_MS = 15 * 60_000;
+/** Flicking between tabs doesn't trigger a check more often than this. */
+const POLL_MIN_GAP_MS = 30_000;
 const VIEW_KEY = "careers-admin-view";
 
 function timeAgo(iso: string) {
@@ -33,6 +46,7 @@ export function AdminBoard({
   initial,
   storageError,
   storageStatus,
+  adminName,
   stages,
   jobs,
   workAuthorizations,
@@ -42,7 +56,10 @@ export function AdminBoard({
 }: {
   initial: ApplicationRecord[];
   storageError: string;
+  /** Which backend is in use, e.g. "Storage: Vercel Blob (private)"; empty when storage failed. */
   storageStatus: string;
+  /** The signed-in admin, shown next to Sign out. */
+  adminName: string;
   stages: StageOption[];
   jobs: { slug: string; title: string; open: boolean }[];
   workAuthorizations: Option[];
@@ -84,7 +101,13 @@ export function AdminBoard({
     document.title = `${unread.length ? `(${unread.length}) ` : ""}Candidates | Fostier Consulting`;
   }, [unread.length]);
 
+  // Read through a ref so turning alerts on doesn't restart the polling schedule.
+  const alertsRef = useRef(alertsOn);
+  alertsRef.current = alertsOn;
+  const lastPoll = useRef(0);
+
   const poll = useCallback(async () => {
+    lastPoll.current = Date.now();
     const res = await fetch(`${API_BASE}/admin/applications`, { cache: "no-store" }).catch(() => null);
     if (res?.status === 401) return router.refresh();
     if (!res?.ok) return;
@@ -94,7 +117,7 @@ export function AdminBoard({
     setApps(applications);
     if (!fresh.length) return;
     setToasts((t) => [...fresh, ...t].slice(0, 3));
-    if (alertsOn && document.visibilityState !== "visible") {
+    if (alertsRef.current && document.visibilityState !== "visible") {
       for (const a of fresh.slice(0, 3)) {
         const n = new Notification(`New application: ${a.fullName}`, {
           body: `${a.jobTitle}${a.status === "rejected" ? " · auto-rejected (commission)" : ""}${a.knockouts.length ? " · flagged" : ""}`,
@@ -103,17 +126,27 @@ export function AdminBoard({
         n.onclick = () => window.open(`${adminBase}/${a.id}`, "_self");
       }
     }
-  }, [alertsOn, adminBase, router]);
+  }, [adminBase, router]);
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(tick, document.visibilityState === "visible" ? POLL_VISIBLE_MS : POLL_HIDDEN_MS);
+    };
+    function tick() {
+      poll();
+      schedule();
+    }
     // Check once on arrival too: coming back from a candidate page can show a cached list.
-    poll();
-    const t = setInterval(poll, POLL_MS);
-    const onFocus = () => document.visibilityState === "visible" && poll();
-    document.addEventListener("visibilitychange", onFocus);
+    tick();
+    // Back in view: check now (unless we just did). Hidden: switch to the slower pace.
+    const onVisibility = () =>
+      document.visibilityState === "visible" && Date.now() - lastPoll.current >= POLL_MIN_GAP_MS ? tick() : schedule();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      clearInterval(t);
-      document.removeEventListener("visibilitychange", onFocus);
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [poll]);
 
@@ -122,14 +155,32 @@ export function AdminBoard({
     setAlertsOn((await Notification.requestPermission()) === "granted");
   };
 
-  const markAllRead = async () => {
-    const now = new Date().toISOString();
-    setApps((list) => list.map((a) => (a.viewedAt ? a : { ...a, viewedAt: now })));
-    await fetch(`${API_BASE}/admin/notifications`, { method: "POST" }).catch(() => null);
-  };
   const [query, setQuery] = useState("");
   const [job, setJob] = useState("");
   const [saveError, setSaveError] = useState("");
+
+  /**
+   * Undoes an optimistic change for the given applications only, so anything a
+   * poll brought in meanwhile (new applications, other admins' changes) stays.
+   */
+  const revert = (before: ApplicationRecord[], ids: Set<string>) => {
+    const old = new Map(before.filter((a) => ids.has(a.id)).map((a) => [a.id, a]));
+    setApps((list) => list.map((a) => old.get(a.id) ?? a));
+  };
+
+  const markAllRead = async () => {
+    const now = new Date().toISOString();
+    const prev = apps;
+    const ids = new Set(apps.filter((a) => !a.viewedAt).map((a) => a.id));
+    setSaveError("");
+    setApps((list) => list.map((a) => (a.viewedAt ? a : { ...a, viewedAt: now })));
+    const res = await fetch(`${API_BASE}/admin/notifications`, { method: "POST" }).catch(() => null);
+    if (res?.status === 401) return router.refresh();
+    if (!res?.ok) {
+      revert(prev, ids);
+      setSaveError("Couldn't mark the applications as read. Try again.");
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -138,6 +189,70 @@ export function AdminBoard({
   const pipeline = stages.filter((s) => s.value !== "rejected");
   const rejected = filtered.filter((a) => a.status === "rejected");
   const href = (a: ApplicationRecord) => `${adminBase}/${a.id}`;
+  // Counted over every application, not just the filtered ones.
+  const duplicates = useMemo(() => duplicateCounts(apps), [apps]);
+
+  // ——— Bulk status changes (table view) ———
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [bulkStage, setBulkStage] = useState<Stage | "">("");
+  const [bulkSaving, setBulkSaving] = useState(false);
+  // Only visible rows stay selected, so a filter change can't move candidates you can't see.
+  useEffect(() => {
+    setSelected((sel) => {
+      const visible = new Set(filtered.map((a) => a.id));
+      const next = new Set([...sel].filter((id) => visible.has(id)));
+      return next.size === sel.size ? sel : next;
+    });
+  }, [filtered]);
+  const allSelected = filtered.length > 0 && filtered.every((a) => selected.has(a.id));
+  const someSelected = !allSelected && filtered.some((a) => selected.has(a.id));
+  const toggleOne = (id: string) =>
+    setSelected((sel) => {
+      const next = new Set(sel);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((a) => a.id)));
+
+  const applyBulk = async () => {
+    if (!bulkStage || !selected.size) return;
+    const ids = [...selected];
+    const status = bulkStage;
+    const prev = apps;
+    setSaveError("");
+    setBulkSaving(true);
+    setApps((list) => list.map((a) => (selected.has(a.id) ? { ...a, status } : a)));
+    const res = await fetch(`${API_BASE}/admin/applications`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids, status }),
+    }).catch(() => null);
+    setBulkSaving(false);
+    if (res?.status === 401) return router.refresh();
+    if (!res?.ok) {
+      revert(prev, new Set(ids));
+      setSaveError(`The status of ${ids.length} application${ids.length === 1 ? "" : "s"} couldn't be saved. Try again.`);
+      return;
+    }
+    const { applications: updated } = (await res.json()) as { applications: ApplicationRecord[] };
+    const byId = new Map(updated.map((a) => [a.id, a]));
+    setApps((list) => list.map((a) => byId.get(a.id) ?? a));
+    setSelected(new Set());
+    setBulkStage("");
+  };
+
+  // ——— CSV export ———
+  const exportCsv = () => {
+    const url = URL.createObjectURL(new Blob([applicationsCsv(filtered)], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `candidates-${isoDay.format(new Date())}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    // Revoked after a beat: Safari can drop the download if the URL goes away synchronously.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
 
   const setStatus = async (id: string, status: Stage) => {
     const prev = apps;
@@ -150,7 +265,7 @@ export function AdminBoard({
     }).catch(() => null);
     if (res?.status === 401) return router.refresh();
     if (!res?.ok) {
-      setApps(prev);
+      revert(prev, new Set([id]));
       setSaveError("The status couldn't be saved. Try again.");
     }
   };
@@ -180,8 +295,20 @@ export function AdminBoard({
       </span>
     ) : null;
 
+  const duplicateBadge = (app: ApplicationRecord) => {
+    const n = duplicates(app);
+    if (!n) return null;
+    const detail = `${n} other application${n === 1 ? "" : "s"} from this email for this job`;
+    return (
+      <span title={detail} className="inline-flex items-center rounded-sm border border-navy/30 bg-navy/[0.06] px-1.5 py-0.5 text-[11px] font-semibold uppercase leading-none tracking-wide text-navy">
+        Duplicate<span className="sr-only">: {detail}</span>
+      </span>
+    );
+  };
+
   const card = (a: ApplicationRecord) => {
     const unis = matchTargetUniversities(a.university);
+    const age = a.adult || a.age ? ageLabel(a) : "";
     return (
       <li key={a.id} className={`rounded-sm border bg-white ${unis.length ? "border-wechat shadow-[inset_3px_0_0_theme(colors.wechat.DEFAULT)]" : "border-line"}`}>
         <Link href={href(a)} className="focus-ring group block p-3 hover:bg-mist">
@@ -189,23 +316,24 @@ export function AdminBoard({
             <span className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-navy group-hover:underline">{a.fullName}</span>
               {!a.viewedAt && <NewBadge />}
+              {duplicateBadge(a)}
             </span>
             <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
           </span>
           <span className="mt-1 block text-sm text-slate">{a.jobTitle}</span>
           <span className="mt-1 block text-xs text-muted tabular">{dateFmt.format(new Date(a.submittedAt))}</span>
-          {a.age && (
-            <span className="mt-2 block text-xs text-slate">
-              <span className="text-muted">Age: </span>{a.age}
+          {age && (
+            <span className={`mt-2 block text-xs ${a.adult === "no" ? "font-semibold text-fred-700" : "text-slate"}`}>
+              <span className="font-normal text-muted">Age: </span>{age}
             </span>
           )}
           {a.university && (
-            <span className={`${a.age ? "" : "mt-2 "}flex flex-wrap items-center gap-1.5 text-xs text-slate`}>
+            <span className={`${age ? "" : "mt-2 "}flex flex-wrap items-center gap-1.5 text-xs text-slate`}>
               <span><span className="text-muted">University: </span>{a.university}</span>
               <UniversityBadges codes={unis} />
             </span>
           )}
-          <span className={`${a.age || a.university ? "" : "mt-2 "}block text-xs text-slate`}>
+          <span className={`${age || a.university ? "" : "mt-2 "}block text-xs text-slate`}>
             <span className="text-muted">Work: </span>{labelFor(workAuthorizations, a.workAuthorization)}
           </span>
           <span className="block text-xs text-slate">
@@ -232,7 +360,7 @@ export function AdminBoard({
           <p className="label mt-1 tabular">{apps.length} application{apps.length === 1 ? "" : "s"}{unread.length > 0 ? ` · ${unread.length} new` : ""}{fromTargetUniversity > 0 ? ` · ${fromTargetUniversity} from HKU, CUHK or HKUST (in green)` : ""} · tap a name to see the CV and answers</p>
           {storageStatus && <p className="mt-1 text-sm font-medium text-wechat-700">✓ {storageStatus}</p>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <button
               type="button"
@@ -283,11 +411,14 @@ export function AdminBoard({
                       Turn on desktop alerts
                     </button>
                   )}{" "}
-                  The list refreshes every minute.
+                  The list refreshes every 3 minutes (every 15 in a background tab).
                 </div>
               </div>
             )}
           </div>
+          <span className="text-sm text-muted">
+            Signed in as <span className="font-semibold text-ink">{adminName}</span>
+          </span>
           <button type="button" onClick={logout} className="btn-outline focus-ring !py-2.5">
             <LogOut className="h-4 w-4" aria-hidden="true" />
             Sign out
@@ -334,6 +465,16 @@ export function AdminBoard({
           <option value="">All jobs</option>
           {jobs.map((j) => <option key={j.slug} value={j.slug}>{j.title}{j.open ? "" : " (closed)"}</option>)}
         </select>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={!filtered.length}
+          title="Exports the current filtered list (search and job filter applied) as a CSV file"
+          className="btn-outline focus-ring w-fit !px-4 !py-2.5 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Download className="h-4 w-4" aria-hidden="true" />
+          Export CSV
+        </button>
         <div className="inline-flex w-fit rounded-sm border border-line bg-white p-0.5 sm:ml-auto" role="group" aria-label="View">
           {([["table", Rows3, "Table"], ["board", LayoutGrid, "Pipeline"]] as const).map(([v, Icon, label]) => (
             <button
@@ -352,7 +493,8 @@ export function AdminBoard({
 
       {view === "board" ? (
         <>
-          <div className="mt-6 grid gap-4 md:grid-cols-5">
+          {/* Stacked on phones; from md up, one column per stage, scrolling sideways when seven don't fit. */}
+          <div className="mt-6 grid gap-4 md:auto-cols-[minmax(12.5rem,1fr)] md:grid-flow-col md:overflow-x-auto md:pb-2">
             {pipeline.map((stage) => {
               const items = filtered.filter((a) => a.status === stage.value);
               return (
@@ -385,58 +527,111 @@ export function AdminBoard({
           </section>
         </>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-sm bg-white">
-          <table className="w-full min-w-[70rem] text-left text-[15px]">
-            <thead className="border-b border-line text-sm text-muted">
-              <tr>
-                {["Name", "Job", "Submitted", "Age", "University", "Work authorisation", "Commission only", "Status"].map((h) => (
-                  <th key={h} scope="col" className="px-4 py-3 font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((a) => {
-                const unis = matchTargetUniversities(a.university);
-                return (
-                  <tr key={a.id} className={`border-b border-line last:border-0 ${a.viewedAt ? "" : "bg-fred/[0.04]"}`}>
-                    {/* The green bar sits on the cell: Safari draws no box-shadow on table rows. */}
-                    <td className={`px-4 py-3 ${unis.length ? "shadow-[inset_4px_0_0_theme(colors.wechat.DEFAULT)]" : ""}`}>
-                      <span className="flex flex-wrap items-center gap-2">
-                        <Link href={href(a)} className="focus-ring font-semibold text-navy link-underline">{a.fullName}</Link>
-                        {!a.viewedAt && <NewBadge />}
-                      </span>
-                      <div className="text-sm text-muted">{a.email}</div>
-                    </td>
-                    <td className="px-4 py-3 text-slate">{a.jobTitle}</td>
-                    <td className="px-4 py-3 tabular text-slate">{dateFmt.format(new Date(a.submittedAt))}</td>
-                    <td className={`px-4 py-3 tabular ${a.age && Number(a.age) < 18 ? "font-semibold text-fred-700" : "text-slate"}`}>{a.age || "—"}</td>
-                    <td className={`px-4 py-3 text-sm ${unis.length ? "bg-wechat/[0.08] font-semibold text-ink" : "text-slate"}`}>
-                      {a.university ? (
-                        <span className="flex flex-col items-start gap-1">
-                          <UniversityBadges codes={unis} />
-                          {a.university}
+        <>
+          {selected.size > 0 && (
+            <div role="region" aria-label="Bulk status change" className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-sm border border-navy/30 bg-white px-4 py-3 text-sm">
+              <span className="font-semibold text-ink tabular">{selected.size} selected</span>
+              <span className="text-muted" aria-hidden="true">·</span>
+              <label htmlFor="bulk-stage" className="text-slate">Move to</label>
+              <select
+                id="bulk-stage"
+                value={bulkStage}
+                onChange={(e) => setBulkStage(e.target.value as Stage | "")}
+                className="focus-ring rounded-sm border border-line bg-white px-2 py-1.5 text-sm text-ink hover:border-muted"
+              >
+                <option value="">Choose a stage</option>
+                {stages.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+              <button
+                type="button"
+                onClick={applyBulk}
+                disabled={!bulkStage || bulkSaving}
+                className="btn-primary focus-ring !px-4 !py-1.5 !text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {bulkSaving ? "Saving…" : "Apply"}
+              </button>
+              <button type="button" onClick={() => setSelected(new Set())} className="focus-ring font-semibold text-navy link-underline">
+                Clear
+              </button>
+            </div>
+          )}
+          <div className="mt-6 overflow-x-auto rounded-sm bg-white">
+            <table className="w-full min-w-[72rem] text-left text-[15px]">
+              <thead className="border-b border-line text-sm text-muted">
+                <tr>
+                  <th scope="col" className="w-10 py-3 pl-4 pr-0">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      // Indeterminate has no attribute; it can only be set on the element.
+                      ref={(el) => {
+                        if (el) el.indeterminate = someSelected;
+                      }}
+                      onChange={toggleAll}
+                      disabled={!filtered.length}
+                      aria-label="Select all visible candidates"
+                      className="focus-ring h-4 w-4 accent-navy"
+                    />
+                  </th>
+                  {["Name", "Job", "Submitted", "Age", "University", "Work authorisation", "Commission only", "Status"].map((h) => (
+                    <th key={h} scope="col" className="px-4 py-3 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((a) => {
+                  const unis = matchTargetUniversities(a.university);
+                  return (
+                    <tr key={a.id} className={`border-b border-line last:border-0 ${selected.has(a.id) ? "bg-navy/[0.05]" : a.viewedAt ? "" : "bg-fred/[0.04]"}`}>
+                      {/* The green bar sits on the cell: Safari draws no box-shadow on table rows. */}
+                      <td className={`py-3 pl-4 pr-0 ${unis.length ? "shadow-[inset_4px_0_0_theme(colors.wechat.DEFAULT)]" : ""}`}>
+                        <input
+                          type="checkbox"
+                          checked={selected.has(a.id)}
+                          onChange={() => toggleOne(a.id)}
+                          aria-label={`Select ${a.fullName}`}
+                          className="focus-ring h-4 w-4 accent-navy"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <Link href={href(a)} className="focus-ring font-semibold text-navy link-underline">{a.fullName}</Link>
+                          {!a.viewedAt && <NewBadge />}
+                          {duplicateBadge(a)}
                         </span>
-                      ) : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate">{labelFor(workAuthorizations, a.workAuthorization)}</td>
-                    <td className={`px-4 py-3 text-sm ${a.commissionOnly === "yes" ? "text-slate" : "font-semibold text-fred-700"}`}>
-                      {labelFor(commissionOptions, a.commissionOnly).split(",")[0]}
-                    </td>
-                    <td className="px-4 py-3">{statusSelect(a)}</td>
-                  </tr>
-                );
-              })}
-              {!filtered.length && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted">No candidates match.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                        <div className="text-sm text-muted">{a.email}</div>
+                      </td>
+                      <td className="px-4 py-3 text-slate">{a.jobTitle}</td>
+                      <td className="px-4 py-3 tabular text-slate">{dateFmt.format(new Date(a.submittedAt))}</td>
+                      <td className={`px-4 py-3 text-sm ${a.adult === "no" || (a.age && Number(a.age) < 18) ? "font-semibold text-fred-700" : "text-slate"}`}>{ageLabel(a)}</td>
+                      <td className={`px-4 py-3 text-sm ${unis.length ? "bg-wechat/[0.08] font-semibold text-ink" : "text-slate"}`}>
+                        {a.university ? (
+                          <span className="flex flex-col items-start gap-1">
+                            <UniversityBadges codes={unis} />
+                            {a.university}
+                          </span>
+                        ) : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate">{labelFor(workAuthorizations, a.workAuthorization)}</td>
+                      <td className={`px-4 py-3 text-sm ${a.commissionOnly === "yes" ? "text-slate" : "font-semibold text-fred-700"}`}>
+                        {labelFor(commissionOptions, a.commissionOnly).split(",")[0]}
+                      </td>
+                      <td className="px-4 py-3">{statusSelect(a)}</td>
+                    </tr>
+                  );
+                })}
+                {!filtered.length && (
+                  <tr><td colSpan={9} className="px-4 py-8 text-center text-muted">No candidates match.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       <p className="mt-8 text-sm text-muted">
-        Applications are deleted automatically {retentionDays} days after submission, as the candidate privacy notice promises.
-        Move hired candidates&apos; documents to their personnel file before then.
+        Applications are deleted automatically {retentionDays} days after submission, as the candidate privacy notice promises,
+        except those at Offer or Hired. Move hired candidates&apos; documents to their personnel file.
       </p>
     </div>
   );

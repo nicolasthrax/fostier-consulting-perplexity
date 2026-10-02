@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { blockedAsBot } from "@/lib/careers/botid";
 import {
   CV_TYPES,
   initialStatus,
@@ -11,15 +12,16 @@ import {
   type CvExtension,
 } from "@/lib/careers/config";
 import { DEFAULT_CAREERS_LOCALE, careersCopy, isCareersLocale } from "@/lib/careers/i18n";
-import { addApplication, newId, purgeExpired, storageAvailable } from "@/lib/careers/storage";
+import { addApplication, newId, storageAvailable } from "@/lib/careers/storage";
 import { forwardToWebhook, webhookUrl } from "@/lib/careers/webhook";
+import { sendApplicationEmails } from "@/lib/careers/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const FIELDS: (keyof ApplicationInput)[] = [
   "fullName", "email", "phone", "linkedinUrl", "portfolioUrl",
-  "workAuthorization", "commissionOnly", "age", "university",
+  "workAuthorization", "commissionOnly", "adult", "university",
 ];
 
 /** Checks the file's first bytes, so a renamed executable isn't stored as a "PDF". */
@@ -37,6 +39,10 @@ export async function POST(request: Request) {
   }
   const lang = isCareersLocale(form.get("lang")) ? (form.get("lang") as "en" | "fr") : DEFAULT_CAREERS_LOCALE;
   const m = careersCopy[lang].errors;
+
+  // BotID (see CareersShell): scripted submissions could otherwise fill the Blob store with 4 MB files
+  // and use the form to send confirmation emails to any address. A person wrongly flagged can still apply by email.
+  if (await blockedAsBot("apply")) return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 403 });
 
   // Honeypot: real candidates never see this field.
   if (String(form.get("company_website") ?? "")) return NextResponse.json({ ok: true, id: "received" });
@@ -59,6 +65,7 @@ export async function POST(request: Request) {
 
   const id = newId();
   const now = new Date().toISOString();
+  const status = initialStatus(input);
   const record: ApplicationRecord = {
     ...input,
     id,
@@ -67,18 +74,19 @@ export async function POST(request: Request) {
     jobTitle: job.title.en,
     submittedAt: now,
     updatedAt: now,
-    status: initialStatus(input),
+    status,
     knockouts: knockoutsFor(input),
     cv: null,
+    history: [{ at: now, by: "system", from: null, to: status }],
   };
 
   record.cv = { file: `${id}.${ext}`, originalName: file.name.slice(0, 200), size: file.size, type: CV_TYPES[ext] };
   let storedLocally = false;
   if (storageAvailable()) {
     try {
+      // Also drops expired applications in the same write.
       await addApplication(record, data);
       storedLocally = true;
-      await purgeExpired().catch(() => undefined);
     } catch (err) {
       console.error("[careers] save failed:", (err as Error).message);
     }
@@ -97,5 +105,7 @@ export async function POST(request: Request) {
 
   if (!storedLocally && !forwarded)
     return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 503 });
+  // After the response, so a slow mail provider never delays the candidate.
+  after(() => sendApplicationEmails(record, job.title[lang]));
   return NextResponse.json({ ok: true, id });
 }

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ApplicationForm } from "@/components/careers/ApplicationForm";
-import { commissionOptions, jobs, openJob, publicBase, publicOptions, workAuthorizationOptions } from "@/lib/careers/config";
+import { adultOptions, commissionOptions, jobs, openJob, publicBase, publicOptions, workAuthorizationOptions } from "@/lib/careers/config";
 import { careersCopy, careersLocales, type CareersLocale } from "@/lib/careers/i18n";
 import { site } from "@/lib/site";
 
@@ -67,10 +67,10 @@ export default async function JobPage({ params }: Props) {
             <ApplicationForm
               lang={lang}
               noticeHref={`${publicBase(lang)}/privacy`}
-              job={{ slug: job.slug, title: job.title[lang], titleEn: job.title.en }}
+              job={{ slug: job.slug, title: job.title[lang] }}
               workAuthorizations={publicOptions(workAuthorizationOptions, lang)}
               commissionOptions={publicOptions(commissionOptions, lang)}
-              staticWebhook={process.env.NEXT_PUBLIC_CAREERS_WEBHOOK_URL || ""}
+              adultOptions={publicOptions(adultOptions, lang)}
             />
           </div>
         </div>

@@ -28,10 +28,11 @@ export type CvExtension = keyof typeof CV_TYPES;
  */
 export const RETENTION_DAYS = 365;
 
-/** Accepted ages; under ADULT_AGE is flagged for review, not rejected. */
-export const MIN_AGE = 15;
-export const MAX_AGE = 99;
+/** Candidates say whether they are at least this old; younger ones are flagged for review, not rejected. */
 export const ADULT_AGE = 18;
+
+/** Longest internal note an admin can add to a candidate. */
+export const NOTE_MAX_LENGTH = 2000;
 
 export type Option = {
   value: string;
@@ -81,6 +82,13 @@ export const commissionOptions: Option[] = [
   { value: "no", label: { en: "No, I need a base salary", fr: "Non, j'ai besoin d'un salaire fixe" }, knockout: true },
 ];
 
+/** Only whether the candidate is an adult is asked, not their exact age (data minimisation). */
+export const adultOptions: Option[] = [
+  { value: "yes", label: { en: `Yes, I am ${ADULT_AGE} or over`, fr: `Oui, j'ai ${ADULT_AGE} ans ou plus` } },
+  // Not rejected: minors need a parent's or guardian's agreement, so a person checks each case.
+  { value: "no", label: { en: `No, I am under ${ADULT_AGE}`, fr: `Non, j'ai moins de ${ADULT_AGE} ans` }, knockout: true },
+];
+
 /**
  * Job listings. Candidates can only apply through one of these, at
  * /careers/jobs/<slug> (French) or /careers/en/jobs/<slug> (English). Set
@@ -110,8 +118,8 @@ export const jobs: Job[] = [
     location: { en: "Hong Kong · Hybrid", fr: "Hong Kong · Hybride" },
     type: { en: "Commission only", fr: "Rémunération à la commission" },
     summary: {
-      en: "Introduce our investment and financial planning services to new private clients. Flexible hours, for students and young adults in Hong Kong.",
-      fr: "Présentez nos services d'investissement et de planification financière à de nouveaux clients privés. Horaires flexibles, pour étudiants et jeunes adultes à Hong Kong.",
+      en: "Introduce our investment and financial planning services to new private clients. Flexible hours, for French or Mandarin speakers in Hong Kong with a background in finance, business or sales.",
+      fr: "Présentez nos services d'investissement et de planification financière à de nouveaux clients privés. Horaires flexibles, pour les personnes parlant français ou mandarin à Hong Kong, avec un parcours en finance, en commerce ou dans la vente.",
     },
     sections: {
       en: [
@@ -134,7 +142,10 @@ export const jobs: Job[] = [
         {
           heading: "What we are looking for",
           items: [
-            "Students or young adults currently living or studying in Hong Kong. Any major, no experience required.",
+            "Students or young adults currently living or studying in Hong Kong.",
+            "Fluent French or Mandarin: you will speak with clients in their language.",
+            "A relevant background, through your studies or work: finance, economics, business or sales.",
+            "A strong drive to earn. Pay is commission only, so what you make depends entirely on the clients you bring in.",
             "Strong communication skills and a self-starter attitude.",
             "Comfortable with sales and outreach.",
           ],
@@ -168,7 +179,10 @@ export const jobs: Job[] = [
         {
           heading: "Profil recherché",
           items: [
-            "Étudiants ou jeunes adultes vivant ou étudiant actuellement à Hong Kong. Toutes filières, aucune expérience requise.",
+            "Étudiants ou jeunes adultes vivant ou étudiant actuellement à Hong Kong.",
+            "Français ou mandarin courant : vous échangerez avec les clients dans leur langue.",
+            "Un parcours en lien avec le poste, par vos études ou votre expérience : finance, économie, commerce ou vente.",
+            "Une forte envie de réussir financièrement. La rémunération étant uniquement à la commission, vos revenus dépendent entièrement des clients que vous apportez.",
             "Excellentes qualités de communication et esprit d'initiative.",
             "À l'aise avec la vente et la prospection.",
           ],
@@ -211,10 +225,18 @@ export const pipelineStages = [
   { value: "screened", label: "Screened" },
   { value: "interview", label: "Interview" },
   { value: "decision", label: "Decision" },
+  { value: "offer", label: "Offer" },
+  { value: "hired", label: "Hired" },
   { value: "rejected", label: "Rejected" },
 ] as const;
 export type Stage = (typeof pipelineStages)[number]["value"];
 export const isStage = (v: unknown): v is Stage => pipelineStages.some((s) => s.value === v);
+
+/**
+ * Stages the 12-month purge leaves alone: the notice only promises to delete
+ * unsuccessful applications, and a hire's data moves to their personnel file.
+ */
+export const RETAINED_STAGES: readonly Stage[] = ["offer", "hired"];
 
 /** Options as sent to the browser: labels in one language, knockout flags left out. */
 export type PublicOption = { value: string; label: string };
@@ -235,11 +257,16 @@ export type ApplicationInput = {
   portfolioUrl: string;
   workAuthorization: string;
   commissionOnly: string;
-  /** Age in years, as typed. */
-  age: string;
+  /** "yes" when the candidate is ADULT_AGE or over. */
+  adult: string;
   /** University, as typed (optional). The admin board highlights HKU, CUHK and HKUST, see ./universities.ts. */
   university: string;
 };
+
+/** A status change, kept on the record so the team can see who moved a candidate and when. */
+export type StatusChange = { at: string; by: string; from: Stage | null; to: Stage };
+/** An internal note; never shown to the candidate, but included in their data export. */
+export type Note = { id: string; at: string; by: string; text: string };
 
 export type ApplicationRecord = ApplicationInput & {
   id: string;
@@ -255,10 +282,18 @@ export type ApplicationRecord = ApplicationInput & {
   cv: { file: string; originalName: string; size: number; type: string } | null;
   /** When an admin first opened the application; unset means it shows as new. */
   viewedAt?: string;
+  viewedBy?: string;
+  /** Oldest first. The first entry is the initial status set on submission (by "system"). */
+  history?: StatusChange[];
+  notes?: Note[];
+  /** Exact age, asked by earlier versions of the form; new applications have `adult` instead. */
+  age?: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9 ()\-.]{6,20}$/;
+/** Separators alone ("------") pass PHONE_RE, so the digits are counted too. */
+const PHONE_MIN_DIGITS = 6;
 
 const isHttpUrl = (v: string) => {
   try {
@@ -281,7 +316,7 @@ export function validateFields(
   if (v("fullName").length < 2) e.fullName = m.fullName;
   else if (v("fullName").length > 120) e.fullName = m.fullNameLong;
   if (!EMAIL_RE.test(v("email"))) e.email = m.email;
-  if (!PHONE_RE.test(v("phone"))) e.phone = m.phone;
+  if (!PHONE_RE.test(v("phone")) || v("phone").replace(/\D/g, "").length < PHONE_MIN_DIGITS) e.phone = m.phone;
   // Optional: many students don't have a LinkedIn profile.
   const linkedin = v("linkedinUrl");
   if (linkedin && (!isHttpUrl(linkedin) || !/(^|\.)linkedin\.com$/i.test(new URL(linkedin).hostname))) e.linkedinUrl = m.linkedin;
@@ -290,8 +325,7 @@ export function validateFields(
 
   if (!workAuthorizationOptions.some((o) => o.value === v("workAuthorization"))) e.workAuthorization = m.workAuthorization;
   if (!commissionOptions.some((o) => o.value === v("commissionOnly"))) e.commissionOnly = m.commissionOnly;
-  const age = Number(v("age"));
-  if (!/^\d{1,2}$/.test(v("age")) || age < MIN_AGE || age > MAX_AGE) e.age = m.age;
+  if (!adultOptions.some((o) => o.value === v("adult"))) e.adult = m.adult;
   if (v("university").length > 150) e.university = m.university;
 
   return e;
@@ -308,16 +342,36 @@ export function validateCvMeta(name: string, size: number, lang: CareersLocale =
 }
 
 /** Knockout labels, in English for the admin board. */
-export function knockoutsFor(input: Pick<ApplicationInput, "workAuthorization" | "commissionOnly" | "age">): string[] {
-  const flags = [
+export function knockoutsFor(input: Pick<ApplicationInput, "workAuthorization" | "commissionOnly" | "adult">): string[] {
+  return [
     workAuthorizationOptions.find((o) => o.value === input.workAuthorization),
     commissionOptions.find((o) => o.value === input.commissionOnly),
+    // Minors need a parent's or guardian's agreement before any engagement.
+    adultOptions.find((o) => o.value === input.adult),
   ]
     .filter((o): o is Option => !!o?.knockout)
     .map((o) => o.label.en);
-  // Minors need a parent's or guardian's agreement before any engagement.
-  if (Number(input.age) < ADULT_AGE) flags.push(`Under ${ADULT_AGE} (age ${input.age})`);
-  return flags;
+}
+
+/** Age answer for the admin: the yes/no question, or the exact age on older applications. */
+export const ageLabel = (app: Pick<ApplicationRecord, "adult" | "age">) =>
+  app.adult ? labelFor(adultOptions, app.adult) : app.age ? `${app.age} (exact age, older form)` : "—";
+
+const emailKey = (email: string) => email.trim().toLowerCase();
+
+/** Other applications from the same email address for the same listing, oldest first. */
+export function duplicatesOf(app: ApplicationRecord, all: ApplicationRecord[]) {
+  const key = emailKey(app.email);
+  return all
+    .filter((a) => a.id !== app.id && a.jobSlug === app.jobSlug && emailKey(a.email) === key)
+    .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
+}
+
+/** Count of applications per email address and listing, for flagging duplicates on the board. */
+export function duplicateCounts(all: ApplicationRecord[]) {
+  const counts = new Map<string, number>();
+  for (const a of all) counts.set(`${a.jobSlug}|${emailKey(a.email)}`, (counts.get(`${a.jobSlug}|${emailKey(a.email)}`) ?? 0) + 1);
+  return (app: ApplicationRecord) => (counts.get(`${app.jobSlug}|${emailKey(app.email)}`) ?? 1) - 1;
 }
 
 /**
