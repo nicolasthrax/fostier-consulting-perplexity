@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   CV_TYPES,
+  initialStatus,
   knockoutsFor,
   openJob,
   validateCvMeta,
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
     jobTitle: job.title.en,
     submittedAt: now,
     updatedAt: now,
-    status: "applied",
+    status: initialStatus(input),
     knockouts: knockoutsFor(input),
     cv: null,
   };

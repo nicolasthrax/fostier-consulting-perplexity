@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { adminEnabled, isAdmin } from "@/lib/careers/auth";
 import { purgeExpired, readApplications, storageSelfTest } from "@/lib/careers/storage";
-import { RETENTION_DAYS, commissionOptions, jobs, pipelineStages, workAuthorizationOptions } from "@/lib/careers/config";
+import { RETENTION_DAYS, commissionOptions, jobs, pipelineStages, publicBase, workAuthorizationOptions } from "@/lib/careers/config";
+import { DEFAULT_CAREERS_LOCALE } from "@/lib/careers/i18n";
 import { AdminLogin } from "@/components/careers/AdminLogin";
 import { AdminBoard } from "@/components/careers/AdminBoard";
 
@@ -43,6 +44,7 @@ export default async function CareersAdminPage() {
       retentionDays={RETENTION_DAYS}
       commissionOptions={commissionOptions}
       workAuthorizations={workAuthorizationOptions}
+      adminBase={`${publicBase(DEFAULT_CAREERS_LOCALE)}/admin`}
     />
   );
 }

@@ -206,6 +206,7 @@ export const pipelineStages = [
   { value: "screened", label: "Screened" },
   { value: "interview", label: "Interview" },
   { value: "decision", label: "Decision" },
+  { value: "rejected", label: "Rejected" },
 ] as const;
 export type Stage = (typeof pipelineStages)[number]["value"];
 export const isStage = (v: unknown): v is Stage => pipelineStages.some((s) => s.value === v);
@@ -270,9 +271,9 @@ export function validateFields(
   else if (v("fullName").length > 120) e.fullName = m.fullNameLong;
   if (!EMAIL_RE.test(v("email"))) e.email = m.email;
   if (!PHONE_RE.test(v("phone"))) e.phone = m.phone;
+  // Optional: many students don't have a LinkedIn profile.
   const linkedin = v("linkedinUrl");
-  if (!linkedin) e.linkedinUrl = m.linkedinMissing;
-  else if (!isHttpUrl(linkedin) || !/(^|\.)linkedin\.com$/i.test(new URL(linkedin).hostname)) e.linkedinUrl = m.linkedin;
+  if (linkedin && (!isHttpUrl(linkedin) || !/(^|\.)linkedin\.com$/i.test(new URL(linkedin).hostname))) e.linkedinUrl = m.linkedin;
   const portfolio = v("portfolioUrl");
   if (portfolio && !isHttpUrl(portfolio)) e.portfolioUrl = m.portfolio;
 
@@ -301,3 +302,11 @@ export function knockoutsFor(input: Pick<ApplicationInput, "workAuthorization" |
     .filter((o): o is Option => !!o?.knockout)
     .map((o) => o.label.en);
 }
+
+/**
+ * The role is commission only, so a candidate who answers that commission-only
+ * pay doesn't suit them starts in "Rejected". A person still sees every
+ * application and can move it back (see the candidate privacy notice).
+ */
+export const initialStatus = (input: Pick<ApplicationInput, "commissionOnly">): Stage =>
+  input.commissionOnly === "no" ? "rejected" : "applied";

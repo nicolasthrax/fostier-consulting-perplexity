@@ -252,7 +252,7 @@ export function ApplicationForm({
       `${t.review.fullName}: ${values.fullName}`,
       `${t.review.email}: ${values.email}`,
       `${t.review.phone}: ${values.phone}`,
-      `${t.review.linkedin}: ${values.linkedinUrl}`,
+      values.linkedinUrl && `${t.review.linkedin}: ${values.linkedinUrl}`,
       values.portfolioUrl && `${t.review.portfolio}: ${values.portfolioUrl}`,
       `${t.review.workAuthorization}: ${labelFor(workAuthorizations, values.workAuthorization)}`,
       `${t.review.commission}: ${labelFor(commissionOptions, values.commissionOnly)}`,
@@ -267,7 +267,7 @@ export function ApplicationForm({
         [t.review.fullName, values.fullName],
         [t.review.email, values.email],
         [t.review.phone, values.phone],
-        [t.review.linkedin, values.linkedinUrl],
+        [t.review.linkedin, values.linkedinUrl || "—"],
         [t.review.portfolio, values.portfolioUrl || "—"],
       ],
     },
@@ -334,8 +334,8 @@ export function ApplicationForm({
             </div>
           </div>
           <div>
-            <Label lang={lang} htmlFor={fid("linkedinUrl")}>{t.linkedin}</Label>
-            <input {...a11y("linkedinUrl")} type="url" className={inputClass} placeholder="https://www.linkedin.com/in/…" value={values.linkedinUrl} onChange={set("linkedinUrl")} required />
+            <Label lang={lang} htmlFor={fid("linkedinUrl")} optional>{t.linkedin}</Label>
+            <input {...a11y("linkedinUrl")} type="url" className={inputClass} placeholder="https://www.linkedin.com/in/…" value={values.linkedinUrl} onChange={set("linkedinUrl")} />
             {err("linkedinUrl")}
           </div>
           <div>

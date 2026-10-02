@@ -101,7 +101,7 @@ What the portal does, and what stays with you:
 | --- | --- |
 | PDPO DPP1(3) collection statement, given before collection | Short notice at the top of step 1, full notice at `/careers/privacy` (FR) and `/careers/en/privacy` (EN) |
 | GDPR Art. 13 information (applicants in the EU/EEA) | Same notice: controller, purposes, legal bases, recipients, transfers, retention, rights, CNIL |
-| No automated rejection (GDPR Art. 22) | Knockout answers are only flagged for a person to review |
+| Automatic screening disclosed, with human review (GDPR Art. 22 safeguards) | "No" to commission-only pay starts in **Rejected**; the notice says so, staff see every application and can move it back, and candidates can ask for reconsideration. Other knockouts are only flagged |
 | Data minimisation (PCPD Code of Practice on Human Resource Management) | No HKID/passport collected; candidates are asked to leave them and sensitive data out of CVs |
 | Retention: unsuccessful applications kept ≤ 2 years under the PCPD code; notice promises 12 months | `RETENTION_DAYS` in `config.ts`; local records and CVs are purged automatically on every submission and admin load. For Google Sheets, add the daily trigger in `google-apps-script.gs` |
 | Access, correction and erasure requests (PDPO; GDPR) | Admin → candidate → **Export data** (JSON) and **Delete** |

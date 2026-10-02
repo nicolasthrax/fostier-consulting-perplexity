@@ -12,7 +12,7 @@ export const isCareersLocale = (v: unknown): v is CareersLocale => careersLocale
 export type Localized = Record<CareersLocale, string>;
 
 /** Date the candidate privacy notice was last revised (also shown on the page). */
-export const NOTICE_UPDATED = "2026-10-01";
+export const NOTICE_UPDATED = "2026-10-02";
 
 type Section = { heading: string; body?: string; items?: string[] };
 
@@ -125,7 +125,7 @@ const en = {
   notice: {
     metaTitle: "Candidate privacy notice",
     title: "Candidate privacy notice",
-    updated: "Last updated: 1 October 2026",
+    updated: "Last updated: 2 October 2026",
     intro:
       "This notice explains how Fostier Consulting handles the personal data you give us when you apply for a position. It is our Personal Information Collection Statement under Hong Kong's Personal Data (Privacy) Ordinance (Cap. 486) (the \"PDPO\") and, for applicants in the European Union or the European Economic Area, our information notice under Article 13 of the General Data Protection Regulation (EU) 2016/679 (the \"GDPR\").",
     sections: [
@@ -137,7 +137,7 @@ const en = {
         heading: "What we collect",
         items: [
           "Identity and contact details: name, email address, phone number.",
-          "Professional links you give us: LinkedIn profile and, if you choose, a portfolio or GitHub page.",
+          "Professional links, if you choose to give them: LinkedIn profile, portfolio or GitHub page.",
           "Your CV and whatever it contains.",
           "Your answers to the screening questions (work authorisation in Hong Kong, whether commission-only pay suits you) and the position you applied for.",
           "Technical data processed by our hosting provider to deliver the pages and keep them secure, such as IP addresses in server logs.",
@@ -160,8 +160,8 @@ const en = {
         body: "Where the GDPR applies, we process your data to take steps at your request before entering into a contract (Article 6(1)(b)) and for our legitimate interest in recruiting suitable people (Article 6(1)(f)).",
       },
       {
-        heading: "No automated decisions",
-        body: "No decision about your application is made automatically. Screening answers that may not fit the position are flagged for a person to review; they never reject an application by themselves.",
+        heading: "Automatic screening",
+        body: "The position is paid on commission only. If you answer that commission-only pay does not suit you, your application is automatically marked as not retained, because the position cannot offer a base salary. A member of our team still sees every application and can reverse this, and you can ask us to reconsider by writing to us. Other screening answers that may not fit the position are only flagged for a person to review.",
       },
       {
         heading: "Who sees your data",
@@ -312,7 +312,7 @@ const fr: Copy = {
   notice: {
     metaTitle: "Confidentialité des candidats",
     title: "Notice de confidentialité des candidats",
-    updated: "Dernière mise à jour : 1er octobre 2026",
+    updated: "Dernière mise à jour : 2 octobre 2026",
     intro:
       "Cette notice explique comment Fostier Consulting traite les données personnelles que vous nous transmettez lorsque vous postulez. Elle constitue notre déclaration de collecte (Personal Information Collection Statement) au titre de la Personal Data (Privacy) Ordinance de Hong Kong (Cap. 486) (la « PDPO ») et, pour les candidats situés dans l'Union européenne ou l'Espace économique européen, notre information au titre de l'article 13 du Règlement général sur la protection des données (UE) 2016/679 (le « RGPD »).",
     sections: [
@@ -324,7 +324,7 @@ const fr: Copy = {
         heading: "Données collectées",
         items: [
           "Identité et coordonnées : nom, adresse e-mail, numéro de téléphone.",
-          "Liens professionnels que vous nous indiquez : profil LinkedIn et, si vous le souhaitez, portfolio ou page GitHub.",
+          "Liens professionnels, si vous choisissez de les indiquer : profil LinkedIn, portfolio ou page GitHub.",
           "Votre CV et son contenu.",
           "Vos réponses aux questions de présélection (autorisation de travail à Hong Kong, rémunération à la commission) et le poste visé.",
           "Données techniques traitées par notre hébergeur pour afficher les pages et les sécuriser, comme les adresses IP dans les journaux du serveur.",
@@ -347,8 +347,8 @@ const fr: Copy = {
         body: "Lorsque le RGPD s'applique, nous traitons vos données pour prendre des mesures précontractuelles à votre demande (article 6(1)(b)) et pour notre intérêt légitime à recruter des personnes adaptées au poste (article 6(1)(f)).",
       },
       {
-        heading: "Aucune décision automatisée",
-        body: "Aucune décision concernant votre candidature n'est prise de manière automatisée. Les réponses qui pourraient ne pas correspondre au poste sont signalées pour examen par une personne ; elles n'entraînent jamais à elles seules le rejet d'une candidature.",
+        heading: "Présélection automatique",
+        body: "Le poste est rémunéré uniquement à la commission. Si vous indiquez qu'une rémunération à la commission ne vous convient pas, votre candidature est automatiquement marquée comme non retenue, puisque le poste ne peut pas offrir de salaire fixe. Un membre de notre équipe voit toutefois chaque candidature et peut revenir sur ce classement, et vous pouvez nous demander de la réexaminer en nous écrivant. Les autres réponses qui pourraient ne pas correspondre au poste sont seulement signalées pour examen par une personne.",
       },
       {
         heading: "Destinataires",
