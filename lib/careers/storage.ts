@@ -383,7 +383,7 @@ async function runSelfTest(): Promise<{ backend: string; ok: boolean; detail: st
   }
 }
 
-// ——— Admin notifications ———
+// ——— "New" badge ———
 
 /** Marks an application as seen, so it stops showing as new. */
 export async function markViewed(id: string, by: string) {
@@ -392,16 +392,4 @@ export async function markViewed(id: string, by: string) {
     if (!records.some((r) => r.id === id && !r.viewedAt)) return null;
     return { records: records.map((r) => (r.id === id ? { ...r, viewedAt: now, viewedBy: by } : r)), result: true };
   });
-}
-
-/** Marks every unseen application as seen ("Mark all as read"), in one write. */
-export async function markAllViewed(by: string) {
-  const now = new Date().toISOString();
-  return (
-    (await backend().mutate((records) => {
-      const unseen = records.filter((r) => !r.viewedAt).length;
-      if (!unseen) return null;
-      return { records: records.map((r) => (r.viewedAt ? r : { ...r, viewedAt: now, viewedBy: by })), result: unseen };
-    })) ?? 0
-  );
 }
