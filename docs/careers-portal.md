@@ -9,7 +9,8 @@ the page head has `<meta name="robots" content="noindex, nofollow">`.
 | --- | --- |
 | `/careers` (or `/<CAREERS_PORTAL_SLUG>`) | Open positions, French (default) |
 | `/careers/en` | Open positions, English |
-| `/careers[/en]/jobs/<job-slug>` | Job description and 4-step application form |
+| `/careers[/en]/jobs/<job-slug>` | Job description, with an **Apply** button |
+| `/careers[/en]/jobs/<job-slug>/apply` | 4-step application form |
 | `/careers[/en]/privacy` | Candidate privacy notice (PICS) |
 | `/careers/admin` (or `/<slug>/admin`) | Candidate pipeline, one login per person |
 | `/careers/api/*` | Submission and admin endpoints |
@@ -39,7 +40,7 @@ Screening questions (step 3):
 - 18 or over? Yes/No. Only this is asked, not the exact age (data
   minimisation); "No" is flagged, because minors need a parent's or guardian's
   agreement. Applications from before this change show the exact age they gave.
-- University (optional, free text). Never flagged. The admin board highlights
+- University (required, free text). Never flagged. The admin board highlights
   HKU, CUHK and HKUST in green (table, pipeline cards and candidate page),
   recognising abbreviations, full English, French and Chinese names, and
   dotted forms like "H.K.U.". The patterns are in

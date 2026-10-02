@@ -37,6 +37,9 @@ const en = {
   },
   job: {
     back: "All positions",
+    apply: "Apply for this position",
+    applyTitle: (job: string) => `Apply: ${job}`,
+    backToListing: "Back to the job description",
     termsHeading: "Pay and conduct",
   },
   equalOpportunity:
@@ -74,7 +77,6 @@ const en = {
     adult: "Are you 18 or over?",
     adultHint: "Applicants under 18 will need a parent's or guardian's agreement.",
     university: "University",
-    universityHint: "Where you study or studied, for example The University of Hong Kong. Leave it empty if you haven't been to university.",
     edit: "Edit",
     review: {
       fullName: "Full name",
@@ -118,6 +120,7 @@ const en = {
     workAuthorization: "Select your work authorisation status.",
     commissionOnly: "Tell us whether commission-only pay works for you.",
     adult: "Tell us whether you are 18 or over.",
+    universityMissing: "Enter your university.",
     university: "Keep the university name under 150 characters.",
     cvMissing: "Upload your CV to continue.",
     cvType: "Upload a PDF or Word (.docx) file.",
@@ -253,6 +256,9 @@ const fr: Copy = {
   },
   job: {
     back: "Tous les postes",
+    apply: "Postuler à ce poste",
+    applyTitle: (job: string) => `Postuler : ${job}`,
+    backToListing: "Retour à l'offre",
     termsHeading: "Rémunération et règles",
   },
   equalOpportunity:
@@ -290,7 +296,6 @@ const fr: Copy = {
     adult: "Avez-vous 18 ans ou plus ?",
     adultHint: "Si vous avez moins de 18 ans, vous aurez besoin de l'accord d'un parent ou de votre tuteur légal.",
     university: "Université",
-    universityHint: "L'université où vous étudiez ou avez étudié, par exemple The University of Hong Kong. Laissez vide si vous n'avez pas fait d'études universitaires.",
     edit: "Modifier",
     review: {
       fullName: "Nom complet",
@@ -334,6 +339,7 @@ const fr: Copy = {
     workAuthorization: "Choisissez votre situation d'autorisation de travail.",
     commissionOnly: "Indiquez si une rémunération à la commission vous convient.",
     adult: "Indiquez si vous avez 18 ans ou plus.",
+    universityMissing: "Indiquez votre université.",
     university: "Le nom de l'université doit faire moins de 150 caractères.",
     cvMissing: "Ajoutez votre CV pour continuer.",
     cvType: "Ajoutez un fichier PDF ou Word (.docx).",
