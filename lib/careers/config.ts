@@ -237,6 +237,8 @@ export type ApplicationInput = {
   commissionOnly: string;
   /** Age in years, as typed. */
   age: string;
+  /** University, as typed (optional). The admin board highlights HKU, CUHK and HKUST, see ./universities.ts. */
+  university: string;
 };
 
 export type ApplicationRecord = ApplicationInput & {
@@ -290,6 +292,7 @@ export function validateFields(
   if (!commissionOptions.some((o) => o.value === v("commissionOnly"))) e.commissionOnly = m.commissionOnly;
   const age = Number(v("age"));
   if (!/^\d{1,2}$/.test(v("age")) || age < MIN_AGE || age > MAX_AGE) e.age = m.age;
+  if (v("university").length > 150) e.university = m.university;
 
   return e;
 }

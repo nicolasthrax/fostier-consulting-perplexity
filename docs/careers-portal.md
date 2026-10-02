@@ -33,6 +33,12 @@ listing's URL directly. Set a listing's `open` to `false` to stop applications
 
 Screening questions (step 3):
 
+- University (optional, free text). Never flagged. The admin board highlights
+  HKU, CUHK and HKUST in green (table, pipeline cards and candidate page),
+  recognising abbreviations, full English, French and Chinese names, and
+  dotted forms like "H.K.U.". The patterns are in
+  [`lib/careers/universities.ts`](../lib/careers/universities.ts); HKU SPACE
+  and other "… University of Hong Kong" names (CityU, EdUHK, Hang Seng…) don't match.
 - Work authorisation in Hong Kong. "Would need visa sponsorship" and "remote only" are flagged.
 - Comfortable with commission-only pay and no base salary? "No" is flagged.
 
