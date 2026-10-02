@@ -115,7 +115,7 @@ export const jobs: Job[] = [
     // Adapted from the LinkedIn posting (linkedin.com/jobs/view/4472502059).
     slug: "financial-consultant",
     title: { en: "Financial consultant (internship)", fr: "Consultant financier (stage)" },
-    location: { en: "Hong Kong · Hybrid", fr: "Hong Kong · Hybride" },
+    location: { en: "Hong Kong", fr: "Hong Kong" },
     type: { en: "Commission only", fr: "Rémunération à la commission" },
     summary: {
       en: "Introduce our investment and financial planning services to new private clients. Flexible hours, for French or Mandarin speakers in Hong Kong with a background in finance, business or sales.",
@@ -125,11 +125,11 @@ export const jobs: Job[] = [
       en: [
         {
           heading: "About the role",
-          body: "We are looking for motivated students and young adults to introduce our investment and financial planning services to new private clients and help grow our client base. This is a commission-based internship with flexible hours and a hybrid working arrangement in Hong Kong.",
+          body: "We are looking for motivated students and young adults to introduce our investment and financial planning services to new private clients and help grow our client base. This is a commission-based internship with flexible hours in Hong Kong.",
         },
         {
           heading: "Location requirement",
-          body: "You must currently live or study in Hong Kong. This is a hybrid role, so you must be able to attend in-person meetings and events in Hong Kong. We are unable to consider applicants based outside Hong Kong.",
+          body: "You must currently live or study in Hong Kong, and be able to attend in-person meetings and events in Hong Kong. We are unable to consider applicants based outside Hong Kong.",
         },
         {
           heading: "What you will do",
@@ -162,11 +162,11 @@ export const jobs: Job[] = [
       fr: [
         {
           heading: "Le poste",
-          body: "Nous recherchons des étudiants et jeunes adultes motivés pour présenter nos services d'investissement et de planification financière à de nouveaux clients privés et contribuer au développement de notre clientèle. Il s'agit d'un stage rémunéré à la commission, avec des horaires flexibles et un fonctionnement hybride à Hong Kong.",
+          body: "Nous recherchons des étudiants et jeunes adultes motivés pour présenter nos services d'investissement et de planification financière à de nouveaux clients privés et contribuer au développement de notre clientèle. Il s'agit d'un stage rémunéré à la commission, avec des horaires flexibles, à Hong Kong.",
         },
         {
           heading: "Lieu",
-          body: "Vous devez actuellement vivre ou étudier à Hong Kong. Le poste étant hybride, vous devez pouvoir participer à des rendez-vous et événements en personne à Hong Kong. Nous ne pouvons pas étudier les candidatures de personnes basées hors de Hong Kong.",
+          body: "Vous devez actuellement vivre ou étudier à Hong Kong, et pouvoir participer à des rendez-vous et événements en personne à Hong Kong. Nous ne pouvons pas étudier les candidatures de personnes basées hors de Hong Kong.",
         },
         {
           heading: "Vos missions",
@@ -259,7 +259,7 @@ export type ApplicationInput = {
   commissionOnly: string;
   /** "yes" when the candidate is ADULT_AGE or over. */
   adult: string;
-  /** University, as typed (optional). The admin board highlights HKU, CUHK and HKUST, see ./universities.ts. */
+  /** University, as typed (required). The admin board highlights HKU, CUHK and HKUST, see ./universities.ts. */
   university: string;
 };
 
@@ -326,7 +326,8 @@ export function validateFields(
   if (!workAuthorizationOptions.some((o) => o.value === v("workAuthorization"))) e.workAuthorization = m.workAuthorization;
   if (!commissionOptions.some((o) => o.value === v("commissionOnly"))) e.commissionOnly = m.commissionOnly;
   if (!adultOptions.some((o) => o.value === v("adult"))) e.adult = m.adult;
-  if (v("university").length > 150) e.university = m.university;
+  if (!v("university")) e.university = m.universityMissing;
+  else if (v("university").length > 150) e.university = m.university;
 
   return e;
 }

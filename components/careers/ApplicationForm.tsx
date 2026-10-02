@@ -225,7 +225,7 @@ export function ApplicationForm({
       values.linkedinUrl && `${t.review.linkedin}: ${values.linkedinUrl}`,
       values.portfolioUrl && `${t.review.portfolio}: ${values.portfolioUrl}`,
       `${t.review.adult}: ${labelFor(adultOptions, values.adult)}`,
-      values.university && `${t.review.university}: ${values.university}`,
+      `${t.review.university}: ${values.university}`,
       `${t.review.workAuthorization}: ${labelFor(workAuthorizations, values.workAuthorization)}`,
       `${t.review.commission}: ${labelFor(commissionOptions, values.commissionOnly)}`,
     ]
@@ -248,7 +248,7 @@ export function ApplicationForm({
       step: 2,
       items: [
         [t.review.adult, labelFor(adultOptions, values.adult)],
-        [t.review.university, values.university || "—"],
+        [t.review.university, values.university],
         [t.review.workAuthorization, labelFor(workAuthorizations, values.workAuthorization)],
         [t.review.commission, labelFor(commissionOptions, values.commissionOnly)],
       ],
@@ -416,9 +416,8 @@ export function ApplicationForm({
             {err("adult")}
           </fieldset>
           <div>
-            <Label lang={lang} htmlFor={fid("university")} optional>{t.university}</Label>
-            <input {...a11y("university", true)} className={inputClass} maxLength={150} value={values.university} onChange={set("university")} />
-            <p id={fid("university-hint")} className="mt-1.5 text-sm text-muted">{t.universityHint}</p>
+            <Label lang={lang} htmlFor={fid("university")}>{t.university}</Label>
+            <input {...a11y("university")} className={inputClass} maxLength={150} value={values.university} onChange={set("university")} required />
             {err("university")}
           </div>
           <div>

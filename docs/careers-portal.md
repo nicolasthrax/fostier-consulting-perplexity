@@ -9,7 +9,8 @@ the page head has `<meta name="robots" content="noindex, nofollow">`.
 | --- | --- |
 | `/careers` (or `/<CAREERS_PORTAL_SLUG>`) | Open positions, French (default) |
 | `/careers/en` | Open positions, English |
-| `/careers[/en]/jobs/<job-slug>` | Job description and 4-step application form |
+| `/careers[/en]/jobs/<job-slug>` | Job description, with an **Apply** button |
+| `/careers[/en]/jobs/<job-slug>/apply` | 4-step application form |
 | `/careers[/en]/privacy` | Candidate privacy notice (PICS) |
 | `/careers/admin` (or `/<slug>/admin`) | Candidate pipeline, one login per person |
 | `/careers/api/*` | Submission and admin endpoints |
@@ -39,7 +40,7 @@ Screening questions (step 3):
 - 18 or over? Yes/No. Only this is asked, not the exact age (data
   minimisation); "No" is flagged, because minors need a parent's or guardian's
   agreement. Applications from before this change show the exact age they gave.
-- University (optional, free text). Never flagged. The admin board highlights
+- University (required, free text). Never flagged. The admin board highlights
   HKU, CUHK and HKUST in green (table, pipeline cards and candidate page),
   recognising abbreviations, full English, French and Chinese names, and
   dotted forms like "H.K.U.". The patterns are in
@@ -91,8 +92,8 @@ failed) are deleted at the same time.
 (`put`, `list`) and 10,000 simple operations a month, and blocks the store for
 30 days past either. So the portal never lists on reads: it fetches the index,
 and a request that already has the latest copy gets a cheap "not modified".
-Each submission costs two puts (CV and index), each status change, note, "mark
-read" or first opening of a candidate one put. Writes are conditional on the
+Each submission costs two puts (CV and index), each status change, note or
+first opening of a candidate one put. Writes are conditional on the
 index's ETag and retried on conflict, so two admins acting at once don't undo
 each other. The open dashboard checks for new applications every 3 minutes
 (every 15 while the tab is in the background). Watch usage under Vercel →
@@ -190,17 +191,13 @@ What the portal does, and what stays with you:
 - *Resend.* The notice lists Resend as a processor for the emails. If you don't
   set up emails, you may remove that line.
 
-## Admin notifications
+## New applications
 
-- New applications show a red **New** badge and count in the bell until an
-  admin opens them (or uses **Mark all as read**). This is stored with each
-  application, so it is shared by everyone who uses the admin.
-- The bell panel lists unread applications, marking auto-rejected (declined
-  commission) and flagged ones.
-- While the dashboard is open it checks for new applications every 3 minutes
-  (15 in a background tab) and when the tab regains focus, shows a pop-up, and
-  puts the unread count in the tab title. **Turn on desktop alerts** in the
-  bell panel adds system notifications when the tab is in the background
-  (browser permission required).
+- A new application shows a red **New** badge next to the candidate's name
+  until an admin opens it. This is stored with the application, so it is
+  shared by everyone who uses the admin.
+- While the dashboard is open, the list refreshes every 3 minutes (15 in a
+  background tab) and when the tab regains focus, so new applications appear
+  with their badge.
 - With [emails](#emails) set up, the team also gets an email for each new
   application, whether or not the dashboard is open.
