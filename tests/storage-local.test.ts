@@ -95,20 +95,13 @@ describe("local storage", () => {
     expect(await storage.addNote(freshId(), "x", "alice")).toBeNull();
   });
 
-  it("markViewed sets viewedBy once; markAllViewed covers the rest", async () => {
+  it("markViewed sets viewedBy once and leaves other applications new", async () => {
     const a = await add();
     const b = await add();
-    const c = await add();
     await storage.markViewed(a.id, "alice");
     await storage.markViewed(a.id, "bob"); // already seen: unchanged
     expect((await storage.readApplication(a.id))?.viewedBy).toBe("alice");
-
-    expect(await storage.markAllViewed("bob")).toBe(2);
-    const all = await storage.readApplications();
-    expect(all.find((r) => r.id === a.id)?.viewedBy).toBe("alice");
-    expect(all.find((r) => r.id === b.id)?.viewedBy).toBe("bob");
-    expect(all.find((r) => r.id === c.id)?.viewedAt).toEqual(expect.any(String));
-    expect(await storage.markAllViewed("bob")).toBe(0);
+    expect((await storage.readApplication(b.id))?.viewedAt).toBeUndefined();
   });
 
   it("deleteApplication removes the record and its CV", async () => {

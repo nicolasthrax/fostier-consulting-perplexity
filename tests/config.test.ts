@@ -42,8 +42,9 @@ describe("validateFields", () => {
     expect(validateFields(validInput({ linkedinUrl: "linkedin.com/in/alice" })).linkedinUrl).toEqual(expect.any(String));
   });
 
-  it("limits the university to 150 characters and allows it empty", () => {
-    expect(validateFields(validInput({ university: "" })).university).toBeUndefined();
+  it("requires the university and limits it to 150 characters", () => {
+    expect(validateFields(validInput({ university: "" })).university).toEqual(expect.any(String));
+    expect(validateFields(validInput({ university: "   " })).university).toEqual(expect.any(String));
     expect(validateFields(validInput({ university: "x".repeat(150) })).university).toBeUndefined();
     expect(validateFields(validInput({ university: "x".repeat(151) })).university).toEqual(expect.any(String));
   });

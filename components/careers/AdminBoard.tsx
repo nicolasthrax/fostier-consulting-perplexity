@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Bell, BellRing, ChevronRight, Download, FileText, LayoutGrid, LogOut, Rows3, X } from "lucide-react";
+import { AlertTriangle, ChevronRight, Download, FileText, LayoutGrid, LogOut, Rows3 } from "lucide-react";
 import { API_BASE, ageLabel, duplicateCounts, labelFor, type ApplicationRecord, type Option, type Stage } from "@/lib/careers/config";
 import { applicationsCsv } from "@/lib/careers/csv";
 import { matchTargetUniversities } from "@/lib/careers/universities";
@@ -20,7 +20,7 @@ const isoDay = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-dig
  * Blob index (one simple operation, or a cheap 304), and the Hobby plan's Blob
  * quota is monthly and blocks the store for 30 days when exceeded, so a tab left
  * open all day must stay frugal: every 3 minutes while visible, every 15 in the
- * background (desktop alerts still arrive, just later), plus a check when the tab
+ * background, plus a check when the tab
  * comes back into view.
  */
 const POLL_VISIBLE_MS = 3 * 60_000;
@@ -28,15 +28,6 @@ const POLL_HIDDEN_MS = 15 * 60_000;
 /** Flicking between tabs doesn't trigger a check more often than this. */
 const POLL_MIN_GAP_MS = 30_000;
 const VIEW_KEY = "careers-admin-view";
-
-function timeAgo(iso: string) {
-  const min = Math.round((Date.now() - Date.parse(iso)) / 60_000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min} min ago`;
-  const h = Math.round(min / 60);
-  if (h < 24) return `${h} h ago`;
-  return dateFmt.format(new Date(iso));
-}
 
 const NewBadge = () => (
   <span className="inline-flex items-center rounded-sm bg-fred px-1.5 py-0.5 text-[11px] font-semibold uppercase leading-none tracking-wide text-white">New</span>
@@ -84,26 +75,9 @@ export function AdminBoard({
     } catch {}
   }, []);
 
-  // ——— Notifications ———
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [toasts, setToasts] = useState<ApplicationRecord[]>([]);
-  const [alertsOn, setAlertsOn] = useState(false);
-  const known = useRef(new Set(initial.map((a) => a.id)));
-  const unread = apps.filter((a) => !a.viewedAt);
   const fromTargetUniversity = apps.filter((a) => matchTargetUniversities(a.university).length).length;
 
-  useEffect(() => {
-    if (typeof Notification !== "undefined") setAlertsOn(Notification.permission === "granted");
-  }, []);
-
-  // Unread count in the tab title, so new applications show even in a background tab.
-  useEffect(() => {
-    document.title = `${unread.length ? `(${unread.length}) ` : ""}Candidates | Fostier Consulting`;
-  }, [unread.length]);
-
-  // Read through a ref so turning alerts on doesn't restart the polling schedule.
-  const alertsRef = useRef(alertsOn);
-  alertsRef.current = alertsOn;
+  // ——— Refresh: new applications appear with their "New" badge ———
   const lastPoll = useRef(0);
 
   const poll = useCallback(async () => {
@@ -112,21 +86,8 @@ export function AdminBoard({
     if (res?.status === 401) return router.refresh();
     if (!res?.ok) return;
     const { applications } = (await res.json()) as { applications: ApplicationRecord[] };
-    const fresh = applications.filter((a) => !known.current.has(a.id));
-    applications.forEach((a) => known.current.add(a.id));
     setApps(applications);
-    if (!fresh.length) return;
-    setToasts((t) => [...fresh, ...t].slice(0, 3));
-    if (alertsRef.current && document.visibilityState !== "visible") {
-      for (const a of fresh.slice(0, 3)) {
-        const n = new Notification(`New application: ${a.fullName}`, {
-          body: `${a.jobTitle}${a.status === "rejected" ? " · auto-rejected (commission)" : ""}${a.knockouts.length ? " · flagged" : ""}`,
-          tag: a.id,
-        });
-        n.onclick = () => window.open(`${adminBase}/${a.id}`, "_self");
-      }
-    }
-  }, [adminBase, router]);
+  }, [router]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -150,11 +111,6 @@ export function AdminBoard({
     };
   }, [poll]);
 
-  const enableAlerts = async () => {
-    if (typeof Notification === "undefined") return;
-    setAlertsOn((await Notification.requestPermission()) === "granted");
-  };
-
   const [query, setQuery] = useState("");
   const [job, setJob] = useState("");
   const [saveError, setSaveError] = useState("");
@@ -166,20 +122,6 @@ export function AdminBoard({
   const revert = (before: ApplicationRecord[], ids: Set<string>) => {
     const old = new Map(before.filter((a) => ids.has(a.id)).map((a) => [a.id, a]));
     setApps((list) => list.map((a) => old.get(a.id) ?? a));
-  };
-
-  const markAllRead = async () => {
-    const now = new Date().toISOString();
-    const prev = apps;
-    const ids = new Set(apps.filter((a) => !a.viewedAt).map((a) => a.id));
-    setSaveError("");
-    setApps((list) => list.map((a) => (a.viewedAt ? a : { ...a, viewedAt: now })));
-    const res = await fetch(`${API_BASE}/admin/notifications`, { method: "POST" }).catch(() => null);
-    if (res?.status === 401) return router.refresh();
-    if (!res?.ok) {
-      revert(prev, ids);
-      setSaveError("Couldn't mark the applications as read. Try again.");
-    }
   };
 
   const filtered = useMemo(() => {
@@ -357,65 +299,10 @@ export function AdminBoard({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="h-serif text-3xl sm:text-4xl">Candidates</h1>
-          <p className="label mt-1 tabular">{apps.length} application{apps.length === 1 ? "" : "s"}{unread.length > 0 ? ` · ${unread.length} new` : ""}{fromTargetUniversity > 0 ? ` · ${fromTargetUniversity} from HKU, CUHK or HKUST (in green)` : ""} · tap a name to see the CV and answers</p>
+          <p className="label mt-1 tabular">{apps.length} application{apps.length === 1 ? "" : "s"}{fromTargetUniversity > 0 ? ` · ${fromTargetUniversity} from HKU, CUHK or HKUST (in green)` : ""} · tap a name to see the CV and answers</p>
           {storageStatus && <p className="mt-1 text-sm font-medium text-wechat-700">✓ {storageStatus}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setPanelOpen((o) => !o)}
-              aria-expanded={panelOpen}
-              aria-controls="notif-panel"
-              className="btn-outline focus-ring relative !px-3 !py-2.5"
-              aria-label={`Notifications: ${unread.length} new application${unread.length === 1 ? "" : "s"}`}
-            >
-              {unread.length ? <BellRing className="h-5 w-5 text-navy" aria-hidden="true" /> : <Bell className="h-5 w-5" aria-hidden="true" />}
-              {unread.length > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 min-w-5 rounded-full bg-fred px-1.5 text-center text-xs font-semibold leading-5 text-white tabular">
-                  {unread.length}
-                </span>
-              )}
-            </button>
-            {panelOpen && (
-              <div id="notif-panel" className="absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-2.5rem))] rounded-sm border border-line bg-white shadow-pop">
-                <div className="flex items-center justify-between border-b border-line px-4 py-3">
-                  <h2 className="font-serif text-lg text-ink">New applications</h2>
-                  {unread.length > 0 && (
-                    <button type="button" onClick={markAllRead} className="focus-ring text-sm font-semibold text-navy link-underline">
-                      Mark all as read
-                    </button>
-                  )}
-                </div>
-                <ul className="max-h-80 overflow-y-auto">
-                  {unread.map((a) => (
-                    <li key={a.id} className="border-b border-line last:border-0">
-                      <Link href={href(a)} className="focus-ring block px-4 py-3 hover:bg-mist">
-                        <span className="block font-semibold text-navy">{a.fullName}</span>
-                        <span className="block text-sm text-slate">{a.jobTitle}</span>
-                        <span className="mt-0.5 block text-xs text-muted">
-                          {timeAgo(a.submittedAt)}
-                          {a.status === "rejected" && <span className="font-semibold text-fred-700"> · auto-rejected (commission)</span>}
-                          {a.status !== "rejected" && a.knockouts.length > 0 && <span className="font-semibold text-fred-700"> · flagged</span>}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                  {!unread.length && <li className="px-4 py-6 text-sm text-muted">You&apos;re all caught up.</li>}
-                </ul>
-                <div className="border-t border-line px-4 py-3 text-xs text-muted">
-                  {alertsOn ? (
-                    "Desktop alerts are on while this dashboard is open."
-                  ) : (
-                    <button type="button" onClick={enableAlerts} className="focus-ring font-semibold text-navy link-underline">
-                      Turn on desktop alerts
-                    </button>
-                  )}{" "}
-                  The list refreshes every 3 minutes (every 15 in a background tab).
-                </div>
-              </div>
-            )}
-          </div>
           <span className="text-sm text-muted">
             Signed in as <span className="font-semibold text-ink">{adminName}</span>
           </span>
@@ -425,23 +312,6 @@ export function AdminBoard({
           </button>
         </div>
       </div>
-
-      {toasts.length > 0 && (
-        <div className="fixed bottom-4 right-4 z-40 w-[min(22rem,calc(100vw-2rem))] space-y-2" aria-live="polite">
-          {toasts.map((a) => (
-            <div key={a.id} className="flex items-start gap-3 rounded-sm border border-line bg-white px-4 py-3 shadow-pop">
-              <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-fred" aria-hidden="true" />
-              <Link href={href(a)} className="focus-ring min-w-0 flex-1 text-sm">
-                <span className="block font-semibold text-navy">New application: {a.fullName}</span>
-                <span className="block text-slate">{a.jobTitle}{a.status === "rejected" ? " · auto-rejected" : ""}</span>
-              </Link>
-              <button type="button" onClick={() => setToasts((t) => t.filter((x) => x.id !== a.id))} className="focus-ring text-muted hover:text-ink" aria-label="Dismiss">
-                <X className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
 
       {storageError && (
         <p role="alert" className="mt-6 rounded-sm border border-fred-700/30 bg-white px-4 py-3 text-sm font-medium text-fred-700">{storageError}</p>

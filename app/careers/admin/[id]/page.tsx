@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { after } from "next/server";
 import { AlertTriangle, ArrowLeft, Copy, Download, ExternalLink, FileText } from "lucide-react";
 import { currentAdmin } from "@/lib/careers/auth";
 import { isSafeId, markViewed, readApplications } from "@/lib/careers/storage";
@@ -71,7 +72,9 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
   const app = all.find((a) => a.id === id);
   if (!app) notFound();
   // Opening an application clears its "new" notification; shown in Activity straight away.
-  if (!app.viewedAt && (await markViewed(app.id, admin).then(() => true, () => false))) {
+  // The write (a re-read plus a full index upload to Blob) runs after the response, so it doesn't hold up the page.
+  if (!app.viewedAt) {
+    after(() => markViewed(app.id, admin).catch(() => undefined));
     app.viewedAt = new Date().toISOString();
     app.viewedBy = admin;
   }
