@@ -42,15 +42,17 @@ export function CareersShell({
         <header className="bg-white">
           <div aria-hidden="true" className="par-avion h-1.5" />
           <div className="container-site flex items-center justify-between gap-4 py-4">
-            <Image
-              src={site.logoPath}
-              alt="Fostier Consulting"
-              width={2000}
-              height={2000}
-              priority
-              sizes="140px"
-              className="h-[46px] w-[96px] object-cover [object-position:50%_36%] sm:h-[54px] sm:w-[112px]"
-            />
+            <a href={`/${lang}`} className="focus-ring inline-block shrink-0">
+              <Image
+                src={site.logoPath}
+                alt="Fostier Consulting"
+                width={2000}
+                height={2000}
+                priority
+                sizes="140px"
+                className="h-[46px] w-[96px] object-cover [object-position:50%_36%] sm:h-[54px] sm:w-[112px]"
+              />
+            </a>
             <div className="flex items-center gap-4">
               <p className="label hidden sm:block">{t.careers}</p>
               {showLanguageSwitch && <LanguageSwitch lang={lang} label={t.switchTo} />}

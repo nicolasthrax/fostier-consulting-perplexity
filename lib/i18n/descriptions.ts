@@ -16,7 +16,7 @@ export const pageDescriptions: Record<
     privacy: "Comment Fostier Consulting traite les données partagées par e-mail, WhatsApp, WeChat ou téléphone, et vos droits au titre de la PDPO et du RGPD.",
     cookies: "Le site Fostier Consulting n'utilise que des cookies techniques strictement nécessaires : aucun cookie publicitaire, analytique ou de réseau social.",
     terms: "Conditions d'utilisation du site Fostier Consulting : information générale, pas de conseil personnalisé, statut réglementaire, risques et droit applicable.",
-    notice: "Mentions légales de Fostier Consulting : éditeur établi à Central, Hong Kong (BR 38375423), directrice de la publication Lucie Fostier, hébergement.",
+    notice: "Mentions légales de Fostier Consulting : éditeur établi à Central, Hong Kong (BR 38375423), directrice de la publication Lucie Fostier.",
   },
   en: {
     home: "Wealth, tax, savings and insurance advice in Hong Kong, in French, for French residents in Asia. Personal support from founder Lucie Fostier.",

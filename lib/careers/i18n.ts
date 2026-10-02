@@ -133,7 +133,6 @@ const en = {
   notice: {
     metaTitle: "Candidate privacy notice",
     title: "Candidate privacy notice",
-    updated: "Last updated: 2 October 2026",
     intro:
       "This notice explains how Fostier Consulting handles the personal data you give us when you apply for a position. It is our Personal Information Collection Statement under Hong Kong's Personal Data (Privacy) Ordinance (Cap. 486) (the \"PDPO\") and, for applicants in the European Union or the European Economic Area, our information notice under Article 13 of the General Data Protection Regulation (EU) 2016/679 (the \"GDPR\").",
     sections: [
@@ -349,7 +348,6 @@ const fr: Copy = {
   notice: {
     metaTitle: "Confidentialité des candidats",
     title: "Notice de confidentialité des candidats",
-    updated: "Dernière mise à jour : 2 octobre 2026",
     intro:
       "Cette notice explique comment Fostier Consulting traite les données personnelles que vous nous transmettez lorsque vous postulez. Elle constitue notre déclaration de collecte (Personal Information Collection Statement) au titre de la Personal Data (Privacy) Ordinance de Hong Kong (Cap. 486) (la « PDPO ») et, pour les candidats situés dans l'Union européenne ou l'Espace économique européen, notre information au titre de l'article 13 du Règlement général sur la protection des données (UE) 2016/679 (le « RGPD »).",
     sections: [

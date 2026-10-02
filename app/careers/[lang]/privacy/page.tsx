@@ -13,7 +13,6 @@ export default async function CandidateNoticePage({ params }: Props) {
   return (
     <article className="container-site max-w-3xl py-10 sm:py-16">
       <h1 className="h-serif text-4xl leading-[1.05] sm:text-5xl">{n.title}</h1>
-      <p className="label mt-3">{n.updated}</p>
       <p className="body-lead mt-6">{n.intro}</p>
       <div className="mt-10 space-y-8 border-t border-line pt-8">
         {n.sections.map((s) => (

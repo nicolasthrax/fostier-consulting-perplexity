@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Check, Copy, X } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
+import { WeChatLogo } from "./BrandIcons";
 import {
   WECHAT_ID,
   WECHAT_QR_SRC,
@@ -211,6 +212,26 @@ export function WeChatContactChip({ locale }: { locale: Locale | string }) {
           <WeChatIcon className="h-3 w-3" />
         </span>
         <span>WeChat</span>
+      </button>
+      <WeChatContactModal open={open} onClose={() => setOpen(false)} locale={locale} />
+    </>
+  );
+}
+
+/** Official-logo button for the footer's contact row; opens the same dialog. */
+export function WeChatContactLogo({ locale }: { locale: Locale | string }) {
+  const [open, setOpen] = useState(false);
+  const s = getWeChatStrings(locale);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={`WeChat — ${s.title}`}
+        title="WeChat"
+        className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-sm opacity-90 transition-opacity hover:opacity-100"
+      >
+        <WeChatLogo className="h-6 w-6" />
       </button>
       <WeChatContactModal open={open} onClose={() => setOpen(false)} locale={locale} />
     </>

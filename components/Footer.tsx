@@ -1,20 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Linkedin, Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { Logo } from "./Logo";
-import { WhatsAppIcon } from "./WhatsAppIcon";
-import { WeChatContactChip } from "./WeChatContact";
+import { LinkedInLogo, WhatsAppLogo } from "./BrandIcons";
+import { WeChatContactLogo } from "./WeChatContact";
 import { site, whatsappUrl } from "@/lib/site";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { guidesCopy, hasGuides } from "@/lib/guides";
-import { trustCopy } from "@/lib/i18n/trust";
 import { RiskWarning } from "./RiskWarning";
 import { publicBase } from "@/lib/careers/config";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
 const brLabel: Record<Locale, string> = { fr: "N° BR", en: "BR No.", zh: "商业登记号码" };
-const llmsLabel: Record<Locale, string> = { fr: "Infos pour LLMs", en: "LLM info", zh: "AI 助手信息" };
 const careersLabel: Record<Locale, string> = { fr: "Carrières", en: "Careers", zh: "招聘" };
 const noticeLabel: Record<Locale, string> = { fr: "Informations importantes", en: "Important information", zh: "重要信息" };
 
@@ -67,37 +64,28 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
                 <span className="link-underline">{site.email}</span>
               </a>
             </li>
-            <li>
+            {/* Messaging and professional profiles: official logos, grouped on one row. */}
+            <li className="flex items-center gap-1 pt-1">
               <a
                 href={whatsappUrl(dict.actions.whatsappMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={iconLink}
+                aria-label={dict.actions.whatsapp}
+                title="WhatsApp"
+                className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-sm opacity-90 transition-opacity hover:opacity-100"
               >
-                <WhatsAppIcon className="h-4 w-4" />
-                <span className="link-underline">{dict.actions.whatsapp}</span>
+                <WhatsAppLogo className="h-6 w-6" />
               </a>
-            </li>
-            {/* The chip's button is shared, so the footer sets its minimum height here. */}
-            <li className="[&>button]:min-h-6">
-              <WeChatContactChip locale={locale} />
-            </li>
-            <li className="text-sm leading-relaxed text-slate">
-              {trustCopy[locale].backupShort}{" "}
-              <a href={site.backupContact.emailHref} className={`${target} link-underline inline-block font-medium text-navy`}>
-                {site.backupContact.name}
-              </a>
-            </li>
-            <li>
-              <a href={dict.hero.ufePartnerUrl || site.ufePartnerUrl} target="_blank" rel="noopener noreferrer" className={iconLink}>
-                <Image src="/brand/ufe-logo.svg" alt="" width={16} height={16} className="h-4 w-4 object-contain" />
-                <span className="link-underline">{dict.hero.ufePartnerBadge}</span>
-              </a>
-            </li>
-            <li>
-              <a href={site.linkedinUrl} target="_blank" rel="noopener noreferrer" className={iconLink}>
-                <Linkedin className="h-4 w-4" aria-hidden="true" />
-                <span className="link-underline">LinkedIn</span>
+              <WeChatContactLogo locale={locale} />
+              <a
+                href={site.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                title="LinkedIn"
+                className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-sm opacity-90 transition-opacity hover:opacity-100"
+              >
+                <LinkedInLogo className="h-6 w-6" />
               </a>
             </li>
           </ul>
@@ -152,12 +140,6 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
                   </Link>
                 </li>
               ))}
-              {/* Plain-text route, not a page: a regular anchor so Next doesn't try to prefetch it. */}
-              <li>
-                <a href="/llms.txt" type="text/plain" className={subLink}>
-                  {llmsLabel[locale]}
-                </a>
-              </li>
             </ul>
           </nav>
         </div>
