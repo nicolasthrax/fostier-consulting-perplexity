@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { organisationJsonLd } from "@/lib/structured-data";
 import { newsreader, bricolage } from "@/lib/fonts";
 import { site } from "@/lib/site";
@@ -72,6 +73,7 @@ export default async function LocaleLayout({
         <Footer locale={lang} dict={dict} />
         {/* Cookieless audience measurement; only reports on Vercel deployments. */}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
