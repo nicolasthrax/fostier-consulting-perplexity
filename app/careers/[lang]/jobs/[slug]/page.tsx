@@ -6,6 +6,8 @@ import { jobs, openJob, publicBase } from "@/lib/careers/config";
 import { careersCopy, careersLocales, type CareersLocale } from "@/lib/careers/i18n";
 import { site } from "@/lib/site";
 
+const body = "text-[17px] leading-[1.7] text-slate sm:text-lg lg:text-xl";
+
 type Props = { params: Promise<{ lang: CareersLocale; slug: string }> };
 
 export function generateStaticParams() {
@@ -29,43 +31,44 @@ export default async function JobPage({ params }: Props) {
 
   return (
     <div className="container-site py-10 sm:py-16">
-      <div className="max-w-2xl space-y-5">
-        <Link href={publicBase(lang)} className="focus-ring inline-flex items-center gap-1.5 text-sm font-semibold text-navy">
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          <span className="link-underline">{t.job.back}</span>
-        </Link>
-        <h1 className="h-serif text-4xl leading-[1.05] sm:text-5xl">{job.title[lang]}</h1>
-        <p className="label">{job.location[lang]} · {job.type[lang]}</p>
-        {job.sections[lang].map((sec, i) => (
-          <section key={i}>
-            {sec.heading && <h2 className="font-serif text-xl text-ink">{sec.heading}</h2>}
-            {sec.body && (
-              <p className={`${sec.heading ? "mt-2 " : ""}${i === 0 ? "body-lead" : "text-[15px] leading-relaxed text-slate"}`}>{sec.body}</p>
-            )}
-            {sec.items && (
-              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-slate marker:text-fred">
-                {sec.items.map((item) => <li key={item}>{item}</li>)}
-              </ul>
-            )}
-          </section>
-        ))}
-        <div className="border-t border-line pt-5">
-          <h2 className="font-serif text-xl text-ink">{t.job.termsHeading}</h2>
-          <ul className="mt-2 space-y-2 text-sm leading-relaxed text-slate">
-            {job.terms[lang].map((p, i) => <li key={i}>{p}</li>)}
-          </ul>
-        </div>
-        <div className="pt-3">
-          <Link href={`${publicBase(lang)}/jobs/${job.slug}/apply`} className="btn-primary focus-ring">
-            {t.job.apply}
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+      {/* Wide screens: description on the left, terms and Apply in a card on the right. */}
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-16">
+        <div className="space-y-7">
+          <Link href={publicBase(lang)} className="focus-ring inline-flex items-center gap-1.5 text-[15px] font-semibold text-navy">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <span className="link-underline">{t.job.back}</span>
           </Link>
+          <h1 className="h-serif text-4xl leading-[1.05] sm:text-5xl lg:text-6xl">{job.title[lang]}</h1>
+          <p className="font-sans text-base font-medium text-muted sm:text-lg">{job.location[lang]} · {job.type[lang]}</p>
+          {job.sections[lang].map((sec, i) => (
+            <section key={i}>
+              {sec.heading && <h2 className="font-serif text-2xl text-ink sm:text-[1.75rem]">{sec.heading}</h2>}
+              {sec.body && <p className={`${sec.heading ? "mt-3 " : ""}${body}`}>{sec.body}</p>}
+              {sec.items && (
+                <ul className={`mt-3 list-disc space-y-2 pl-5 marker:text-fred ${body}`}>
+                  {sec.items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              )}
+            </section>
+          ))}
         </div>
-        <p className="text-sm leading-relaxed text-muted">{t.equalOpportunity}</p>
-        <p className="text-sm leading-relaxed text-muted">
-          {t.index.questions}{" "}
-          <a href={site.emailHref} className="focus-ring font-semibold text-navy link-underline">{site.email}</a>.
-        </p>
+        <aside className="envelope self-start">
+          <div className="envelope-inner space-y-5 p-6 sm:p-8">
+            <h2 className="font-serif text-2xl text-ink">{t.job.termsHeading}</h2>
+            <ul className="space-y-2.5 text-base leading-relaxed text-slate">
+              {job.terms[lang].map((p, i) => <li key={i}>{p}</li>)}
+            </ul>
+            <Link href={`${publicBase(lang)}/jobs/${job.slug}/apply`} className="btn-primary focus-ring w-full justify-center">
+              {t.job.apply}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <p className="border-t border-line pt-5 text-[15px] leading-relaxed text-muted">{t.equalOpportunity}</p>
+            <p className="text-[15px] leading-relaxed text-muted">
+              {t.index.questions}{" "}
+              <a href={site.emailHref} className="focus-ring font-semibold text-navy link-underline">{site.email}</a>.
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
   );
