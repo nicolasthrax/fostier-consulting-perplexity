@@ -19,13 +19,13 @@ type Errors = Partial<Record<Field | "cv" | "consent", string>>;
 const steps: { fields: Field[] }[] = [
   { fields: ["fullName", "email", "phone", "linkedinUrl", "portfolioUrl"] },
   { fields: [] },
-  { fields: ["workAuthorization", "commissionOnly"] },
+  { fields: ["age", "workAuthorization", "commissionOnly"] },
   { fields: [] },
 ];
 
 const empty: ApplicationInput = {
   fullName: "", email: "", phone: "", linkedinUrl: "", portfolioUrl: "",
-  workAuthorization: "", commissionOnly: "",
+  workAuthorization: "", commissionOnly: "", age: "",
 };
 
 const inputClass =
@@ -254,6 +254,7 @@ export function ApplicationForm({
       `${t.review.phone}: ${values.phone}`,
       values.linkedinUrl && `${t.review.linkedin}: ${values.linkedinUrl}`,
       values.portfolioUrl && `${t.review.portfolio}: ${values.portfolioUrl}`,
+      `${t.review.age}: ${values.age}`,
       `${t.review.workAuthorization}: ${labelFor(workAuthorizations, values.workAuthorization)}`,
       `${t.review.commission}: ${labelFor(commissionOptions, values.commissionOnly)}`,
     ]
@@ -275,6 +276,7 @@ export function ApplicationForm({
     {
       step: 2,
       items: [
+        [t.review.age, values.age],
         [t.review.workAuthorization, labelFor(workAuthorizations, values.workAuthorization)],
         [t.review.commission, labelFor(commissionOptions, values.commissionOnly)],
       ],
@@ -411,6 +413,12 @@ export function ApplicationForm({
 
       {step === 2 && (
         <div className="space-y-5">
+          <div>
+            <Label lang={lang} htmlFor={fid("age")}>{t.age}</Label>
+            <input {...a11y("age", true)} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={2} className={`${inputClass} tabular max-w-[8rem]`} value={values.age} onChange={set("age")} required />
+            <p id={fid("age-hint")} className="mt-1.5 text-sm text-muted">{t.ageHint}</p>
+            {err("age")}
+          </div>
           <div>
             <Label lang={lang} htmlFor={fid("workAuthorization")}>{t.workAuthorization}</Label>
             <select {...a11y("workAuthorization")} className={inputClass} value={values.workAuthorization} onChange={set("workAuthorization")} required>

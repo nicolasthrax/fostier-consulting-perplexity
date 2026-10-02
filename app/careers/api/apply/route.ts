@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 const FIELDS: (keyof ApplicationInput)[] = [
   "fullName", "email", "phone", "linkedinUrl", "portfolioUrl",
-  "workAuthorization", "commissionOnly",
+  "workAuthorization", "commissionOnly", "age",
 ];
 
 /** Checks the file's first bytes, so a renamed executable isn't stored as a "PDF". */

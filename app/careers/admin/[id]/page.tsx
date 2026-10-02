@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AlertTriangle, ArrowLeft, Download, ExternalLink, FileText } from "lucide-react";
 import { isAdmin } from "@/lib/careers/auth";
-import { isSafeId, readApplication } from "@/lib/careers/storage";
+import { isSafeId, markViewed, readApplication } from "@/lib/careers/storage";
 import { API_BASE, commissionOptions, labelFor, pipelineStages, publicBase, workAuthorizationOptions } from "@/lib/careers/config";
 import { AdminActions } from "@/components/careers/AdminActions";
 import { DEFAULT_CAREERS_LOCALE } from "@/lib/careers/i18n";
@@ -34,6 +34,8 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
   if (!isSafeId(id)) notFound();
   const app = await readApplication(id);
   if (!app) notFound();
+  // Opening an application clears its "new" notification.
+  await markViewed(app.id).catch(() => undefined);
 
   const cvUrl = `${API_BASE}/admin/cv/${app.id}`;
   const isPdf = app.cv?.file.endsWith(".pdf");
@@ -46,6 +48,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
     ["Submitted", dateFmt.format(new Date(app.submittedAt))],
   ];
   const answers: [string, string][] = [
+    ["Age", app.age || "—"],
     ["Work authorisation in Hong Kong", labelFor(workAuthorizationOptions, app.workAuthorization)],
     ["Comfortable with commission-only pay, no base salary?", labelFor(commissionOptions, app.commissionOnly)],
   ];

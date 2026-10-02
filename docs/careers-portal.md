@@ -121,3 +121,16 @@ What the portal does, and what stays with you:
   adjust it to how you actually onboard and sponsor licences.
 - *Google Workspace.* The notice lists Google as a processor "where we use it".
   If you never set up the webhook, you may remove that line.
+
+## Admin notifications
+
+- New applications show a red **New** badge and count in the bell until an
+  admin opens them (or uses **Mark all as read**). This is stored with each
+  application, so it is shared by everyone who uses the admin.
+- The bell panel lists unread applications, marking auto-rejected (declined
+  commission) and flagged ones.
+- While the dashboard is open it checks for new applications every minute and
+  when the tab regains focus, shows a pop-up, and puts the unread count in the
+  tab title. **Turn on desktop alerts** in the bell panel adds system
+  notifications when the tab is in the background (browser permission
+  required). Nothing is sent when the dashboard is closed.

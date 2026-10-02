@@ -1,14 +1,31 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ChevronRight, FileText, LayoutGrid, LogOut, Rows3 } from "lucide-react";
+import { AlertTriangle, Bell, BellRing, ChevronRight, FileText, LayoutGrid, LogOut, Rows3, X } from "lucide-react";
 import { API_BASE, labelFor, type ApplicationRecord, type Option, type Stage } from "@/lib/careers/config";
 
 type StageOption = { value: Stage; label: string };
 
 const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Hong_Kong" });
+
+/** How often the open dashboard checks for new applications. */
+const POLL_MS = 60_000;
+const VIEW_KEY = "careers-admin-view";
+
+function timeAgo(iso: string) {
+  const min = Math.round((Date.now() - Date.parse(iso)) / 60_000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `${h} h ago`;
+  return dateFmt.format(new Date(iso));
+}
+
+const NewBadge = () => (
+  <span className="inline-flex items-center rounded-sm bg-fred px-1.5 py-0.5 text-[11px] font-semibold uppercase leading-none tracking-wide text-white">New</span>
+);
 
 export function AdminBoard({
   initial,
@@ -34,7 +51,79 @@ export function AdminBoard({
 }) {
   const router = useRouter();
   const [apps, setApps] = useState(initial);
-  const [view, setView] = useState<"board" | "table">("board");
+  // Table by default; the last choice is remembered on this device.
+  const [view, setViewState] = useState<"board" | "table">("table");
+  const setView = (v: "board" | "table") => {
+    setViewState(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {}
+  };
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(VIEW_KEY) === "board") setViewState("board");
+    } catch {}
+  }, []);
+
+  // ——— Notifications ———
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [toasts, setToasts] = useState<ApplicationRecord[]>([]);
+  const [alertsOn, setAlertsOn] = useState(false);
+  const known = useRef(new Set(initial.map((a) => a.id)));
+  const unread = apps.filter((a) => !a.viewedAt);
+
+  useEffect(() => {
+    if (typeof Notification !== "undefined") setAlertsOn(Notification.permission === "granted");
+  }, []);
+
+  // Unread count in the tab title, so new applications show even in a background tab.
+  useEffect(() => {
+    document.title = `${unread.length ? `(${unread.length}) ` : ""}Candidates | Fostier Consulting`;
+  }, [unread.length]);
+
+  const poll = useCallback(async () => {
+    const res = await fetch(`${API_BASE}/admin/applications`, { cache: "no-store" }).catch(() => null);
+    if (res?.status === 401) return router.refresh();
+    if (!res?.ok) return;
+    const { applications } = (await res.json()) as { applications: ApplicationRecord[] };
+    const fresh = applications.filter((a) => !known.current.has(a.id));
+    applications.forEach((a) => known.current.add(a.id));
+    setApps(applications);
+    if (!fresh.length) return;
+    setToasts((t) => [...fresh, ...t].slice(0, 3));
+    if (alertsOn && document.visibilityState !== "visible") {
+      for (const a of fresh.slice(0, 3)) {
+        const n = new Notification(`New application: ${a.fullName}`, {
+          body: `${a.jobTitle}${a.status === "rejected" ? " · auto-rejected (commission)" : ""}${a.knockouts.length ? " · flagged" : ""}`,
+          tag: a.id,
+        });
+        n.onclick = () => window.open(`${adminBase}/${a.id}`, "_self");
+      }
+    }
+  }, [alertsOn, adminBase, router]);
+
+  useEffect(() => {
+    // Check once on arrival too: coming back from a candidate page can show a cached list.
+    poll();
+    const t = setInterval(poll, POLL_MS);
+    const onFocus = () => document.visibilityState === "visible" && poll();
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, [poll]);
+
+  const enableAlerts = async () => {
+    if (typeof Notification === "undefined") return;
+    setAlertsOn((await Notification.requestPermission()) === "granted");
+  };
+
+  const markAllRead = async () => {
+    const now = new Date().toISOString();
+    setApps((list) => list.map((a) => (a.viewedAt ? a : { ...a, viewedAt: now })));
+    await fetch(`${API_BASE}/admin/notifications`, { method: "POST" }).catch(() => null);
+  };
   const [query, setQuery] = useState("");
   const [job, setJob] = useState("");
   const [saveError, setSaveError] = useState("");
@@ -92,12 +181,20 @@ export function AdminBoard({
     <li key={a.id} className="rounded-sm border border-line bg-white">
       <Link href={href(a)} className="focus-ring group block p-3 hover:bg-mist">
         <span className="flex items-start justify-between gap-2">
-          <span className="font-semibold text-navy group-hover:underline">{a.fullName}</span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-navy group-hover:underline">{a.fullName}</span>
+            {!a.viewedAt && <NewBadge />}
+          </span>
           <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
         </span>
         <span className="mt-1 block text-sm text-slate">{a.jobTitle}</span>
         <span className="mt-1 block text-xs text-muted tabular">{dateFmt.format(new Date(a.submittedAt))}</span>
-        <span className="mt-2 block text-xs text-slate">
+        {a.age && (
+          <span className="mt-2 block text-xs text-slate">
+            <span className="text-muted">Age: </span>{a.age}
+          </span>
+        )}
+        <span className={`${a.age ? "" : "mt-2 "}block text-xs text-slate`}>
           <span className="text-muted">Work: </span>{labelFor(workAuthorizations, a.workAuthorization)}
         </span>
         <span className="block text-xs text-slate">
@@ -120,14 +217,88 @@ export function AdminBoard({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="h-serif text-3xl sm:text-4xl">Candidates</h1>
-          <p className="label mt-1 tabular">{apps.length} application{apps.length === 1 ? "" : "s"} · tap a name to see the CV and answers</p>
+          <p className="label mt-1 tabular">{apps.length} application{apps.length === 1 ? "" : "s"}{unread.length > 0 ? ` · ${unread.length} new` : ""} · tap a name to see the CV and answers</p>
           {storageStatus && <p className="mt-1 text-sm font-medium text-wechat-700">✓ {storageStatus}</p>}
         </div>
-        <button type="button" onClick={logout} className="btn-outline focus-ring !py-2.5">
-          <LogOut className="h-4 w-4" aria-hidden="true" />
-          Sign out
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setPanelOpen((o) => !o)}
+              aria-expanded={panelOpen}
+              aria-controls="notif-panel"
+              className="btn-outline focus-ring relative !px-3 !py-2.5"
+              aria-label={`Notifications: ${unread.length} new application${unread.length === 1 ? "" : "s"}`}
+            >
+              {unread.length ? <BellRing className="h-5 w-5 text-navy" aria-hidden="true" /> : <Bell className="h-5 w-5" aria-hidden="true" />}
+              {unread.length > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 min-w-5 rounded-full bg-fred px-1.5 text-center text-xs font-semibold leading-5 text-white tabular">
+                  {unread.length}
+                </span>
+              )}
+            </button>
+            {panelOpen && (
+              <div id="notif-panel" className="absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-2.5rem))] rounded-sm border border-line bg-white shadow-pop">
+                <div className="flex items-center justify-between border-b border-line px-4 py-3">
+                  <h2 className="font-serif text-lg text-ink">New applications</h2>
+                  {unread.length > 0 && (
+                    <button type="button" onClick={markAllRead} className="focus-ring text-sm font-semibold text-navy link-underline">
+                      Mark all as read
+                    </button>
+                  )}
+                </div>
+                <ul className="max-h-80 overflow-y-auto">
+                  {unread.map((a) => (
+                    <li key={a.id} className="border-b border-line last:border-0">
+                      <Link href={href(a)} className="focus-ring block px-4 py-3 hover:bg-mist">
+                        <span className="block font-semibold text-navy">{a.fullName}</span>
+                        <span className="block text-sm text-slate">{a.jobTitle}</span>
+                        <span className="mt-0.5 block text-xs text-muted">
+                          {timeAgo(a.submittedAt)}
+                          {a.status === "rejected" && <span className="font-semibold text-fred-700"> · auto-rejected (commission)</span>}
+                          {a.status !== "rejected" && a.knockouts.length > 0 && <span className="font-semibold text-fred-700"> · flagged</span>}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                  {!unread.length && <li className="px-4 py-6 text-sm text-muted">You&apos;re all caught up.</li>}
+                </ul>
+                <div className="border-t border-line px-4 py-3 text-xs text-muted">
+                  {alertsOn ? (
+                    "Desktop alerts are on while this dashboard is open."
+                  ) : (
+                    <button type="button" onClick={enableAlerts} className="focus-ring font-semibold text-navy link-underline">
+                      Turn on desktop alerts
+                    </button>
+                  )}{" "}
+                  The list refreshes every minute.
+                </div>
+              </div>
+            )}
+          </div>
+          <button type="button" onClick={logout} className="btn-outline focus-ring !py-2.5">
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            Sign out
+          </button>
+        </div>
       </div>
+
+      {toasts.length > 0 && (
+        <div className="fixed bottom-4 right-4 z-40 w-[min(22rem,calc(100vw-2rem))] space-y-2" aria-live="polite">
+          {toasts.map((a) => (
+            <div key={a.id} className="flex items-start gap-3 rounded-sm border border-line bg-white px-4 py-3 shadow-pop">
+              <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-fred" aria-hidden="true" />
+              <Link href={href(a)} className="focus-ring min-w-0 flex-1 text-sm">
+                <span className="block font-semibold text-navy">New application: {a.fullName}</span>
+                <span className="block text-slate">{a.jobTitle}{a.status === "rejected" ? " · auto-rejected" : ""}</span>
+              </Link>
+              <button type="button" onClick={() => setToasts((t) => t.filter((x) => x.id !== a.id))} className="focus-ring text-muted hover:text-ink" aria-label="Dismiss">
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {storageError && (
         <p role="alert" className="mt-6 rounded-sm border border-fred-700/30 bg-white px-4 py-3 text-sm font-medium text-fred-700">{storageError}</p>
@@ -152,7 +323,7 @@ export function AdminBoard({
           {jobs.map((j) => <option key={j.slug} value={j.slug}>{j.title}{j.open ? "" : " (closed)"}</option>)}
         </select>
         <div className="inline-flex w-fit rounded-sm border border-line bg-white p-0.5 sm:ml-auto" role="group" aria-label="View">
-          {([["board", LayoutGrid, "Pipeline"], ["table", Rows3, "Table"]] as const).map(([v, Icon, label]) => (
+          {([["table", Rows3, "Table"], ["board", LayoutGrid, "Pipeline"]] as const).map(([v, Icon, label]) => (
             <button
               key={v}
               type="button"
@@ -203,23 +374,27 @@ export function AdminBoard({
         </>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-sm bg-white">
-          <table className="w-full min-w-[56rem] text-left text-[15px]">
+          <table className="w-full min-w-[60rem] text-left text-[15px]">
             <thead className="border-b border-line text-sm text-muted">
               <tr>
-                {["Name", "Job", "Submitted", "Work authorisation", "Commission only", "Status"].map((h) => (
+                {["Name", "Job", "Submitted", "Age", "Work authorisation", "Commission only", "Status"].map((h) => (
                   <th key={h} scope="col" className="px-4 py-3 font-medium">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((a) => (
-                <tr key={a.id} className="border-b border-line last:border-0">
+                <tr key={a.id} className={`border-b border-line last:border-0 ${a.viewedAt ? "" : "bg-fred/[0.04]"}`}>
                   <td className="px-4 py-3">
-                    <Link href={href(a)} className="focus-ring font-semibold text-navy link-underline">{a.fullName}</Link>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <Link href={href(a)} className="focus-ring font-semibold text-navy link-underline">{a.fullName}</Link>
+                      {!a.viewedAt && <NewBadge />}
+                    </span>
                     <div className="text-sm text-muted">{a.email}</div>
                   </td>
                   <td className="px-4 py-3 text-slate">{a.jobTitle}</td>
                   <td className="px-4 py-3 tabular text-slate">{dateFmt.format(new Date(a.submittedAt))}</td>
+                  <td className={`px-4 py-3 tabular ${a.age && Number(a.age) < 18 ? "font-semibold text-fred-700" : "text-slate"}`}>{a.age || "—"}</td>
                   <td className="px-4 py-3 text-sm text-slate">{labelFor(workAuthorizations, a.workAuthorization)}</td>
                   <td className={`px-4 py-3 text-sm ${a.commissionOnly === "yes" ? "text-slate" : "font-semibold text-fred-700"}`}>
                     {labelFor(commissionOptions, a.commissionOnly).split(",")[0]}
@@ -228,7 +403,7 @@ export function AdminBoard({
                 </tr>
               ))}
               {!filtered.length && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted">No candidates match.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted">No candidates match.</td></tr>
               )}
             </tbody>
           </table>

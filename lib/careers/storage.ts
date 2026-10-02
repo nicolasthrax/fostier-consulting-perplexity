@@ -259,3 +259,22 @@ async function runSelfTest(): Promise<{ backend: string; ok: boolean; detail: st
     return { backend, ok: false, detail: (err as Error).message };
   }
 }
+
+// ——— Admin notifications ———
+
+/** Marks an application as seen, so it stops showing as new. */
+export async function markViewed(id: string) {
+  const rec = await readApplication(id);
+  if (!rec || rec.viewedAt) return;
+  rec.viewedAt = new Date().toISOString();
+  await backend().update(rec);
+}
+
+/** Marks every unseen application as seen ("Mark all as read"). */
+export async function markAllViewed() {
+  const now = new Date().toISOString();
+  const unseen = (await readApplications()).filter((r) => !r.viewedAt);
+  // Sequential: the local backend rewrites one file per update.
+  for (const rec of unseen) await backend().update({ ...rec, viewedAt: now });
+  return unseen.length;
+}

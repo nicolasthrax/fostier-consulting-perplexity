@@ -28,6 +28,11 @@ export type CvExtension = keyof typeof CV_TYPES;
  */
 export const RETENTION_DAYS = 365;
 
+/** Accepted ages; under ADULT_AGE is flagged for review, not rejected. */
+export const MIN_AGE = 15;
+export const MAX_AGE = 99;
+export const ADULT_AGE = 18;
+
 export type Option = {
   value: string;
   label: Localized;
@@ -230,6 +235,8 @@ export type ApplicationInput = {
   portfolioUrl: string;
   workAuthorization: string;
   commissionOnly: string;
+  /** Age in years, as typed. */
+  age: string;
 };
 
 export type ApplicationRecord = ApplicationInput & {
@@ -244,6 +251,8 @@ export type ApplicationRecord = ApplicationInput & {
   status: Stage;
   knockouts: string[];
   cv: { file: string; originalName: string; size: number; type: string } | null;
+  /** When an admin first opened the application; unset means it shows as new. */
+  viewedAt?: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -279,6 +288,8 @@ export function validateFields(
 
   if (!workAuthorizationOptions.some((o) => o.value === v("workAuthorization"))) e.workAuthorization = m.workAuthorization;
   if (!commissionOptions.some((o) => o.value === v("commissionOnly"))) e.commissionOnly = m.commissionOnly;
+  const age = Number(v("age"));
+  if (!/^\d{1,2}$/.test(v("age")) || age < MIN_AGE || age > MAX_AGE) e.age = m.age;
 
   return e;
 }
@@ -294,13 +305,16 @@ export function validateCvMeta(name: string, size: number, lang: CareersLocale =
 }
 
 /** Knockout labels, in English for the admin board. */
-export function knockoutsFor(input: Pick<ApplicationInput, "workAuthorization" | "commissionOnly">): string[] {
-  return [
+export function knockoutsFor(input: Pick<ApplicationInput, "workAuthorization" | "commissionOnly" | "age">): string[] {
+  const flags = [
     workAuthorizationOptions.find((o) => o.value === input.workAuthorization),
     commissionOptions.find((o) => o.value === input.commissionOnly),
   ]
     .filter((o): o is Option => !!o?.knockout)
     .map((o) => o.label.en);
+  // Minors need a parent's or guardian's agreement before any engagement.
+  if (Number(input.age) < ADULT_AGE) flags.push(`Under ${ADULT_AGE} (age ${input.age})`);
+  return flags;
 }
 
 /**
