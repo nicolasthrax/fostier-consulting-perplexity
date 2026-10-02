@@ -5,7 +5,9 @@ import { AlertTriangle, ArrowLeft, Download, ExternalLink, FileText } from "luci
 import { isAdmin } from "@/lib/careers/auth";
 import { isSafeId, markViewed, readApplication } from "@/lib/careers/storage";
 import { API_BASE, commissionOptions, labelFor, pipelineStages, publicBase, workAuthorizationOptions } from "@/lib/careers/config";
+import { matchTargetUniversities } from "@/lib/careers/universities";
 import { AdminActions } from "@/components/careers/AdminActions";
+import { UniversityBadges } from "@/components/careers/UniversityBadges";
 import { DEFAULT_CAREERS_LOCALE } from "@/lib/careers/i18n";
 
 export const metadata: Metadata = { title: "Candidate" };
@@ -47,8 +49,17 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
     ["Applied in", app.lang === "fr" ? "French" : "English"],
     ["Submitted", dateFmt.format(new Date(app.submittedAt))],
   ];
-  const answers: [string, string][] = [
+  const answers: [string, React.ReactNode][] = [
     ["Age", app.age || "—"],
+    [
+      "University",
+      app.university ? (
+        <span key="u" className="flex flex-wrap items-center gap-2">
+          {app.university}
+          <UniversityBadges codes={matchTargetUniversities(app.university)} />
+        </span>
+      ) : "—",
+    ],
     ["Work authorisation in Hong Kong", labelFor(workAuthorizationOptions, app.workAuthorization)],
     ["Comfortable with commission-only pay, no base salary?", labelFor(commissionOptions, app.commissionOnly)],
   ];

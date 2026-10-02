@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Bell, BellRing, ChevronRight, FileText, LayoutGrid, LogOut, Rows3, X } from "lucide-react";
 import { API_BASE, labelFor, type ApplicationRecord, type Option, type Stage } from "@/lib/careers/config";
+import { matchTargetUniversities } from "@/lib/careers/universities";
+import { UniversityBadges } from "./UniversityBadges";
 
 type StageOption = { value: Stage; label: string };
 
@@ -71,6 +73,7 @@ export function AdminBoard({
   const [alertsOn, setAlertsOn] = useState(false);
   const known = useRef(new Set(initial.map((a) => a.id)));
   const unread = apps.filter((a) => !a.viewedAt);
+  const fromTargetUniversity = apps.filter((a) => matchTargetUniversities(a.university).length).length;
 
   useEffect(() => {
     if (typeof Notification !== "undefined") setAlertsOn(Notification.permission === "granted");
@@ -177,47 +180,56 @@ export function AdminBoard({
       </span>
     ) : null;
 
-  const card = (a: ApplicationRecord) => (
-    <li key={a.id} className="rounded-sm border border-line bg-white">
-      <Link href={href(a)} className="focus-ring group block p-3 hover:bg-mist">
-        <span className="flex items-start justify-between gap-2">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-navy group-hover:underline">{a.fullName}</span>
-            {!a.viewedAt && <NewBadge />}
+  const card = (a: ApplicationRecord) => {
+    const unis = matchTargetUniversities(a.university);
+    return (
+      <li key={a.id} className={`rounded-sm border bg-white ${unis.length ? "border-wechat shadow-[inset_3px_0_0_theme(colors.wechat.DEFAULT)]" : "border-line"}`}>
+        <Link href={href(a)} className="focus-ring group block p-3 hover:bg-mist">
+          <span className="flex items-start justify-between gap-2">
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-navy group-hover:underline">{a.fullName}</span>
+              {!a.viewedAt && <NewBadge />}
+            </span>
+            <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
           </span>
-          <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-        </span>
-        <span className="mt-1 block text-sm text-slate">{a.jobTitle}</span>
-        <span className="mt-1 block text-xs text-muted tabular">{dateFmt.format(new Date(a.submittedAt))}</span>
-        {a.age && (
-          <span className="mt-2 block text-xs text-slate">
-            <span className="text-muted">Age: </span>{a.age}
+          <span className="mt-1 block text-sm text-slate">{a.jobTitle}</span>
+          <span className="mt-1 block text-xs text-muted tabular">{dateFmt.format(new Date(a.submittedAt))}</span>
+          {a.age && (
+            <span className="mt-2 block text-xs text-slate">
+              <span className="text-muted">Age: </span>{a.age}
+            </span>
+          )}
+          {a.university && (
+            <span className={`${a.age ? "" : "mt-2 "}flex flex-wrap items-center gap-1.5 text-xs text-slate`}>
+              <span><span className="text-muted">University: </span>{a.university}</span>
+              <UniversityBadges codes={unis} />
+            </span>
+          )}
+          <span className={`${a.age || a.university ? "" : "mt-2 "}block text-xs text-slate`}>
+            <span className="text-muted">Work: </span>{labelFor(workAuthorizations, a.workAuthorization)}
           </span>
-        )}
-        <span className={`${a.age ? "" : "mt-2 "}block text-xs text-slate`}>
-          <span className="text-muted">Work: </span>{labelFor(workAuthorizations, a.workAuthorization)}
-        </span>
-        <span className="block text-xs text-slate">
-          <span className="text-muted">Commission only: </span>{a.commissionOnly === "yes" ? "Yes" : "No"}
-        </span>
-        {a.cv && (
-          <span className="mt-1 inline-flex items-center gap-1 text-xs text-slate">
-            <FileText className="h-3.5 w-3.5 text-navy" aria-hidden="true" />
-            CV attached
+          <span className="block text-xs text-slate">
+            <span className="text-muted">Commission only: </span>{a.commissionOnly === "yes" ? "Yes" : "No"}
           </span>
-        )}
-        {a.knockouts.length > 0 && <span className="mt-1 block">{flag(a)}</span>}
-      </Link>
-      <div className="border-t border-line px-3 py-2">{statusSelect(a)}</div>
-    </li>
-  );
+          {a.cv && (
+            <span className="mt-1 inline-flex items-center gap-1 text-xs text-slate">
+              <FileText className="h-3.5 w-3.5 text-navy" aria-hidden="true" />
+              CV attached
+            </span>
+          )}
+          {a.knockouts.length > 0 && <span className="mt-1 block">{flag(a)}</span>}
+        </Link>
+        <div className="border-t border-line px-3 py-2">{statusSelect(a)}</div>
+      </li>
+    );
+  };
 
   return (
     <div className="container-site py-8 sm:py-12">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="h-serif text-3xl sm:text-4xl">Candidates</h1>
-          <p className="label mt-1 tabular">{apps.length} application{apps.length === 1 ? "" : "s"}{unread.length > 0 ? ` · ${unread.length} new` : ""} · tap a name to see the CV and answers</p>
+          <p className="label mt-1 tabular">{apps.length} application{apps.length === 1 ? "" : "s"}{unread.length > 0 ? ` · ${unread.length} new` : ""}{fromTargetUniversity > 0 ? ` · ${fromTargetUniversity} from HKU, CUHK or HKUST (in green)` : ""} · tap a name to see the CV and answers</p>
           {storageStatus && <p className="mt-1 text-sm font-medium text-wechat-700">✓ {storageStatus}</p>}
         </div>
         <div className="flex items-center gap-2">
@@ -374,36 +386,48 @@ export function AdminBoard({
         </>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-sm bg-white">
-          <table className="w-full min-w-[60rem] text-left text-[15px]">
+          <table className="w-full min-w-[70rem] text-left text-[15px]">
             <thead className="border-b border-line text-sm text-muted">
               <tr>
-                {["Name", "Job", "Submitted", "Age", "Work authorisation", "Commission only", "Status"].map((h) => (
+                {["Name", "Job", "Submitted", "Age", "University", "Work authorisation", "Commission only", "Status"].map((h) => (
                   <th key={h} scope="col" className="px-4 py-3 font-medium">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((a) => (
-                <tr key={a.id} className={`border-b border-line last:border-0 ${a.viewedAt ? "" : "bg-fred/[0.04]"}`}>
-                  <td className="px-4 py-3">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <Link href={href(a)} className="focus-ring font-semibold text-navy link-underline">{a.fullName}</Link>
-                      {!a.viewedAt && <NewBadge />}
-                    </span>
-                    <div className="text-sm text-muted">{a.email}</div>
-                  </td>
-                  <td className="px-4 py-3 text-slate">{a.jobTitle}</td>
-                  <td className="px-4 py-3 tabular text-slate">{dateFmt.format(new Date(a.submittedAt))}</td>
-                  <td className={`px-4 py-3 tabular ${a.age && Number(a.age) < 18 ? "font-semibold text-fred-700" : "text-slate"}`}>{a.age || "—"}</td>
-                  <td className="px-4 py-3 text-sm text-slate">{labelFor(workAuthorizations, a.workAuthorization)}</td>
-                  <td className={`px-4 py-3 text-sm ${a.commissionOnly === "yes" ? "text-slate" : "font-semibold text-fred-700"}`}>
-                    {labelFor(commissionOptions, a.commissionOnly).split(",")[0]}
-                  </td>
-                  <td className="px-4 py-3">{statusSelect(a)}</td>
-                </tr>
-              ))}
+              {filtered.map((a) => {
+                const unis = matchTargetUniversities(a.university);
+                return (
+                  <tr key={a.id} className={`border-b border-line last:border-0 ${a.viewedAt ? "" : "bg-fred/[0.04]"}`}>
+                    {/* The green bar sits on the cell: Safari draws no box-shadow on table rows. */}
+                    <td className={`px-4 py-3 ${unis.length ? "shadow-[inset_4px_0_0_theme(colors.wechat.DEFAULT)]" : ""}`}>
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Link href={href(a)} className="focus-ring font-semibold text-navy link-underline">{a.fullName}</Link>
+                        {!a.viewedAt && <NewBadge />}
+                      </span>
+                      <div className="text-sm text-muted">{a.email}</div>
+                    </td>
+                    <td className="px-4 py-3 text-slate">{a.jobTitle}</td>
+                    <td className="px-4 py-3 tabular text-slate">{dateFmt.format(new Date(a.submittedAt))}</td>
+                    <td className={`px-4 py-3 tabular ${a.age && Number(a.age) < 18 ? "font-semibold text-fred-700" : "text-slate"}`}>{a.age || "—"}</td>
+                    <td className={`px-4 py-3 text-sm ${unis.length ? "bg-wechat/[0.08] font-semibold text-ink" : "text-slate"}`}>
+                      {a.university ? (
+                        <span className="flex flex-col items-start gap-1">
+                          <UniversityBadges codes={unis} />
+                          {a.university}
+                        </span>
+                      ) : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate">{labelFor(workAuthorizations, a.workAuthorization)}</td>
+                    <td className={`px-4 py-3 text-sm ${a.commissionOnly === "yes" ? "text-slate" : "font-semibold text-fred-700"}`}>
+                      {labelFor(commissionOptions, a.commissionOnly).split(",")[0]}
+                    </td>
+                    <td className="px-4 py-3">{statusSelect(a)}</td>
+                  </tr>
+                );
+              })}
               {!filtered.length && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted">No candidates match.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted">No candidates match.</td></tr>
               )}
             </tbody>
           </table>

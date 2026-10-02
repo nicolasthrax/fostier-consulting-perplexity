@@ -19,13 +19,13 @@ type Errors = Partial<Record<Field | "cv" | "consent", string>>;
 const steps: { fields: Field[] }[] = [
   { fields: ["fullName", "email", "phone", "linkedinUrl", "portfolioUrl"] },
   { fields: [] },
-  { fields: ["age", "workAuthorization", "commissionOnly"] },
+  { fields: ["age", "university", "workAuthorization", "commissionOnly"] },
   { fields: [] },
 ];
 
 const empty: ApplicationInput = {
   fullName: "", email: "", phone: "", linkedinUrl: "", portfolioUrl: "",
-  workAuthorization: "", commissionOnly: "", age: "",
+  workAuthorization: "", commissionOnly: "", age: "", university: "",
 };
 
 const inputClass =
@@ -255,6 +255,7 @@ export function ApplicationForm({
       values.linkedinUrl && `${t.review.linkedin}: ${values.linkedinUrl}`,
       values.portfolioUrl && `${t.review.portfolio}: ${values.portfolioUrl}`,
       `${t.review.age}: ${values.age}`,
+      values.university && `${t.review.university}: ${values.university}`,
       `${t.review.workAuthorization}: ${labelFor(workAuthorizations, values.workAuthorization)}`,
       `${t.review.commission}: ${labelFor(commissionOptions, values.commissionOnly)}`,
     ]
@@ -277,6 +278,7 @@ export function ApplicationForm({
       step: 2,
       items: [
         [t.review.age, values.age],
+        [t.review.university, values.university || "—"],
         [t.review.workAuthorization, labelFor(workAuthorizations, values.workAuthorization)],
         [t.review.commission, labelFor(commissionOptions, values.commissionOnly)],
       ],
@@ -418,6 +420,12 @@ export function ApplicationForm({
             <input {...a11y("age", true)} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={2} className={`${inputClass} tabular max-w-[8rem]`} value={values.age} onChange={set("age")} required />
             <p id={fid("age-hint")} className="mt-1.5 text-sm text-muted">{t.ageHint}</p>
             {err("age")}
+          </div>
+          <div>
+            <Label lang={lang} htmlFor={fid("university")} optional>{t.university}</Label>
+            <input {...a11y("university", true)} className={inputClass} maxLength={150} value={values.university} onChange={set("university")} />
+            <p id={fid("university-hint")} className="mt-1.5 text-sm text-muted">{t.universityHint}</p>
+            {err("university")}
           </div>
           <div>
             <Label lang={lang} htmlFor={fid("workAuthorization")}>{t.workAuthorization}</Label>
