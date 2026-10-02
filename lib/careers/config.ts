@@ -211,6 +211,107 @@ export const jobs: Job[] = [
     },
     open: true,
   },
+  {
+    slug: "private-client-acquisition",
+    title: { en: "Private client acquisition", fr: "Développement de clientèle privée" },
+    location: { en: "Hong Kong", fr: "Hong Kong" },
+    type: { en: "Commission only", fr: "Rémunération à la commission" },
+    summary: {
+      en: "Find and win new private clients for our wealth and financial planning services. Commission only, flexible hours, for French or Mandarin speakers in Hong Kong with a network and a taste for sales.",
+      fr: "Trouvez et convainquez de nouveaux clients privés pour nos services de gestion de patrimoine et de planification financière. À la commission, horaires flexibles, pour les personnes parlant français ou mandarin à Hong Kong, avec un réseau et le goût de la vente.",
+    },
+    sections: {
+      en: [
+        {
+          heading: "About the role",
+          body: "We are looking for driven people to bring new private clients to our wealth and financial planning practice. You source your own prospects, present what we do, and turn interest into a first consultation with our advisers. Pay is commission only and you set your own hours.",
+        },
+        {
+          heading: "Location requirement",
+          body: "You must currently live in Hong Kong and be able to meet prospective clients and attend events in person in Hong Kong. We are unable to consider applicants based outside Hong Kong.",
+        },
+        {
+          heading: "What you will do",
+          items: [
+            "Find your own prospects through your network, LinkedIn, events and referrals.",
+            "Present our services clearly to individuals and families who could benefit from them.",
+            "Book first consultations with our advisers, who take the client from there.",
+            "Keep your pipeline organised and follow up until each lead reaches a decision.",
+          ],
+        },
+        {
+          heading: "What we are looking for",
+          items: [
+            "Someone living in Hong Kong with a network you can open doors in.",
+            "Fluent French or Mandarin: you will speak with clients in their language.",
+            "Experience or studies in sales, business development, finance or a client-facing role.",
+            "A strong drive to earn. Pay is commission only, so what you make depends entirely on the clients you bring in.",
+            "Confidence starting conversations with people you don't know yet, and persistence when the answer is “not now”.",
+            "Self-organised: no one sets your schedule or your targets for the week.",
+          ],
+        },
+        {
+          heading: "What you get",
+          items: [
+            "Commission on every client you bring in (commission only, no base salary).",
+            "Freedom to work the hours and channels that suit you.",
+            "Training on our services and on how to approach clients the right way.",
+          ],
+        },
+      ],
+      fr: [
+        {
+          heading: "Le poste",
+          body: "Nous recherchons des personnes motivées pour apporter de nouveaux clients privés à notre activité de gestion de patrimoine et de planification financière. Vous trouvez vous-même vos prospects, présentez notre offre et transformez leur intérêt en un premier rendez-vous avec nos conseillers. La rémunération se fait uniquement à la commission et vous organisez votre temps comme vous le souhaitez.",
+        },
+        {
+          heading: "Lieu",
+          body: "Vous devez actuellement vivre à Hong Kong et pouvoir rencontrer des clients potentiels et participer à des événements en personne à Hong Kong. Nous ne pouvons pas étudier les candidatures de personnes basées hors de Hong Kong.",
+        },
+        {
+          heading: "Vos missions",
+          items: [
+            "Trouver vos propres prospects grâce à votre réseau, LinkedIn, les événements et les recommandations.",
+            "Présenter clairement nos services aux particuliers et aux familles qui peuvent en bénéficier.",
+            "Fixer des premiers rendez-vous avec nos conseillers, qui accompagnent ensuite le client.",
+            "Tenir votre portefeuille de prospects à jour et relancer chaque contact jusqu'à sa décision.",
+          ],
+        },
+        {
+          heading: "Profil recherché",
+          items: [
+            "Vous vivez à Hong Kong et disposez d'un réseau dans lequel vous pouvez ouvrir des portes.",
+            "Français ou mandarin courant : vous échangerez avec les clients dans leur langue.",
+            "Une expérience ou des études en vente, développement commercial, finance ou dans un poste en contact avec la clientèle.",
+            "Une forte envie de réussir financièrement. La rémunération étant uniquement à la commission, vos revenus dépendent entièrement des clients que vous apportez.",
+            "L'aisance pour engager la conversation avec des personnes que vous ne connaissez pas encore, et de la persévérance face à un « pas maintenant ».",
+            "Autonome et organisé : personne ne fixe votre emploi du temps ni vos objectifs de la semaine.",
+          ],
+        },
+        {
+          heading: "Ce que nous offrons",
+          items: [
+            "Une commission sur chaque client que vous nous apportez (uniquement à la commission, sans salaire fixe).",
+            "La liberté de choisir vos horaires et vos canaux de prospection.",
+            "Une formation sur nos services et sur la bonne manière d'approcher les clients.",
+          ],
+        },
+      ],
+    },
+    terms: {
+      en: [
+        "Pay is commission only: there is no base salary. The terms of engagement are confirmed in writing before you start.",
+        "This role introduces our services and books consultations; it does not involve advising on insurance or investment products, which in Hong Kong requires a licence from the Insurance Authority or the Securities and Futures Commission.",
+        "Outreach to prospective clients must follow Hong Kong's privacy and direct marketing rules. We show you how as part of your training.",
+      ],
+      fr: [
+        "La rémunération se fait uniquement à la commission : il n'y a pas de salaire fixe. Les conditions de la collaboration sont confirmées par écrit avant votre début.",
+        "Ce poste consiste à présenter nos services et à fixer des rendez-vous ; il n'implique pas de conseiller sur des produits d'assurance ou d'investissement, ce qui nécessite à Hong Kong une licence de l'Insurance Authority ou de la Securities and Futures Commission.",
+        "La prospection doit respecter les règles de Hong Kong en matière de données personnelles et de marketing direct. Nous vous les expliquons pendant votre formation.",
+      ],
+    },
+    open: true,
+  },
 ];
 
 export const findJob = (slug: string) => jobs.find((j) => j.slug === slug);
