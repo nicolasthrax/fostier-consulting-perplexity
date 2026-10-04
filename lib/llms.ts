@@ -5,7 +5,7 @@ import { serviceSlugs } from "./i18n/service-slugs";
 import { getServiceDetail, type DetailSection } from "./i18n/service-details";
 import { homeFaq, serviceFaq, type FaqItem } from "./i18n/faq";
 import { locales } from "./i18n/config";
-import { visibleGuides, type GuideTranslation } from "./guides";
+import { listedTranslations, updatedOf, visibleGuides, type GuideTranslation } from "./guides";
 
 /**
  * /llms.txt and /llms-full.txt — plain-Markdown summaries for AI assistants, built
@@ -17,10 +17,11 @@ const url = (path: string) => `${site.baseUrl}${path}`;
 const faqList = (items: FaqItem[]) => items.map((f) => `**${f.q}**\n${f.a}`).join("\n\n");
 
 function guidesSection() {
+  // Unlisted translations are left out, as on the guides index.
   const list = visibleGuides().flatMap((g) =>
-    locales.filter((l) => g.translations[l]).map((l) => {
+    locales.filter((l) => listedTranslations(g)[l]).map((l) => {
       const tr = g.translations[l]!;
-      return `- [${tr.title}](${url(`/${l}/guides/${tr.slug}`)}) (${l}, updated ${g.updated}): ${tr.description}`;
+      return `- [${tr.title}](${url(`/${l}/guides/${tr.slug}`)}) (${l}, updated ${updatedOf(g, l)}): ${tr.description}`;
     })
   );
   return list.length ? `## Guides\n\n${list.join("\n")}\n\n` : "";
@@ -101,9 +102,9 @@ const guideText = (tr: GuideTranslation) =>
 function fullGuides() {
   return visibleGuides()
     .flatMap((g) =>
-      locales.filter((l) => g.translations[l]).map((l) => {
+      locales.filter((l) => listedTranslations(g)[l]).map((l) => {
         const tr = g.translations[l]!;
-        return `## ${tr.title}\n\n${url(`/${l}/guides/${tr.slug}`)} (${l}, updated ${g.updated})\n\n${guideText(tr)}`;
+        return `## ${tr.title}\n\n${url(`/${l}/guides/${tr.slug}`)} (${l}, updated ${updatedOf(g, l)})\n\n${guideText(tr)}`;
       })
     )
     .join("\n\n");

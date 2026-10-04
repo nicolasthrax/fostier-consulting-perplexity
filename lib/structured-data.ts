@@ -3,7 +3,7 @@ import { getDictionary } from "./i18n/get-dictionary";
 import { serviceSlugs } from "./i18n/service-slugs";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "./i18n/founder";
 import type { FaqItem } from "./i18n/faq";
-import { guidesCopy, type Guide } from "./guides";
+import { guidesCopy, updatedOf, type Guide } from "./guides";
 import { site } from "./site";
 
 /**
@@ -180,7 +180,7 @@ export function guideJsonLd(locale: Locale, guide: Guide) {
       mainEntityOfPage: url,
       inLanguage: inLanguage[locale],
       datePublished: guide.published,
-      dateModified: guide.updated,
+      dateModified: updatedOf(guide, locale),
       ...(guide.tags?.length ? { keywords: guide.tags.join(", ") } : {}),
       author: { "@id": personId },
       publisher: { "@id": orgId },

@@ -10,6 +10,7 @@ import type { FaqItem } from "./i18n/faq";
  *   2. Preview with `npm run dev` — drafts render there, never in production builds.
  *   3. Set `status: "published"`. The guides index, the "Guides" nav link, the
  *      sitemap, llms.txt and the Article JSON-LD pick it up automatically.
+ *      To publish a translation without listing it anywhere, add `unlisted: true`.
  *   4. After deploying, run `npm run indexnow` and request indexing in Search Console.
  *
  * Write the first paragraph as a self-contained answer to the title's question, use
@@ -29,6 +30,14 @@ export type GuideTranslation = {
   lead: string;
   sections: GuideSection[];
   faq?: FaqItem[];
+  /**
+   * Unlisted translation: reachable at its URL, indexable, with canonical, hreflang
+   * and a sitemap entry, but never linked from anything visitors browse (the guides
+   * index, llms.txt). Use it to publish a translation quietly.
+   */
+  unlisted?: boolean;
+  /** ISO date overriding the guide's `updated` for this translation only. */
+  updated?: string;
 };
 
 export type Guide = {
@@ -269,6 +278,118 @@ export const guides: Guide[] = [
           },
         ],
       },
+      zh: {
+        slug: "hong-kong-tax-return-french-expats",
+        unlisted: true,
+        updated: "2026-10-04",
+        title: "在港法国人如何报税：香港地域来源征税指南",
+        metaTitle: "在港法国人如何报税：香港薪俸税申报指南",
+        description:
+          "谁需要在香港报税、BIR60 何时寄出、截止日期与所需文件、暂缴税，以及法国方面需要注意的事项。",
+        lead: "每一位在香港工作的法国人，都须就本地受雇收入缴纳薪俸税，并填写税务局（IRD）每年五月初发出的个别人士报税表（BIR60）。课税年度为每年 4 月 1 日至翌年 3 月 31 日。报税期限为一个月，如通过\"电子报税\"（eTAX）网上提交，可自动延长一个月。本指南介绍报税时间表、需准备的文件、暂缴税、法国方面需核实的事项，以及最常见的错误。",
+        sections: [
+          {
+            heading: "谁需要在香港报税？",
+            paragraphs: [
+              "香港采用地域来源原则征税：凡来源于香港的受雇工作、职位或退休金收入，均须缴纳薪俸税，与国籍无关。因此，持本地合约的法国人、派驻香港工作的外派员工，或由香港公司支薪的董事，从第一年起便须纳税。",
+              "一般而言，个人以私人身份取得的资本增值、股息或银行利息在香港无须课税。但在香港出租物业的租金收入须缴纳物业税；以独资经营者身份在香港经营业务的收入则须缴纳利得税。上述收入均在同一份 BIR60 报税表中申报。",
+              "如收到 BIR60，即使您认为无须缴税，也必须填妥交回。如您须课税但未收到报税表（第一年常见情况），法律规定您须在课税年度结束后四个月内以书面通知税务局，即薪俸税须于 7 月 31 日前通知（表格 IR6167）。未收到报税表并不代表免税。",
+              "年中抵港或离港不影响上述原则：您只须申报在港期间的收入。若永久离港，则须办理专门的清税手续，详见我们的《离开香港清单》指南。",
+            ],
+          },
+          {
+            heading: "报税表何时寄出？截止日期是什么时候？",
+            paragraphs: [
+              "税务局于每年五月的第一个工作日大量发出个别人士报税表。以 2025/26 课税年度（2025 年 4 月 1 日至 2026 年 3 月 31 日）为例，BIR60 于 2026 年 5 月 4 日发出，截止日期为发出后一个月，即 2026 年 6 月 4 日；独资经营者为三个月，即 2026 年 8 月 4 日。",
+              "网上提交的报税表可自动获延期一个月：一般为 2026 年 7 月 4 日，独资经营者为 2026 年 9 月 4 日。如因其他原因（如长期离港、患病）未能如期提交，须在截止日期前以书面申请延期并说明理由，延期并非必然获批。",
+              "报税表处理完毕后，税务局会发出评税通知书，合并已完结年度的最终税款及本年度的暂缴税。税款通常分两期缴付：第一期在年初，第二期在春季，具体日期以通知书为准。如对评税有异议，须在通知书发出日期起一个月内以书面提出反对。",
+            ],
+          },
+          {
+            heading: "需要准备哪些文件？",
+            paragraphs: [
+              "您填写的大部分数字来自雇主。雇主每年以表格 IR56B 向税务局申报您的薪酬，并须给您一份副本，一般在四月发出。打开报税表前请先备齐以下文件，这是最花时间的一步：",
+            ],
+            list: [
+              "年内每位雇主发出的 IR56B 副本；如适用，还包括开始受雇（IR56E）、停止受雇（IR56F）或离港（IR56G）的表格。",
+              "浮动薪酬资料：花红、佣金、津贴、股份奖励或认股权，以及实物福利，特别是雇主提供或支付的住所，其计算方法另有规定。",
+              "强积金强制性供款结单，可在年度上限内扣除。",
+              "其他扣除项目的证明：自愿医保计划（VHIS）认可产品保费、可扣税自愿性强积金供款（TVC）、合资格延期年金保费（QDAP）、住宅租金、居所贷款利息、认可慈善捐款，以及个人进修开支。",
+              "申请家庭免税额所需资料：配偶情况、子女出生证明，以及受养父母或祖父母资料。",
+              "如部分时间在香港境外工作：在港及离港日数记录，以及在海外已缴税款的证明。",
+              "上一份评税通知书，用于核对已缴的暂缴税。",
+            ],
+          },
+          {
+            heading: "如何通过\"电子报税\"提交？",
+            paragraphs: [
+              "网上报税通过税务局的电子服务\"电子报税\"（eTAX）进行。自 2025 年 7 月起，该服务设有专门的个人税务网站及流动应用程序。您可使用香港政府的数码身份\"智方便\"（iAM Smart）或 eTAX 账户登入。网上表格与纸本 BIR60 的各部分相对应，提交后即时收到确认。",
+              "网上报税有两大好处：多一个月时间，以及免除邮递风险。纸本报税表仍获接受，但邮资不足的邮件会被拒收，而这正是最常导致逾期的原因。",
+              "夫妻双方各自填写自己的报税表。如合并评税对夫妻更有利，可选择合并评税；如在香港有其他应课税收入（例如租金），可选择个人入息课税。两项选择均直接在报税表中作出，选择前值得先作试算。",
+              "税务局会以两种方法计算税款并收取较低者：按累进税率对扣除免税额后的净收入计税，或按标准税率对未扣除个人免税额的净收入计税。您无须自行选择，但填写完整的报税表可确保您获得所有扣除。",
+            ],
+          },
+          {
+            heading: "什么是暂缴税？可以减少吗？",
+            paragraphs: [
+              "香港不会从薪金中预扣税款。税务局会征收本年度的暂缴税，一般以上一年度的收入为基础，并在翌年抵扣最终税款。因此，在您首个课税年度，评税通知书会合并已完结年度的最终税款及本年度的暂缴税，金额较大，最好提前规划。",
+              "如您的收入大幅下降（估计收入低于上一年度的 90%），或已停止工作，可申请缓缴全部或部分暂缴税。申请须在缴税日期前 28 天提出，或在通知书发出日期后 14 天内提出，以较迟者为准。",
+            ],
+          },
+          {
+            heading: "是否也需要在法国报税？",
+            paragraphs: [
+              "这取决于您在法国法律下的税务居民身份（法国《税务总法典》第 4 B 条）：如您的家庭或主要居住地在法国、主要职业活动在法国，或经济利益中心在法国，即属法国税务居民。符合其中任何一项即可。",
+              "如您已成为非居民，在法国只须申报来源于法国的收入（通常是法国物业的租金），在 impots.gouv.fr 网上申报，由非居民个人税务办公室处理。离开法国当年，一份报税表涵盖离境前作为居民取得的收入，以及离境后仅来源于法国的收入。请记得向税务机关更新新地址。",
+              "法国与香港于 2010 年 10 月 21 日签订全面性避免双重课税协定，并于 2011 年 12 月 1 日生效。该协定处理双方均视您为居民的情况，并规定各类收入由哪一方征税。如需引用该协定，可向税务局申请香港居民身份证明书。",
+              "如您的家人留在法国、由法国雇主外派，或在两地均有重大收入，您的情况应咨询在法国具资格的税务律师或注册会计师。Fostier Consulting 可协助您整理文件及协调沟通，但不能取代该等专业意见。",
+            ],
+          },
+          {
+            heading: "最常见的错误有哪些？",
+            paragraphs: [
+              "每年都会出现同样的疏忽，新来港人士尤其常见：",
+            ],
+            list: [
+              "一直等待从未寄来的报税表，而没有在 7 月 31 日前通知税务局您须课税。",
+              "漏报部分薪酬：课税年度结束后才发放但属于该年度的花红、股份奖励、雇主提供的住所。",
+              "没有申索应得的扣除（自愿医保、租金、可扣税自愿性强积金供款、受养子女）。",
+              "低估第一份评税通知书的金额，因为其中合并了最终税款及暂缴税。",
+              "搬家后没有通知税务局：更改地址须在一个月内通知，否则可能错过通知书及其期限。",
+              "逾期报税：税务局可发出估计评税并处以罚款。",
+              "离开香港前没有清税，导致雇主扣留您的最后一笔薪金。",
+            ],
+          },
+          {
+            heading: "Fostier Consulting 如何协助您",
+            paragraphs: [
+              "我们与您一起准备香港报税表：整理文件、核对每个部分及扣除项目、协助您通过\"电子报税\"提交，并跟进报税时间表及与税务局的往来，可使用法语、英语、普通话或粤语。报税表的准确性及签署仍由您负责；我们协助您完整、准时地提交。",
+            ],
+          },
+        ],
+        faq: [
+          {
+            q: "我什么时候会收到香港报税表？",
+            a: "税务局于五月的第一个工作日发出个别人士报税表（BIR60）；2025/26 年度为 2026 年 5 月 4 日。如您须课税但未收到任何文件，必须在 7 月 31 日前以书面通知税务局。",
+          },
+          {
+            q: "网上报税多出的一个月是自动的吗？",
+            a: "是的。2025/26 年度，税务局自动给予网上提交的报税表多一个月：由 6 月 4 日延至 7 月 4 日；独资经营者由 8 月 4 日延至 9 月 4 日。",
+          },
+          {
+            q: "银行利息和股息需要在香港申报吗？",
+            a: "一般而言不需要：个人以私人身份取得的银行利息、股息及资本增值在香港无须课税。但如您是法国税务居民，这些收入在法国可能须课税。",
+          },
+          {
+            q: "夫妻是否一起报税？",
+            a: "夫妻双方各自收到并填写自己的报税表。如合并评税可降低夫妻的总税款，可选择合并评税，并在报税表中作出选择。",
+          },
+          {
+            q: "法国与香港之间有税务协定吗？",
+            a: "有。双方于 2010 年 10 月 21 日签订全面性避免双重课税协定，于 2011 年 12 月 1 日生效。协定处理双方均视您为居民时的居民身份判定，以及各类收入由哪一方征税等问题。",
+          },
+        ],
+      },
     },
   },
   {
@@ -383,6 +504,117 @@ export const guides: Guide[] = [
           {
             q: "À partir de quand suis-je de nouveau résident fiscal en France ?",
             a: "En principe à la date de votre retour, lorsque votre foyer ou votre lieu de séjour principal est de nouveau en France. L'année du retour, votre déclaration distingue la période de non-résidence et celle de résidence.",
+          },
+        ],
+      },
+      en: {
+        slug: "leaving-hong-kong-checklist",
+        unlisted: true,
+        updated: "2026-10-04",
+        title: "Leaving Hong Kong: The Checklist Before Moving Back to France",
+        metaTitle: "Leaving Hong Kong: the checklist",
+        description:
+          "Leave Hong Kong without missing a step: IR56G and tax clearance, MPF withdrawal, banking, insurance, housing, then settling back in France. A step-by-step timeline.",
+        lead: "To leave Hong Kong smoothly, three steps come first: tell your employer early enough for them to file form IR56G at least one month before you leave and settle your tax with the IRD; decide whether to withdraw your MPF on the ground of permanent departure — something you can do only once in your lifetime; and keep a bank account and health cover until everything is settled. This checklist organises the whole process in four stages: three months before, one month before, the last week, and after you arrive in France.",
+        sections: [
+          {
+            heading: "What should you do three months before leaving?",
+            paragraphs: [
+              "Three months is the window that lets you do everything without rushing: most Hong Kong formalities depend on a confirmed departure date and on documents that take several weeks to arrive.",
+            ],
+            list: [
+              "Set your departure date and tell your employer as early as possible: they must notify the IRD of your departure at least one month in advance, and your final payments depend on it.",
+              "Reread your lease: notice period, break clause, check-out inspection and the conditions for returning your deposit.",
+              "Review your insurance: group health cover usually ends with your employment contract, and an individual policy may have a coverage area that does not include France. Plan cover for the transition period.",
+              "List your MPF accounts (one per employer, sometimes more) and ask yourself whether you might come back to work in Hong Kong: withdrawal on the ground of permanent departure is irreversible.",
+              "Decide which bank accounts to keep and check your bank's conditions for non-resident customers.",
+              "Get quotes from movers and, if you have children, the school certificates and records they will need to enrol in France.",
+            ],
+          },
+          {
+            heading: "What should you do one month before leaving?",
+            paragraphs: [
+              "This is the tax stage. Hong Kong law requires any taxable person leaving Hong Kong for more than one month to notify the IRD at least one month before the expected date, and their employer to file form IR56G within the same period. From that filing, the employer must withhold all money owed to you — salary, bonus, reimbursements — for one month, or until the IRD sends a letter of release, if it arrives sooner. Employees who travel frequently outside Hong Kong for work are not affected.",
+              "The IRD has you complete a return for the year of departure and normally issues the assessment before you leave. The letter of release is issued once the tax is paid: immediately if you pay in cash, by EPS or by cashier order; by post about ten days later if you pay by cheque. Even if you owe nothing, the IRD issues this letter at the end of the process.",
+            ],
+            list: [
+              "Get the copy of the IR56G from your employer, your termination letter and your final pay statement.",
+              "Contact the IRD for tax clearance, with evidence of your deductions, a Hong Kong postal address, a phone number and your future overseas address.",
+              "Prepare your MPF withdrawal: claim form from your trustee or on the eMPF platform, a statutory declaration of permanent departure with no intention of returning to live or work in Hong Kong, and evidence of your right to reside elsewhere. In Hong Kong, the declaration is signed before a Commissioner for Oaths at the Home Affairs Department, a notary public or a Justice of the Peace.",
+              "Give notice to your landlord under the terms of the lease and set the date of the check-out inspection.",
+              "Schedule the termination of electricity, gas, water, internet and your mobile plan, with final meter readings.",
+              "Decide for each insurance policy: keep, adjust or cancel, checking the terms and leaving no gap in cover.",
+            ],
+          },
+          {
+            heading: "What should you do in the last week?",
+            paragraphs: [
+              "The last week is for collecting the documents you will need from France and keeping access to everything that stays open in Hong Kong.",
+            ],
+            list: [
+              "Collect the IRD letter of release: it triggers payment of the money withheld by your employer and can also support your MPF withdrawal.",
+              "Do the check-out inspection (with photos) and give your landlord the account to which the deposit should be returned.",
+              "Update your address with your bank and your tax residency self-certification (CRS form) if you keep an account.",
+              "Keep a way to receive your bank's security codes, often sent by SMS to a local number, and keep access to your iAM Smart app.",
+              "Keep your Hong Kong identity card (HKID): you will need it for the MPF, the bank or the IRD, and if you ever come back. If you are a permanent resident, check with the Immigration Department how to keep your status.",
+              "Consider Hongkong Post's mail redirection service, and gather in one folder the IR56G, the letter of release, the MPF documents, your last payslips and the lease.",
+            ],
+          },
+          {
+            heading: "What should you do after arriving in France?",
+            paragraphs: [
+              "You normally become French tax resident again from the date of your return, once your home or principal place of stay is back in France. The following spring, your income tax return covers two periods: up to your return, only French-source income is declared; after it, all your worldwide income.",
+            ],
+            list: [
+              "Report your new address on impots.gouv.fr.",
+              "Each year, with your income tax return, declare the bank accounts held, used or closed abroad during the year (form 3916), including those in Hong Kong.",
+              "Have the French tax treatment of your MPF withdrawal and of any insurance or savings contracts taken out in Hong Kong checked before making a decision on those contracts.",
+              "Register with the French health insurance system (CPAM): your employer does this if you take a salaried job; otherwise you apply on the basis of residence. Check how long it takes for your rights to open and keep bridging cover until then, for example with the Caisse des Français de l'Étranger (CFE) or a private insurer.",
+              "Ask to be removed from the register of French nationals living abroad, online or at the Consulate General of France in Hong Kong, and register on your local electoral roll.",
+              "Follow the last movements in Hong Kong from France: MPF payment, deposit refund, any tax refund, IRD mail to your overseas address.",
+            ],
+          },
+          {
+            heading: "Which mistakes should you avoid when leaving Hong Kong?",
+            paragraphs: [
+              "Most problems come from a schedule that is too tight or a door closed too early:",
+            ],
+            list: [
+              "Telling your employer too late: the IR56G is filed late and your final salary stays blocked longer.",
+              "Closing all your Hong Kong accounts before receiving the deposit, the MPF, your final salary or a tax refund.",
+              "Cancelling your local mobile number while it still receives your bank's security codes.",
+              "Withdrawing your MPF on the ground of permanent departure while considering coming back: this withdrawal is possible only once in a lifetime, and a false declaration is a criminal offence.",
+              "Leaving a gap in health cover between the end of your Hong Kong insurance and the opening of your rights in France.",
+              "Forgetting to declare in France the accounts still open in Hong Kong.",
+            ],
+          },
+          {
+            heading: "How Fostier Consulting can help",
+            paragraphs: [
+              "We help you prepare your departure notification and tax clearance with the IRD, organise your MPF documents, review your bank accounts and insurance contracts, and keep the timeline on track until you are settled in France — in French or English. For French tax questions, we refer you to a qualified professional.",
+            ],
+          },
+        ],
+        faq: [
+          {
+            q: "Can my employer withhold my final salary when I leave Hong Kong?",
+            a: "Yes — it is a legal obligation. After filing the IR56G, your employer must withhold the money owed to you for one month, or until the IRD sends the letter of release issued once your tax is paid.",
+          },
+          {
+            q: "Do I need tax clearance for a temporary departure?",
+            a: "The obligation to notify the IRD applies to taxable persons leaving Hong Kong for more than one month. Employees who travel frequently for work are exempt and keep filing every year.",
+          },
+          {
+            q: "Can I withdraw my MPF before leaving Hong Kong?",
+            a: "The statutory declaration can cover a departure that has already happened or one that is planned. The trustee decides on the basis of all the documents: a passport alone is not enough to prove your right to reside elsewhere, which is why it pays to prepare the file early.",
+          },
+          {
+            q: "Do I have to close my Hong Kong bank accounts?",
+            a: "Nothing requires you to, but each bank sets its own conditions for non-resident customers. If you keep an account after becoming French tax resident again, you must declare it every year on form 3916.",
+          },
+          {
+            q: "When do I become French tax resident again?",
+            a: "Normally from the date of your return, when your home or principal place of stay is back in France. In the year of return, your tax return separates the non-resident period from the resident period.",
           },
         ],
       },
@@ -600,6 +832,16 @@ const isVisible = (g: Guide) => g.status === "published" || process.env.NODE_ENV
 export const visibleGuides = () => guides.filter(isVisible);
 
 export const guidesIn = (locale: Locale) => visibleGuides().filter((g) => g.translations[locale]);
+
+/** Translations shown in listings: every translation except unlisted ones. */
+export const listedTranslations = (g: Guide): Partial<Record<Locale, GuideTranslation>> =>
+  Object.fromEntries(Object.entries(g.translations).filter(([, t]) => t && !t.unlisted));
+
+/** Guides with a listed translation in `locale` (the guides index). */
+export const listedGuidesIn = (locale: Locale) => visibleGuides().filter((g) => listedTranslations(g)[locale]);
+
+/** Last update of one translation: its own date if set, else the guide's. */
+export const updatedOf = (g: Guide, locale: Locale) => g.translations[locale]?.updated ?? g.updated;
 
 export const findGuide = (locale: Locale, slug: string) =>
   visibleGuides().find((g) => g.translations[locale]?.slug === slug);

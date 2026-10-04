@@ -8,7 +8,7 @@ import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { localizedMetadata } from "@/lib/metadata";
 import { formatUpdated } from "@/lib/i18n/dates";
 import { faqHeading } from "@/lib/i18n/faq";
-import { findGuide, guidePaths, guidesCopy, visibleGuides } from "@/lib/guides";
+import { findGuide, guidePaths, guidesCopy, updatedOf, visibleGuides } from "@/lib/guides";
 import { guideJsonLd } from "@/lib/structured-data";
 import { site } from "@/lib/site";
 import { PageHero, Section } from "@/components/SectionHeading";
@@ -65,7 +65,7 @@ export default async function GuidePage(props: { params: Promise<{ lang: string;
             </Link>
           </p>
         }
-        note={formatUpdated(lang, guide.updated)}
+        note={formatUpdated(lang, updatedOf(guide, lang))}
       />
 
       <Section className="!pt-14">

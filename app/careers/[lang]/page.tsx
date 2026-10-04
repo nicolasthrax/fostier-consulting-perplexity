@@ -2,13 +2,30 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { jobs, publicBase } from "@/lib/careers/config";
-import { careersCopy, type CareersLocale } from "@/lib/careers/i18n";
+import { careersCopy, careersLocales, type CareersLocale } from "@/lib/careers/i18n";
+import { withBrand } from "@/lib/metadata";
 import { site } from "@/lib/site";
 
 type Props = { params: Promise<{ lang: CareersLocale }> };
 
+/**
+ * The layout's title template only applies to child segments, not to this page,
+ * so the brand is added here ("Careers | Fostier Consulting").
+ */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return { title: careersCopy[(await params).lang].index.metaTitle };
+  const { lang } = await params;
+  const t = careersCopy[lang].index;
+  return {
+    title: { absolute: withBrand(t.metaTitle) },
+    description: t.metaDescription,
+    alternates: {
+      canonical: publicBase(lang),
+      languages: {
+        ...Object.fromEntries(careersLocales.map((l) => [l, publicBase(l)])),
+        "x-default": publicBase("fr"),
+      },
+    },
+  };
 }
 
 export default async function CareersIndexPage({ params }: Props) {

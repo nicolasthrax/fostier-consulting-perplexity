@@ -356,3 +356,7 @@ export const getFounder = (locale: Locale): FounderProfile => {
   const profile = profiles[locale] ?? profiles.fr;
   return { ...profile, pressItems: [profile.press, ...(morePress[locale] ?? morePress.fr)] };
 };
+
+/** Alt text for an organisation's logo (credentials strip, UFE badge), e.g. "AIA logo". */
+export const logoAlt = (locale: Locale, name: string): string =>
+  locale === "fr" ? `Logo ${name}` : locale === "zh" ? `${name}标志` : `${name} logo`;

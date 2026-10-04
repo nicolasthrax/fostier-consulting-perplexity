@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { site } from "@/lib/site";
 import { hreflangs, locales, type Locale } from "@/lib/i18n/config";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
-import { guidePaths, hasGuides, visibleGuides } from "@/lib/guides";
+import { guidePaths, hasGuides, updatedOf, visibleGuides } from "@/lib/guides";
 
 /**
  * Real revision dates for `lastmod`. Legal dates mirror the "Last updated" line
@@ -40,7 +40,7 @@ const entry = (locale: Locale, paths: Partial<Record<Locale, string>>, lastModif
   };
 };
 
-/** Guides: the index in every locale, and each guide in the languages it exists in. */
+/** Guides: the index in every locale, and each guide in the languages it exists in (unlisted translations included). */
 function guideEntries(): MetadataRoute.Sitemap {
   if (!hasGuides()) return [];
   const newest = visibleGuides().map((g) => g.updated).sort().at(-1)!;
@@ -49,7 +49,7 @@ function guideEntries(): MetadataRoute.Sitemap {
     ...locales.map((l) => entry(l, index, newest)),
     ...visibleGuides().flatMap((g) => {
       const paths = guidePaths(g);
-      return locales.filter((l) => paths[l]).map((l) => entry(l, paths, g.updated));
+      return locales.filter((l) => paths[l]).map((l) => entry(l, paths, updatedOf(g, l)));
     }),
   ];
 }

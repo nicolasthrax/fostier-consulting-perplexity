@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ArrowUpRight, Mail } from "lucide-react";
 import { site } from "@/lib/site";
 import { trustCopy } from "@/lib/i18n/trust";
+import { logoAlt } from "@/lib/i18n/founder";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
@@ -49,7 +50,7 @@ export function TrustSignals({ locale, dict }: { locale: Locale; dict: Dictionar
               rel="noopener noreferrer"
               className="focus-ring group mt-4 inline-flex min-h-6 items-center gap-2.5 text-[15px] font-semibold text-navy"
             >
-              <Image src="/brand/ufe-logo.svg" alt="" width={22} height={22} className="h-[22px] w-[22px] object-contain" />
+              <Image src="/brand/ufe-logo.svg" alt={logoAlt(locale, "UFE Hong Kong")} width={22} height={22} className="h-[22px] w-[22px] object-contain" />
               <span className="link-underline">{t.partnerLink}</span>
               <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
             </a>
