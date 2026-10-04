@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { locales } from "@/lib/i18n/config";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
+import { site } from "@/lib/site";
 
 /** Unprefixed paths that exist in French, so their redirect can be permanent. */
 const knownPaths = new Set([
@@ -51,8 +52,6 @@ function careersPortal(request: NextRequest) {
   return noindex(NextResponse.rewrite(url));
 }
 
-const CANONICAL_ORIGIN = "https://www.fostierconsulting.com";
-
 /**
  * *.vercel.app hosts duplicate the site. On the production deployment they
  * redirect permanently to the custom domain (same path and query); on preview
@@ -68,7 +67,7 @@ export function middleware(request: NextRequest) {
   const vercelApp = vercelAppHost(request);
   if (vercelApp === "redirect") {
     const { pathname, search } = request.nextUrl;
-    return NextResponse.redirect(`${CANONICAL_ORIGIN}${pathname}${search}`, 301);
+    return NextResponse.redirect(`${site.baseUrl}${pathname}${search}`, 301);
   }
   const res = route(request);
   return vercelApp === "noindex" ? noindex(res) : res;
