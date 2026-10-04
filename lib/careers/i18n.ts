@@ -29,6 +29,8 @@ const en = {
   },
   index: {
     metaTitle: "Careers",
+    metaDescription:
+      "Open positions at Fostier Consulting, a Hong Kong advisory firm for French residents and France–China business. Students welcome: apply online.",
     title: "Work with Fostier Consulting",
     intro:
       "We advise French residents in Hong Kong on their finances, and companies working between France and China. Students are welcome to apply. Choose an open position below.",
@@ -247,6 +249,8 @@ const fr: Copy = {
   },
   index: {
     metaTitle: "Carrières",
+    metaDescription:
+      "Postes ouverts chez Fostier Consulting, cabinet de conseil à Hong Kong pour les résidents français et les projets France–Chine. Étudiants bienvenus.",
     title: "Rejoindre Fostier Consulting",
     intro:
       "Nous accompagnons les résidents français à Hong Kong dans leurs finances, ainsi que les entreprises qui travaillent entre la France et la Chine. Les étudiants sont les bienvenus. Choisissez un poste ci-dessous.",

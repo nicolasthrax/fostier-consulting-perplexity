@@ -16,7 +16,7 @@ import { RiseTitle } from "@/components/RiseTitle";
 import { ServiceIndex } from "@/components/ServiceIndex";
 import { StampPortrait } from "@/components/Stamp";
 import { DualClock } from "@/components/DualClock";
-import { getFounder, FOUNDER_PORTRAIT_SRC } from "@/lib/i18n/founder";
+import { getFounder, FOUNDER_PORTRAIT_SRC, logoAlt } from "@/lib/i18n/founder";
 import { pageDescriptions } from "@/lib/i18n/descriptions";
 import { faqHeading, homeFaq } from "@/lib/i18n/faq";
 import { Faq } from "@/components/Faq";
@@ -109,7 +109,7 @@ export default async function HomePage(props: { params: Promise<{ lang: string }
                 rel="noopener noreferrer"
                 className="focus-ring group inline-flex items-center gap-2.5 text-slate hover:text-navy"
               >
-                <Image src="/brand/ufe-logo.svg" alt="" width={22} height={22} className="h-[22px] w-[22px] object-contain" />
+                <Image src="/brand/ufe-logo.svg" alt={logoAlt(lang, "UFE Hong Kong")} width={22} height={22} className="h-[22px] w-[22px] object-contain" />
                 <span className="link-underline">{dict.hero.ufePartnerBadge}</span>
                 <span className="sr-only"> ({ufeExpansion[lang]})</span>
                 <ArrowUpRight className="h-3.5 w-3.5 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -182,7 +182,7 @@ export default async function HomePage(props: { params: Promise<{ lang: string }
               <ul className="mt-4 flex flex-wrap gap-2.5">
                 {credentials.map(({ name, logo }) => (
                   <li key={name} className="flex items-center gap-2.5 rounded-sm border border-ink/10 bg-white py-2 pl-2 pr-4 text-sm font-medium text-ink">
-                    {logo && <Image src={logo} alt="" width={24} height={24} className="h-6 w-6 object-contain" />}
+                    {logo && <Image src={logo} alt={logoAlt(lang, name)} width={24} height={24} className="h-6 w-6 object-contain" />}
                     {name}
                   </li>
                 ))}

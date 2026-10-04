@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { locales } from "@/lib/i18n/config";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
+import { site } from "@/lib/site";
 
 /** Unprefixed paths that exist in French, so their redirect can be permanent. */
 const knownPaths = new Set([
@@ -52,11 +53,32 @@ function careersPortal(request: NextRequest) {
 }
 
 /**
+ * *.vercel.app hosts duplicate the site. On the production deployment they
+ * redirect permanently to the custom domain (same path and query); on preview
+ * deployments, responses are marked noindex instead (applied after routing).
+ */
+function vercelAppHost(request: NextRequest): "redirect" | "noindex" | null {
+  const host = (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
+  if (!host.endsWith(".vercel.app")) return null;
+  return process.env.VERCEL_ENV === "production" ? "redirect" : "noindex";
+}
+
+export function middleware(request: NextRequest) {
+  const vercelApp = vercelAppHost(request);
+  if (vercelApp === "redirect") {
+    const { pathname, search } = request.nextUrl;
+    return NextResponse.redirect(`${site.baseUrl}${pathname}${search}`, 301);
+  }
+  const res = route(request);
+  return vercelApp === "noindex" ? noindex(res) : res;
+}
+
+/**
  * Paths without a locale prefix are sent to the French version: real pages
  * permanently (308), anything else temporarily (307, then a 404 under /fr).
  * Everything under a known locale passes through.
  */
-export function middleware(request: NextRequest) {
+function route(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const careers = careersPortal(request);
   if (careers) return careers;
