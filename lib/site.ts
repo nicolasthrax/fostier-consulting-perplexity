@@ -26,7 +26,7 @@ export const site = {
     emailHref: "mailto:nicolas@fostierconsulting.com",
   },
   logoPath: "/brand/fostier-consulting-logo.png",
-  district: "Central",
+  district: "West Kowloon",
   foundingYear: "2015",
   /** Founding month, ISO 8601 (year-month), for schema `foundingDate`. */
   foundingDate: "2015-05",
@@ -36,7 +36,7 @@ export const site = {
   /**
    * Google Business Profile, as a coordinate-free CID link (place ID 0x3316948d47b1f653).
    * It is a service-area profile: no street address or map pin is published, and the
-   * old /maps/place URL carried a pin in the New Territories rather than Central.
+   * old /maps/place URL carried a pin in the New Territories rather than West Kowloon.
    */
   googleBusinessUrl: "https://maps.google.com/?cid=3681293079936104019",
   ufePartnerUrl: "https://www.ufehongkong.hk/partenaires/fostier-consulting",

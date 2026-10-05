@@ -16,7 +16,7 @@ export const pageDescriptions: Record<
     privacy: "Comment Fostier Consulting traite les données partagées par e-mail, WhatsApp, WeChat ou téléphone, et vos droits au titre de la PDPO et du RGPD.",
     cookies: "Le site Fostier Consulting n'utilise que des cookies techniques strictement nécessaires : aucun cookie publicitaire, analytique ou de réseau social.",
     terms: "Conditions d'utilisation du site Fostier Consulting : information générale, pas de conseil personnalisé, statut réglementaire, risques et droit applicable.",
-    notice: "Mentions légales de Fostier Consulting : éditeur établi à Central, Hong Kong (BR 38375423), directrice de la publication Lucie Fostier.",
+    notice: "Mentions légales de Fostier Consulting : éditeur établi à West Kowloon, Hong Kong (BR 38375423), directrice de la publication Lucie Fostier.",
   },
   en: {
     home: "Wealth, tax, savings and insurance advice in Hong Kong, in French, for French residents in Asia. Personal support from founder Lucie Fostier.",
@@ -25,7 +25,7 @@ export const pageDescriptions: Record<
     privacy: "How Fostier Consulting handles what you share by email, WhatsApp, WeChat or phone, and your rights under Hong Kong's PDPO and the EU GDPR.",
     cookies: "The Fostier Consulting website uses only strictly necessary technical cookies: no advertising, analytics or social-media cookies are set.",
     terms: "Terms of use for the Fostier Consulting website: general information only, no personalised advice, regulatory status, investment risk, governing law.",
-    notice: "Legal notice for Fostier Consulting: publisher in Central, Hong Kong (Business Registration No. 38375423), publication director Lucie Fostier.",
+    notice: "Legal notice for Fostier Consulting: publisher in West Kowloon, Hong Kong (Business Registration No. 38375423), publication director Lucie Fostier.",
   },
   zh: {
     home: "Fostier Consulting 立足香港，为在亚洲的法国居民提供法语财富规划、税务、储蓄与保险咨询，由创始人 Lucie Fostier 亲自服务。",
@@ -34,7 +34,7 @@ export const pageDescriptions: Record<
     privacy: "Fostier Consulting 如何处理您通过电邮、WhatsApp、微信或电话提供的个人资料，以及您在香港《个人资料（私隐）条例》及欧盟 GDPR 下的权利。",
     cookies: "Fostier Consulting 网站仅使用运行所必需的技术性 Cookie，不设置任何广告、分析或社交媒体 Cookie。",
     terms: "Fostier Consulting 网站使用条款：仅供一般参考，不构成个性化建议，并说明监管身份、投资风险及适用法律。",
-    notice: "Fostier Consulting 网站法律声明：发布方设立于香港中环（商业登记号码 38375423），出版负责人为 Lucie Fostier。",
+    notice: "Fostier Consulting 网站法律声明：发布方设立于香港西九龙（商业登记号码 38375423），出版负责人为 Lucie Fostier。",
   },
 };
 
