@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
 import { careersCopy, careersLocales, isCareersLocale } from "@/lib/careers/i18n";
 import { CareersShell } from "@/components/careers/CareersShell";
+import { jsonLd, organisationJsonLd } from "@/lib/structured-data";
 import "../../globals.css";
 
 /**
@@ -32,5 +33,11 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 export default async function CareersLayout({ children, params }: { children: React.ReactNode; params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (!isCareersLocale(lang)) notFound();
-  return <CareersShell lang={lang}>{children}</CareersShell>;
+  // Now that the portal is indexable, it carries the same site-wide graph as the public pages.
+  return (
+    <CareersShell lang={lang}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisationJsonLd(lang)) }} />
+      {children}
+    </CareersShell>
+  );
 }
