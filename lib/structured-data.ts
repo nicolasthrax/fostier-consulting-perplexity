@@ -5,6 +5,8 @@ import { getFounder, FOUNDER_PORTRAIT_SRC } from "./i18n/founder";
 import type { FaqItem } from "./i18n/faq";
 import { guidesCopy, updatedOf, type Guide } from "./guides";
 import { site } from "./site";
+import { withBrand } from "./metadata";
+import { getPageTitles } from "./i18n/titles";
 
 /**
  * JSON-LD for a professional financial-services business.
@@ -209,5 +211,21 @@ export function faqJsonLd(items: FaqItem[]) {
       name: q,
       acceptedAnswer: { "@type": "Answer", text: a },
     })),
+  };
+}
+
+/** Contact page: points at the site-wide business entity instead of repeating it. */
+export function contactJsonLd(locale: Locale) {
+  const url = `${site.baseUrl}/${locale}/contact`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "@id": `${url}#webpage`,
+    url,
+    name: withBrand(getPageTitles(locale).contact),
+    inLanguage: inLanguage[locale],
+    isPartOf: { "@id": websiteId },
+    about: { "@id": orgId },
+    mainEntity: { "@id": orgId },
   };
 }

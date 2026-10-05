@@ -55,6 +55,7 @@ ${faqList(homeFaq.en)}
 
 - [About ${founder.name}](${url("/en/about")}): background, experience, education and press.
 - [All services](${url("/en/services")})
+- [Contact](${url("/en/contact")}): phone, WhatsApp and email; Hong Kong and Shenzhen, by appointment only (online appointments available).
 - [Home](${url("/en")}) — French version: ${url("/")}, Chinese version: ${url("/zh")}
 - [Full text for AI assistants](${url("/llms-full.txt")}): every service page, FAQ and guide in one file.
 

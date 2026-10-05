@@ -7,7 +7,7 @@ import type { Locale } from "./config";
  */
 export const pageDescriptions: Record<
   Locale,
-  { home: string; services: string; about: string; privacy: string; cookies: string; terms: string; notice: string }
+  { home: string; services: string; about: string; privacy: string; cookies: string; terms: string; notice: string; contact: string }
 > = {
   fr: {
     home: "Conseil en patrimoine, fiscalité, épargne et assurance à Hong Kong, en français, pour les résidents français en Asie. Par Lucie Fostier, fondatrice.",
@@ -17,6 +17,7 @@ export const pageDescriptions: Record<
     cookies: "Le site Fostier Consulting n'utilise que des cookies techniques strictement nécessaires : aucun cookie publicitaire, analytique ou de réseau social.",
     terms: "Conditions d'utilisation du site Fostier Consulting : information générale, pas de conseil personnalisé, statut réglementaire, risques et droit applicable.",
     notice: "Mentions légales de Fostier Consulting : éditeur établi à West Kowloon, Hong Kong (BR 38375423), directrice de la publication Lucie Fostier.",
+    contact: "Contactez Fostier Consulting à Hong Kong et Shenzhen par téléphone, WhatsApp ou e-mail. Sur rendez-vous uniquement, rendez-vous en ligne possibles.",
   },
   en: {
     home: "Wealth, tax, savings and insurance advice in Hong Kong, in French, for French residents in Asia. Personal support from founder Lucie Fostier.",
@@ -26,6 +27,7 @@ export const pageDescriptions: Record<
     cookies: "The Fostier Consulting website uses only strictly necessary technical cookies: no advertising, analytics or social-media cookies are set.",
     terms: "Terms of use for the Fostier Consulting website: general information only, no personalised advice, regulatory status, investment risk, governing law.",
     notice: "Legal notice for Fostier Consulting: publisher in West Kowloon, Hong Kong (Business Registration No. 38375423), publication director Lucie Fostier.",
+    contact: "Contact Fostier Consulting in Hong Kong and Shenzhen by phone, WhatsApp or email. By appointment only, with online appointments available.",
   },
   zh: {
     home: "Fostier Consulting 立足香港，为在亚洲的法国居民提供法语财富规划、税务、储蓄与保险咨询，由创始人 Lucie Fostier 亲自服务。",
@@ -35,6 +37,7 @@ export const pageDescriptions: Record<
     cookies: "Fostier Consulting 网站仅使用运行所必需的技术性 Cookie，不设置任何广告、分析或社交媒体 Cookie。",
     terms: "Fostier Consulting 网站使用条款：仅供一般参考，不构成个性化建议，并说明监管身份、投资风险及适用法律。",
     notice: "Fostier Consulting 网站法律声明：发布方设立于香港西九龙（商业登记号码 38375423），出版负责人为 Lucie Fostier。",
+    contact: "联系 Fostier Consulting：可通过电话、WhatsApp 或电邮预约，服务香港及深圳，亦可安排线上会面，提供法语、英语、普通话及粤语服务。",
   },
 };
 

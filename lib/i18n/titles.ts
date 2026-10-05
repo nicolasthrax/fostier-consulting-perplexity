@@ -22,6 +22,8 @@ export const pageTitles: Record<
     terms: string;
     cookies: string;
     notFound: string;
+    /** Deliberately short ("Contact | Fostier Consulting"): the brand is the query for this page. */
+    contact: string;
   }
 > = {
   fr: {
@@ -33,6 +35,7 @@ export const pageTitles: Record<
     terms: "Conditions d'utilisation du site",
     cookies: "Politique relative aux cookies",
     notFound: "Erreur 404 : contenu introuvable",
+    contact: "Contact",
   },
   en: {
     home: "French-speaking financial planning, HK",
@@ -43,6 +46,7 @@ export const pageTitles: Record<
     terms: "Terms of use and advice disclaimer",
     cookies: "Cookie policy and consent management",
     notFound: "Error 404: the content was not found",
+    contact: "Contact",
   },
   zh: {
     home: "香港法语财富规划与税务服务",
@@ -53,6 +57,7 @@ export const pageTitles: Record<
     terms: "使用条款：本网站的使用规则",
     cookies: "Cookie 政策与同意管理说明",
     notFound: "错误 404：未找到您要访问的内容",
+    contact: "联系我们",
   },
 };
 
