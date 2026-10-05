@@ -7,7 +7,7 @@ import { site } from "@/lib/site";
 /** Unprefixed paths that exist in French, so their redirect can be permanent. */
 const knownPaths = new Set([
   "/",
-  ...["/services", "/about", "/privacy", "/cookies", "/terms", "/legal-notice"],
+  ...["/services", "/about", "/contact", "/privacy", "/cookies", "/terms", "/legal-notice"],
   ...serviceSlugs.map((s) => `/services/${s.fr}`),
 ]);
 

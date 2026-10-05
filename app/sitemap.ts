@@ -17,7 +17,7 @@ const legalUpdated: Record<string, string> = {
   "/legal-notice": "2026-09-30",
 };
 
-const sharedRoutes = ["", "/services", "/about", "/privacy", "/cookies", "/terms", "/legal-notice"];
+const sharedRoutes = ["", "/services", "/about", "/contact", "/privacy", "/cookies", "/terms", "/legal-notice"];
 
 /** Each route as its path per locale (service pages have localised slugs). */
 const routes: Record<Locale, string>[] = [

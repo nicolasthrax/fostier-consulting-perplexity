@@ -6,6 +6,7 @@ import { WeChatContactLogo } from "./WeChatContact";
 import { site, whatsappUrl } from "@/lib/site";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { guidesCopy, hasGuides } from "@/lib/guides";
+import { contactNav } from "@/lib/i18n/contact";
 import { RiskWarning } from "./RiskWarning";
 import { publicBase } from "@/lib/careers/config";
 import type { Locale } from "@/lib/i18n/config";
@@ -21,6 +22,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
     { href: `/${locale}/services`, label: dict.nav.services },
     { href: `/${locale}/about`, label: dict.nav.about },
     ...(hasGuides() ? [{ href: `/${locale}/guides`, label: guidesCopy[locale].nav }] : []),
+    { href: `/${locale}/contact`, label: contactNav[locale] },
     // The recruitment portal is French and English only; Chinese readers get the English pages.
     { href: publicBase(locale === "fr" ? "fr" : "en"), label: careersLabel[locale] },
   ];

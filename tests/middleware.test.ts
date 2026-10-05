@@ -136,6 +136,12 @@ describe("middleware, rest of the site", () => {
     expect(res.headers.get("x-robots-tag")).toBeNull();
   });
 
+  it("permanently redirects /contact to the French contact page", () => {
+    const res = run("/contact");
+    expect(res.status).toBe(308);
+    expect(redirectedTo(res)).toBe("/fr/contact");
+  });
+
   it("temporarily redirects unknown unprefixed paths", () => {
     const res = run("/nope");
     expect(res.status).toBe(307);
