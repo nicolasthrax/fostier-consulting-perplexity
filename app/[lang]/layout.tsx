@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { Analytics } from "@vercel/analytics/next";
-import { organisationJsonLd } from "@/lib/structured-data";
+import { jsonLd, organisationJsonLd } from "@/lib/structured-data";
 import { newsreader, bricolage } from "@/lib/fonts";
 import { site } from "@/lib/site";
 import { getPageTitles } from "@/lib/i18n/titles";
@@ -56,12 +56,11 @@ export default async function LocaleLayout({
   const { lang } = (await params) as { lang: Locale };
   if (!locales.includes(lang)) notFound();
   const dict = getDictionary(lang);
-  const jsonLd = organisationJsonLd(lang);
 
   return (
     <html lang={dict.htmlLang} className={`${newsreader.variable} ${bricolage.variable} font-sans`}>
       <body className="flex min-h-screen flex-col">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisationJsonLd(lang)) }} />
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-sm focus:bg-navy focus:px-5 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
           {skipLinkLabel[lang]}
         </a>

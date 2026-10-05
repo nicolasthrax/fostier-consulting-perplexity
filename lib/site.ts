@@ -5,13 +5,10 @@
 
 export const site = {
   name: "Fostier Consulting",
-  /** Name as published in the legal notice (site publisher). Update if the BR certificate shows a different registered name. */
-  legalName: "Fostier Consulting",
-  /**
-   * Disambiguating name used in schema and llms.txt: search engines tend to fold
-   * "Fostier" into "Foster", so the brand is paired with the city.
-   */
-  alternateName: "Fostier Consulting Hong Kong",
+  /** Registered company name, as on the Hong Kong Business Registration certificate. */
+  legalName: "FOSTIER CONSULTING LIMITED",
+  /** Short form clients use; schema `alternateName` on the organisation and website. */
+  alternateName: "FC",
   city: "Hong Kong",
   phoneDisplay: "+852 6537 4439",
   phoneHref: "tel:+85265374439",
