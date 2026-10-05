@@ -14,6 +14,8 @@ const redirectedTo = (res: Response) => {
 };
 const passesThrough = (res: Response) => res.headers.get("x-middleware-next") === "1";
 const noindexed = (res: Response) => expect(res.headers.get("x-robots-tag")).toContain("noindex");
+const indexable = (res: Response) => expect(res.headers.get("x-robots-tag")).toBeNull();
+const robots = (res: Response) => res.headers.get("x-robots-tag");
 
 /** The page is served from `pathname`: either passed through or rewritten to itself. */
 const servedAt = (res: Response, pathname: string) => {
@@ -29,19 +31,30 @@ describe("middleware, default portal at /careers", () => {
   it("rewrites /careers to the French pages", () => {
     const res = run("/careers");
     expect(rewrittenTo(res)).toBe("/careers/fr");
-    noindexed(res);
+    indexable(res);
   });
 
   it("rewrites French sub-pages to /careers/fr/...", () => {
     const res = run("/careers/jobs/x");
     expect(rewrittenTo(res)).toBe("/careers/fr/jobs/x");
-    noindexed(res);
+    indexable(res);
   });
 
   it("serves English pages as they are", () => {
     const res = run("/careers/en/jobs/x");
     servedAt(res, "/careers/en/jobs/x");
-    noindexed(res);
+    indexable(res);
+    indexable(run("/careers/en"));
+  });
+
+  it("keeps the application forms and candidate notice out of results, following their links", () => {
+    for (const p of ["/careers/jobs/x/apply", "/careers/en/jobs/x/apply", "/careers/privacy", "/careers/en/privacy"]) {
+      expect(robots(run(p)), p).toBe("noindex, noarchive");
+    }
+  });
+
+  it("marks unknown portal paths fully private", () => {
+    expect(robots(run("/careers/jobs/x/other"))).toBe("noindex, nofollow, noarchive");
   });
 
   it("redirects /careers/fr/... to the unprefixed URL with a 308", () => {
@@ -52,11 +65,11 @@ describe("middleware, default portal at /careers", () => {
     expect(redirectedTo(run("/careers/fr"))).toBe("/careers");
   });
 
-  it("serves the API and admin as they are", () => {
-    for (const p of ["/careers/api/apply", "/careers/admin"]) {
+  it("serves the API and admin as they are, fully private", () => {
+    for (const p of ["/careers/api/apply", "/careers/admin", "/careers/admin/abc"]) {
       const res = run(p);
       servedAt(res, p);
-      noindexed(res);
+      expect(robots(res), p).toBe("noindex, nofollow, noarchive");
     }
   });
 
@@ -77,9 +90,16 @@ describe("middleware, secret portal slug", () => {
   it("serves the portal at /<slug>", () => {
     const res = run("/join-abc");
     expect(rewrittenTo(res)).toBe("/careers/fr");
-    noindexed(res);
+    indexable(res);
     expect(rewrittenTo(run("/join-abc/jobs/x"))).toBe("/careers/fr/jobs/x");
     expect(rewrittenTo(run("/join-abc/en/jobs/x"))).toBe("/careers/en/jobs/x");
+    indexable(run("/join-abc/en/jobs/x"));
+  });
+
+  it("applies the same robots rules under the slug", () => {
+    expect(robots(run("/join-abc/jobs/x/apply"))).toBe("noindex, noarchive");
+    expect(robots(run("/join-abc/privacy"))).toBe("noindex, noarchive");
+    expect(robots(run("/join-abc/admin"))).toBe("noindex, nofollow, noarchive");
   });
 
   it("redirects /<slug>/fr/... under the slug", () => {

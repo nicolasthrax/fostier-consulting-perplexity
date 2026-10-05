@@ -6,9 +6,10 @@ import { CareersShell } from "@/components/careers/CareersShell";
 import "../../globals.css";
 
 /**
- * Unlisted recruitment portal, in French (/careers, rewritten to /careers/fr by
- * the middleware) and English (/careers/en). Never linked from the site, the
- * sitemap or robots.txt, and marked noindex.
+ * Recruitment portal, in French (/careers, rewritten to /careers/fr by the
+ * middleware) and English (/careers/en). Linked from the site footer; the landing
+ * and job pages are indexable and listed in the sitemap, while the application
+ * forms and the candidate notice opt out in their own metadata.
  */
 export function generateStaticParams() {
   return careersLocales.map((lang) => ({ lang }));
@@ -23,12 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   return {
     metadataBase: new URL(site.baseUrl),
     title: { template: `%s | ${site.name}`, default: `${t.careers} | ${site.name}` },
-    robots: {
-      index: false,
-      follow: false,
-      nocache: true,
-      googleBot: { index: false, follow: false, noimageindex: true },
-    },
+    robots: { index: true, follow: true },
     referrer: "no-referrer",
   };
 }

@@ -4,7 +4,11 @@ import { careersCopy, type CareersLocale } from "@/lib/careers/i18n";
 type Props = { params: Promise<{ lang: CareersLocale }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return { title: careersCopy[(await params).lang].notice.metaTitle };
+  return {
+    title: careersCopy[(await params).lang].notice.metaTitle,
+    // Linked from the forms, but kept out of search results; its links are followed.
+    robots: { index: false, follow: true },
+  };
 }
 
 export default async function CandidateNoticePage({ params }: Props) {
