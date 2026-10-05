@@ -26,7 +26,7 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
     },
     {
       q: "Où est basé Fostier Consulting et quelles zones couvre-t-il ?",
-      a: "Fondé en 2015, Fostier Consulting est basé à Central, Hong Kong. Lucie Fostier accompagne des particuliers à Hong Kong, à Macao et en Chine continentale ; l'interprétariat et les projets avec des fournisseurs chinois couvrent Hong Kong et la Chine continentale.",
+      a: "Fondé en 2015, Fostier Consulting est basé à West Kowloon, Hong Kong. Lucie Fostier accompagne des particuliers à Hong Kong, à Macao et en Chine continentale ; l'interprétariat et les projets avec des fournisseurs chinois couvrent Hong Kong et la Chine continentale.",
     },
     {
       q: "Dans quelles langues se déroule l'accompagnement ?",
@@ -56,7 +56,7 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
     },
     {
       q: "Where is Fostier Consulting based, and which areas does it cover?",
-      a: "Founded in 2015, Fostier Consulting is based in Central, Hong Kong. Lucie Fostier advises private clients in Hong Kong, Macau and mainland China; interpreting and Chinese-supplier projects cover Hong Kong and mainland China.",
+      a: "Founded in 2015, Fostier Consulting is based in West Kowloon, Hong Kong. Lucie Fostier advises private clients in Hong Kong, Macau and mainland China; interpreting and Chinese-supplier projects cover Hong Kong and mainland China.",
     },
     {
       q: "Which languages do you work in?",
@@ -86,7 +86,7 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
     },
     {
       q: "Fostier Consulting 设在哪里？服务覆盖哪些地区？",
-      a: "Fostier Consulting 于 2015 年成立，立足香港中环。Lucie Fostier 为香港、澳门及中国内地的个人客户提供咨询；口译及中国供应商相关服务覆盖香港及中国内地。",
+      a: "Fostier Consulting 于 2015 年成立，立足香港西九龙。Lucie Fostier 为香港、澳门及中国内地的个人客户提供咨询；口译及中国供应商相关服务覆盖香港及中国内地。",
     },
     {
       q: "提供哪些语言的服务？",

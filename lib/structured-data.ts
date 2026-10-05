@@ -52,7 +52,7 @@ export function organisationJsonLd(locale: Locale) {
         foundingDate: site.foundingDate,
         identifier: { "@type": "PropertyValue", propertyID: "Hong Kong Business Registration Number", value: site.brn },
         // Service-area business: district only, matching the Google Business Profile.
-        // No hasMap / geo: the profile publishes no pin that matches Central.
+        // No hasMap / geo: the profile publishes no pin that matches West Kowloon.
         address: { "@type": "PostalAddress", addressLocality: site.district, addressRegion: "Hong Kong", addressCountry: "HK" },
         areaServed: [
           { "@type": "City", name: "Hong Kong" },

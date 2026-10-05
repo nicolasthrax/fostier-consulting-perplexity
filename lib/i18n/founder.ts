@@ -82,7 +82,7 @@ const profiles: Record<Locale, Omit<FounderProfile, "pressItems">> = {
       {
         role: "Fondatrice",
         company: "Fostier Consulting",
-        location: "Central, Hong Kong",
+        location: "West Kowloon, Hong Kong",
         current: true,
         period: "Depuis 2015",
         detail:
@@ -150,7 +150,7 @@ const profiles: Record<Locale, Omit<FounderProfile, "pressItems">> = {
       {
         role: "Founder",
         company: "Fostier Consulting",
-        location: "Central, Hong Kong",
+        location: "West Kowloon, Hong Kong",
         current: true,
         period: "Since 2015",
         detail:
@@ -218,7 +218,7 @@ const profiles: Record<Locale, Omit<FounderProfile, "pressItems">> = {
       {
         role: "创始人",
         company: "Fostier Consulting",
-        location: "香港中环",
+        location: "香港西九龙",
         current: true,
         period: "2015 年至今",
         detail:
