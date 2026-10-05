@@ -55,7 +55,7 @@ ${faqList(homeFaq.en)}
 
 - [About ${founder.name}](${url("/en/about")}): background, experience, education and press.
 - [All services](${url("/en/services")})
-- [Home](${url("/en")}) — French version: ${url("/fr")}, Chinese version: ${url("/zh")}
+- [Home](${url("/en")}) — French version: ${url("/")}, Chinese version: ${url("/zh")}
 - [Full text for AI assistants](${url("/llms-full.txt")}): every service page, FAQ and guide in one file.
 
 ## Legal

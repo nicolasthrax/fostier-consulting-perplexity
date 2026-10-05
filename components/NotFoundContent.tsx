@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { Locale } from "@/lib/i18n/config";
+import { homePath, type Locale } from "@/lib/i18n/config";
 import { site } from "@/lib/site";
 import { useLocale } from "./LocaleProvider";
 
@@ -20,7 +20,7 @@ export function NotFoundContent() {
       <p className="-rotate-3 rounded-sm border-2 border-fred-700 px-4 py-2 font-sans text-sm font-bold tracking-[.12em] text-fred-700">{t.stamp}</p>
       <h1 className="h-serif mt-8 text-6xl sm:text-7xl">404</h1>
       <p className="body-lead mt-4 max-w-md">{t.body}</p>
-      <Link href={`/${locale}`} className="focus-ring btn-primary mt-8">
+      <Link href={homePath(locale)} className="focus-ring btn-primary mt-8">
         {t.home}
       </Link>
       <p id="contact" className="mt-10 text-[15px] text-slate">

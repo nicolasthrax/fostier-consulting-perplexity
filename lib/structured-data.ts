@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n/config";
+import { homePath, type Locale } from "./i18n/config";
 import { getDictionary } from "./i18n/get-dictionary";
 import { serviceSlugs } from "./i18n/service-slugs";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "./i18n/founder";
@@ -44,7 +44,7 @@ export function organisationJsonLd(locale: Locale) {
         legalName: site.legalName,
         alternateName: site.alternateName,
         description: dict.meta.siteDescription,
-        url: `${site.baseUrl}/${locale}`,
+        url: `${site.baseUrl}${homePath(locale)}`,
         logo: `${site.baseUrl}${site.logoPath}`,
         image: `${site.baseUrl}${site.logoPath}`,
         telephone: site.phoneHref.replace("tel:", ""),
@@ -157,7 +157,7 @@ export function serviceJsonLd(locale: Locale, index: number) {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: site.name, item: `${site.baseUrl}/${locale}` },
+        { "@type": "ListItem", position: 1, name: site.name, item: `${site.baseUrl}${homePath(locale)}` },
         { "@type": "ListItem", position: 2, name: dict.nav.services, item: `${site.baseUrl}/${locale}/services` },
         { "@type": "ListItem", position: 3, name: service.title, item: url },
       ],
@@ -191,7 +191,7 @@ export function guideJsonLd(locale: Locale, guide: Guide) {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: site.name, item: `${site.baseUrl}/${locale}` },
+        { "@type": "ListItem", position: 1, name: site.name, item: `${site.baseUrl}${homePath(locale)}` },
         { "@type": "ListItem", position: 2, name: guidesCopy[locale].title, item: `${site.baseUrl}/${locale}/guides` },
         { "@type": "ListItem", position: 3, name: tr.title, item: url },
       ],

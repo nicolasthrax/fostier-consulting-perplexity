@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/lib/site";
-import { hreflangs, locales, type Locale } from "@/lib/i18n/config";
+import { hreflangs, locales, localePath, type Locale } from "@/lib/i18n/config";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { guidePaths, hasGuides, updatedOf, visibleGuides } from "@/lib/guides";
 
@@ -29,12 +29,12 @@ const entry = (locale: Locale, paths: Partial<Record<Locale, string>>, lastModif
   const available = locales.filter((l) => paths[l] !== undefined);
   const xDefault = paths.fr !== undefined ? "fr" : available[0];
   return {
-    url: `${site.baseUrl}/${locale}${paths[locale]}`,
+    url: `${site.baseUrl}${localePath(locale, paths[locale]!)}`,
     lastModified,
     alternates: {
       languages: Object.fromEntries([
-        ...available.map((l) => [hreflangs[l], `${site.baseUrl}/${l}${paths[l]}`]),
-        ["x-default", `${site.baseUrl}/${xDefault}${paths[xDefault]}`],
+        ...available.map((l) => [hreflangs[l], `${site.baseUrl}${localePath(l, paths[l]!)}`]),
+        ["x-default", `${site.baseUrl}${localePath(xDefault, paths[xDefault]!)}`],
       ]),
     },
   };
@@ -57,12 +57,12 @@ function guideEntries(): MetadataRoute.Sitemap {
 export default function sitemap(): MetadataRoute.Sitemap {
   return [...routes.flatMap((route) =>
     locales.map((locale) => ({
-      url: `${site.baseUrl}/${locale}${route[locale]}`,
+      url: `${site.baseUrl}${localePath(locale, route[locale])}`,
       lastModified: legalUpdated[route.fr] ?? site.contentUpdated,
       alternates: {
         languages: Object.fromEntries([
-          ...locales.map((l) => [hreflangs[l], `${site.baseUrl}/${l}${route[l]}`]),
-          ["x-default", `${site.baseUrl}/fr${route.fr}`],
+          ...locales.map((l) => [hreflangs[l], `${site.baseUrl}${localePath(l, route[l])}`]),
+          ["x-default", `${site.baseUrl}${localePath("fr", route.fr)}`],
         ]),
       },
     }))

@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { homePath, type Locale } from "@/lib/i18n/config";
 
 // The source PNG is a square with the monogram in a wide middle band;
 // object-cover crops the empty margins so the mark reads at header size.
-export function Logo({ locale, className = "h-[46px] w-[96px] sm:h-[54px] sm:w-[112px]" }: { locale: string; className?: string }) {
+export function Logo({ locale, className = "h-[46px] w-[96px] sm:h-[54px] sm:w-[112px]" }: { locale: Locale; className?: string }) {
   return (
     <Link
-      href={`/${locale}`}
+      href={homePath(locale)}
       className="focus-ring flex shrink-0 items-center rounded-sm"
       aria-label="Fostier Consulting"
     >
