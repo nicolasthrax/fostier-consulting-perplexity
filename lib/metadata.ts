@@ -3,11 +3,12 @@ import { site } from "./site";
 import { hreflangs, ogLocales, locales, localePath, type Locale } from "./i18n/config";
 
 /**
- * Appends " | Fostier Consulting" unless the title already ends with a brand suffix
- * (e.g. " | Fostier" or " | Fostier Consulting Hong Kong"), so the brand is never doubled.
+ * Appends " | Fostier Consulting" unless the title already starts with the brand (the
+ * home page) or ends with a brand suffix (e.g. " | Fostier" or " | Fostier Consulting
+ * Hong Kong"), so the brand is never doubled.
  */
 export const withBrand = (title: string) =>
-  /\|\s*Fostier\b[^|]*$/.test(title) ? title : `${title} | ${site.name}`;
+  title.startsWith(site.name) || /\|\s*Fostier\b[^|]*$/.test(title) ? title : `${title} | ${site.name}`;
 
 /**
  * Builds canonical + hreflang alternates and OG metadata for a route.
@@ -38,9 +39,14 @@ export function localizedMetadata({
 
   const fullTitle = withBrand(title);
   // Pages that set `openGraph` drop the file-based image, so reference it explicitly.
-  const images = [{ url: `/${locale}/opengraph-image`, width: 1200, height: 630, alt: site.name }];
+  const images = [{ url: `${site.baseUrl}/${locale}/opengraph-image`, width: 1200, height: 630, alt: site.name }];
+  // With a metadataBase, Next prints the site root as "https://…com" (no slash), unlike
+  // the sitemap. Pages that link the root (the home pages) drop it, so every URL
+  // returned here must stay absolute.
+  const linksRoot = Object.values(languages).includes(`${site.baseUrl}/`);
 
   return {
+    ...(linksRoot && { metadataBase: null }),
     title: { absolute: fullTitle },
     description,
     alternates: { canonical, languages },
