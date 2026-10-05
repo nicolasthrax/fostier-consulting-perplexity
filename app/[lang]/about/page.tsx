@@ -16,7 +16,7 @@ import { localizedMetadata } from "@/lib/metadata";
 import { getPageTitles } from "@/lib/i18n/titles";
 import { pageDescriptions } from "@/lib/i18n/descriptions";
 import { formatUpdated } from "@/lib/i18n/dates";
-import { aboutJsonLd } from "@/lib/structured-data";
+import { aboutJsonLd, jsonLd } from "@/lib/structured-data";
 import { site } from "@/lib/site";
 
 export async function generateMetadata(props: { params: Promise<{ lang: string }> }): Promise<Metadata> {
@@ -44,7 +44,7 @@ export default async function AboutPage(props: { params: Promise<{ lang: string 
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd(params.lang)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(aboutJsonLd(params.lang)) }} />
       <PageHero title={a.title} note={formatUpdated(params.lang, site.contentUpdated)} />
       <AdvisorArrow label={advisorArrowLabel[params.lang] ?? advisorArrowLabel.en} />
 

@@ -13,7 +13,7 @@ import { faqHeading, serviceFaq } from "@/lib/i18n/faq";
 import { getServiceDetail } from "@/lib/i18n/service-details";
 import { Faq } from "@/components/Faq";
 import { ServiceDetails } from "@/components/ServiceDetails";
-import { serviceJsonLd } from "@/lib/structured-data";
+import { jsonLd, serviceJsonLd } from "@/lib/structured-data";
 import { site, whatsappUrl } from "@/lib/site";
 import { PageHero, Section } from "@/components/SectionHeading";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
@@ -62,7 +62,7 @@ export default async function ServicePage(props: { params: Promise<{ lang: strin
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd(lang, i)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(serviceJsonLd(lang, i)) }}
       />
       <PageHero
         title={service.title}
