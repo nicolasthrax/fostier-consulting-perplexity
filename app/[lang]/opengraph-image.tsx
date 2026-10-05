@@ -1,6 +1,7 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { locales, type Locale } from "@/lib/i18n/config";
-import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { site } from "@/lib/site";
 
 export const alt = site.name;
@@ -11,82 +12,92 @@ export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
+/** A headline line is a list of runs; `em` runs are set in italic (Latin scripts only). */
+type Run = string | { em: string };
+
 /**
- * The bundled OG font has no CJK glyphs. For Chinese, fetch just the tagline's glyphs
- * from Google Fonts at build time (TTF, which Satori reads); on failure, fall back to English.
+ * The card copy, written as one message in three languages: the same two-line headline
+ * and the same subtitle, broken at fixed points so every locale has the same layout.
  */
-async function loadCjkFont(text: string): Promise<ArrayBuffer | null> {
+const copy: Record<Locale, { lines: [Run[], Run[]]; subtitle: string }> = {
+  fr: {
+    lines: [["Votre patrimoine, conseillé"], [{ em: "en français" }, " à Hong Kong."]],
+    subtitle: "Conseil financier et fiscal aux résidents français en Asie.",
+  },
+  en: {
+    lines: [["Wealth advice ", { em: "in French" }, ","], ["here in Hong Kong."]],
+    subtitle: "Investment and tax advice for French residents in Asia.",
+  },
+  zh: {
+    lines: [["在香港，"], ["用法语为您规划财富。"]],
+    subtitle: "为在亚洲的法国居民提供投资与税务建议。",
+  },
+};
+
+const runText = (run: Run) => (typeof run === "string" ? run : run.em);
+
+/**
+ * Fetch a Google Fonts family subset to `text` at build time (TTF, which Satori reads).
+ * Returns null on failure so the card still renders with the default font.
+ */
+async function loadGoogleFont(family: string, text: string): Promise<ArrayBuffer | null> {
   try {
-    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&text=${encodeURIComponent(text)}`)).text();
-    const src = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1];
-    return src ? await (await fetch(src)).arrayBuffer() : null;
+    const res = await fetch(`https://fonts.googleapis.com/css2?family=${family}&text=${encodeURIComponent(text)}`);
+    const src = res.ok ? (await res.text()).match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1] : undefined;
+    const font = src ? await fetch(src) : null;
+    return font?.ok ? await font.arrayBuffer() : null;
   } catch {
     return null;
   }
 }
 
-// Satori has no repeating gradients, so the airmail stripes are an SVG pattern.
-const AIRMAIL_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><defs><pattern id="p" width="72" height="72" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="24" height="72" fill="#ed2939"/><rect x="24" width="12" height="72" fill="#fff"/><rect x="36" width="24" height="72" fill="#002395"/><rect x="60" width="12" height="72" fill="#fff"/></pattern></defs><rect width="1200" height="630" fill="url(#p)"/></svg>`,
-)}`;
-
 export default async function OpengraphImage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = (await params) as { lang: Locale };
-  const cjkFont = lang === "zh" ? await loadCjkFont(getDictionary("zh").hero.title) : null;
-  const dict = getDictionary(lang === "zh" && !cjkFont ? "en" : lang);
+  const { lines, subtitle } = copy[lang];
+  const runs = lines.flat();
+  const plain = runs.filter((r) => typeof r === "string").map(runText).join("") + subtitle;
+  const italic = runs.filter((r) => typeof r !== "string").map(runText).join("");
 
-  // Airmail envelope: striped border, white card, title in brand navy.
+  // Night skyline with the logo, text-free; the copy is set on top of it.
+  const background = await readFile(join(process.cwd(), "lib/og-background.jpg"));
+  const [serif, serifItalic, cjk] = await Promise.all([
+    lang === "zh" ? null : loadGoogleFont("Newsreader:opsz,wght@72,400", plain),
+    italic ? loadGoogleFont("Newsreader:ital,opsz,wght@1,72,400", italic) : null,
+    lang === "zh" ? loadGoogleFont("Noto+Serif+SC:wght@500", plain) : null,
+  ]);
+  const fonts = [
+    serif && { name: "Newsreader", data: serif, weight: 400 as const, style: "normal" as const },
+    serifItalic && { name: "Newsreader", data: serifItalic, weight: 400 as const, style: "italic" as const },
+    cjk && { name: "Noto Serif SC", data: cjk, weight: 500 as const, style: "normal" as const },
+  ].filter((f) => !!f);
+  const fontFamily = cjk ? "Noto Serif SC" : "Newsreader";
+
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          position: "relative",
-          padding: 22,
-        }}
-      >
+      <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", fontFamily }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={AIRMAIL_SVG} width={1200} height={630} alt="" style={{ position: "absolute", top: 0, left: 0 }} />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            background: "#ffffff",
-            color: "#141a38",
-            padding: "56px 64px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", fontSize: 30, fontWeight: 600, color: "#002395" }}>{site.name}</div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                background: "#002395",
-                color: "#ffffff",
-                padding: "8px 14px",
-                fontSize: 16,
-                fontWeight: 700,
-                letterSpacing: 2,
-              }}
-            >
-              <span>PAR AVION</span>
-              <span style={{ fontWeight: 400, opacity: 0.8 }}>BY AIR MAIL</span>
-            </div>
+        <img
+          src={`data:image/jpeg;base64,${background.toString("base64")}`}
+          width={1200}
+          height={630}
+          alt=""
+          style={{ position: "absolute", top: 0, left: 0 }}
+        />
+        <div style={{ position: "absolute", top: 271, left: 100, display: "flex", flexDirection: "column" }}>
+          <div style={{ width: 72, height: 4, background: "#ff3131" }} />
+          <div style={{ display: "flex", flexDirection: "column", marginTop: 20, fontSize: 64, lineHeight: 1.1, color: "#ffffff" }}>
+            {lines.map((line, i) => (
+              <div key={i} style={{ display: "flex", whiteSpace: "pre" }}>
+                {line.map((run, j) =>
+                  typeof run === "string" ? <span key={j}>{run}</span> : <span key={j} style={{ fontStyle: "italic" }}>{run.em}</span>
+                )}
+              </div>
+            ))}
           </div>
-
-          <div style={{ display: "flex", fontSize: 68, lineHeight: 1.08, maxWidth: 960, color: "#141a38", ...(cjkFont ? { fontFamily: "Noto Serif SC" } : {}) }}>
-            {dict.hero.title}
-          </div>
-
-          <div style={{ display: "flex", fontSize: 26, color: "#5a6082" }}>{`Paris → Hong Kong · ${site.phoneDisplay}`}</div>
+          <div style={{ display: "flex", marginTop: 28, fontSize: 28, color: "#c5ccea" }}>{subtitle}</div>
         </div>
       </div>
     ),
-    { ...size, fonts: cjkFont ? [{ name: "Noto Serif SC", data: cjkFont, weight: 500, style: "normal" }] : undefined }
+    { ...size, fonts: fonts.length ? fonts : undefined }
   );
 }
