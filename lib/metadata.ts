@@ -3,12 +3,12 @@ import { site } from "./site";
 import { hreflangs, ogLocales, locales, localePath, type Locale } from "./i18n/config";
 
 /**
- * Appends " | Fostier Consulting" unless the title already starts with the brand (the
- * home page) or ends with a brand suffix (e.g. " | Fostier" or " | Fostier Consulting
- * Hong Kong"), so the brand is never doubled.
+ * Appends " | Fostier Consulting" unless the title already names the brand (e.g. the
+ * brand-first home title, "Contact Fostier Consulting | …") or ends with a brand suffix
+ * (" | Fostier" or " | Fostier Consulting Hong Kong"), so the brand is never doubled.
  */
 export const withBrand = (title: string) =>
-  title.startsWith(site.name) || /\|\s*Fostier\b[^|]*$/.test(title) ? title : `${title} | ${site.name}`;
+  title.includes(site.name) || /\|\s*Fostier\b[^|]*$/.test(title) ? title : `${title} | ${site.name}`;
 
 /**
  * Builds canonical + hreflang alternates and OG metadata for a route.
