@@ -16,8 +16,9 @@ const botProtected = [
 ] as const;
 
 /**
- * Page frame for the unlisted recruitment portal: its own <html>, so it shares none
- * of the public site's navigation, analytics or structured data.
+ * Page frame for the recruitment portal: its own <html>, so it shares none of the
+ * public site's navigation or analytics. The public pages' layout adds the site-wide
+ * structured data; the admin board gets none.
  */
 export function CareersShell({
   lang,

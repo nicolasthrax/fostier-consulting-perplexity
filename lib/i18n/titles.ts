@@ -3,12 +3,15 @@ import type { Locale } from "./config";
 /**
  * Page-specific <title> topics. `withBrand` (lib/metadata.ts) appends " | Fostier Consulting"
  * unless the entry already ends with a brand suffix (" | Fostier…"), which is how a
- * title can use the shorter " | Fostier" or the longer " | Fostier Consulting Hong Kong".
- * Each topic mirrors the page's <h1>, front-loads its keyword, and keeps the full
- * title between 50 and 60 characters (FR/EN). Chinese titles are kept to a similar
+ * title can use the shorter " | Fostier" or the longer " | Fostier Consulting Hong Kong",
+ * or already names the brand (the home page, the English contact page).
+ * Each inner-page topic mirrors the page's <h1>, front-loads its keyword, and keeps the
+ * full title between 50 and 60 characters (FR/EN). Chinese titles are kept to a similar
  * rendered width (~35–40 characters) since CJK glyphs are roughly twice as wide.
  *
- * Home, services, About and the service pages pair the brand with "Hong Kong"/"HK":
+ * The home title is brand-first ("Fostier Consulting | …", given in full) so the
+ * homepage, not /about, ranks for the brand, and stays within 60 characters. Home,
+ * services, About and the service pages pair the brand with "Hong Kong"/"HK":
  * search engines otherwise fold "Fostier" into "Foster" (visibility audit, Sept 2026).
  */
 export const pageTitles: Record<
@@ -22,10 +25,12 @@ export const pageTitles: Record<
     terms: string;
     cookies: string;
     notFound: string;
+    /** Brand-led, since the brand is the query for this page; English names the cities so it differs from French. */
+    contact: string;
   }
 > = {
   fr: {
-    home: "Patrimoine & fiscalité en français à HK",
+    home: "Fostier Consulting | Patrimoine des Français à Hong Kong",
     services: "Patrimoine, impôts et Chine à Hong Kong",
     about: "Lucie Fostier, fondatrice | Fostier Consulting Hong Kong",
     notice: "Mentions légales et éditeur du site",
@@ -33,9 +38,10 @@ export const pageTitles: Record<
     terms: "Conditions d'utilisation du site",
     cookies: "Politique relative aux cookies",
     notFound: "Erreur 404 : contenu introuvable",
+    contact: "Contact",
   },
   en: {
-    home: "French-speaking financial planning, HK",
+    home: "Fostier Consulting | Wealth & Tax for French in Hong Kong",
     services: "Wealth, tax and China services in HK",
     about: "Lucie Fostier, founder | Fostier Consulting Hong Kong",
     notice: "Legal notice and site publisher",
@@ -43,9 +49,10 @@ export const pageTitles: Record<
     terms: "Terms of use and advice disclaimer",
     cookies: "Cookie policy and consent management",
     notFound: "Error 404: the content was not found",
+    contact: "Contact Fostier Consulting | Hong Kong & Shenzhen",
   },
   zh: {
-    home: "香港法语财富规划与税务服务",
+    home: "Fostier Consulting | 香港法国人财富与税务咨询",
     services: "香港财富、税务、保险与中法商务服务",
     about: "创始人 Lucie Fostier | Fostier Consulting Hong Kong",
     notice: "法律声明与网站发布者信息",
@@ -53,6 +60,7 @@ export const pageTitles: Record<
     terms: "使用条款：本网站的使用规则",
     cookies: "Cookie 政策与同意管理说明",
     notFound: "错误 404：未找到您要访问的内容",
+    contact: "联系我们",
   },
 };
 

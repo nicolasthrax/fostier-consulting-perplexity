@@ -7,23 +7,36 @@ import { site } from "@/lib/site";
 /** Unprefixed paths that exist in French, so their redirect can be permanent. */
 const knownPaths = new Set([
   "/",
-  ...["/services", "/about", "/privacy", "/cookies", "/terms", "/legal-notice"],
+  ...["/services", "/about", "/contact", "/privacy", "/cookies", "/terms", "/legal-notice"],
   ...serviceSlugs.map((s) => `/services/${s.fr}`),
 ]);
 
 const PORTAL = "/careers";
-const noindex = (res: NextResponse) => {
-  res.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+const PRIVATE = "noindex, nofollow, noarchive";
+const noindex = (res: NextResponse, robots: string | null = PRIVATE) => {
+  if (robots) res.headers.set("X-Robots-Tag", robots);
   return res;
 };
+/**
+ * Robots header for a portal page, by internal path (keep in step with next.config.mjs).
+ * The landing and job pages are indexable; the application forms and the candidate
+ * notice stay out of results but their links are followed; the rest (admin, API,
+ * redirects, 404s) is fully private.
+ */
+function careersRobots(target: string) {
+  if (/^\/careers\/(fr|en)(\/jobs\/[^/]+)?$/.test(target)) return null;
+  if (/^\/careers\/(fr|en)\/(privacy|jobs\/[^/]+\/apply)$/.test(target)) return "noindex, noarchive";
+  return PRIVATE;
+}
 const under = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
 
 /**
- * The unlisted recruitment portal lives outside the locale tree: French at
- * /careers (rewritten to /careers/fr) and English at /careers/en. With
+ * The recruitment portal lives outside the locale tree: French at /careers
+ * (rewritten to /careers/fr) and English at /careers/en. With
  * CAREERS_PORTAL_SLUG set (e.g. "join-7f3k2q"), it is served at /<slug> instead and
- * the default /careers pages 404, so the URL can't be guessed. Its API stays
- * at /careers/api, which the pages call directly.
+ * the default /careers pages 404 (the footer, canonicals and sitemap follow it, so
+ * indexed /careers URLs would drop out). Its API stays at /careers/api, which the
+ * pages call directly.
  */
 function careersPortal(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -46,10 +59,11 @@ function careersPortal(request: NextRequest) {
     return noindex(NextResponse.redirect(url, 308));
   }
   const target = PORTAL + (["api", "admin", "en"].includes(first) ? rest : `/fr${rest}`);
-  if (target === pathname) return noindex(NextResponse.next());
+  const robots = careersRobots(target);
+  if (target === pathname) return noindex(NextResponse.next(), robots);
   const url = request.nextUrl.clone();
   url.pathname = target;
-  return noindex(NextResponse.rewrite(url));
+  return noindex(NextResponse.rewrite(url), robots);
 }
 
 /**

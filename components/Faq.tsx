@@ -1,6 +1,6 @@
 import { ChevronDown, Plus } from "lucide-react";
 import type { FaqItem } from "@/lib/i18n/faq";
-import { faqJsonLd } from "@/lib/structured-data";
+import { faqJsonLd, jsonLd } from "@/lib/structured-data";
 
 /**
  * Two-level accordion on native <details>: the whole section folds under its heading,
@@ -10,7 +10,7 @@ import { faqJsonLd } from "@/lib/structured-data";
 export function Faq({ id = "faq", title, items }: { id?: string; title: string; items: FaqItem[] }) {
   return (
     <section aria-labelledby={`${id}-title`}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(items)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqJsonLd(items)) }} />
       <details className="faq-section group/section border-y border-ink">
         <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-6 py-6">
           <h2 id={`${id}-title`} className="h-serif text-3xl sm:text-4xl">

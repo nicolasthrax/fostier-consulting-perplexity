@@ -17,7 +17,11 @@ export const dynamicParams = false;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
   const job = openJob(slug);
-  return { title: job ? careersCopy[lang].job.applyTitle(job.title[lang]) : careersCopy[lang].careers };
+  return {
+    title: job ? careersCopy[lang].job.applyTitle(job.title[lang]) : careersCopy[lang].careers,
+    // The form stays out of search results (the job page is the one to find); its links are followed.
+    robots: { index: false, follow: true },
+  };
 }
 
 /** The application form for one listing, reached from its description's Apply button. */

@@ -8,6 +8,7 @@ import { Logo } from "./Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 import { site, whatsappUrl } from "@/lib/site";
+import { contactNav } from "@/lib/i18n/contact";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/get-dictionary";
 
@@ -40,6 +41,7 @@ export function Header({ locale, dict, guidesLabel }: { locale: Locale; dict: Di
     { href: `/${locale}/services`, label: dict.nav.services },
     { href: `/${locale}/about`, label: dict.nav.about },
     ...(guidesLabel ? [{ href: `/${locale}/guides`, label: guidesLabel }] : []),
+    { href: `/${locale}/contact`, label: contactNav[locale] },
   ];
   const isCurrent = (href: string) => (href.startsWith("/") && pathname.startsWith(href) ? "page" : undefined);
 

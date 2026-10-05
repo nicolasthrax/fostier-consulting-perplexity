@@ -5,70 +5,74 @@ import { getFounder, FOUNDER_PORTRAIT_SRC } from "./i18n/founder";
 import type { FaqItem } from "./i18n/faq";
 import { guidesCopy, updatedOf, type Guide } from "./guides";
 import { site } from "./site";
+import { withBrand } from "./metadata";
+import { getPageTitles } from "./i18n/titles";
 
 /**
  * JSON-LD for a professional financial-services business.
  * Only verifiable organisation details are included — no fabricated
- * ratings, reviews, prices, addresses or regulatory credentials.
+ * ratings, reviews, prices, opening hours or regulatory credentials. It is a
+ * service-area business seen by appointment, so no address or geo either.
+ *
+ * The organisation is described once, in the site-wide graph from the layout;
+ * every other node points at it by `@id`.
  */
 
 const orgId = `${site.baseUrl}/#organization`;
 const websiteId = `${site.baseUrl}/#website`;
 const personId = `${site.baseUrl}/#lucie-fostier`;
+const logoId = `${site.baseUrl}/#logo`;
+/** Root URL with its trailing slash: the canonical form of the home page. */
+const rootUrl = `${site.baseUrl}/`;
 const languages = ["French", "English", "Mandarin", "Cantonese"];
+/** Language codes for `knowsLanguage`: Chinese as the site's `zh-Hans` locale, plus Cantonese (`yue`). */
+const languageCodes = ["fr", "en", "zh-Hans", "yue"];
+/** UFE Hong Kong, the French business association the firm partners with (a separate entity). */
+const ufe = { "@type": "Organization", name: "UFE Hong Kong" };
 const inLanguage: Record<Locale, string> = { fr: "fr", en: "en", zh: "zh-Hans" };
 
 const serviceUrl = (locale: Locale, index: number) =>
   `${site.baseUrl}/${locale}/services/${serviceSlugs[index][locale]}`;
 
+/** Serialises JSON-LD for a <script> tag; escaping `<` stops copy from closing the tag early. */
+export const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c");
+
 /** Site-wide graph: the website, the business and its founder, linked by @id. */
 export function organisationJsonLd(locale: Locale) {
   const dict = getDictionary(locale);
   const founder = getFounder(locale);
+  const logoUrl = `${site.baseUrl}${site.logoPath}`;
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "WebSite",
-        "@id": websiteId,
-        url: site.baseUrl,
-        name: site.name,
-        alternateName: site.alternateName,
-        publisher: { "@id": orgId },
-        inLanguage: ["fr", "en", "zh-Hans"],
-      },
-      {
-        "@type": "FinancialService",
+        "@type": ["FinancialService", "ProfessionalService"],
         "@id": orgId,
         name: site.name,
         legalName: site.legalName,
         alternateName: site.alternateName,
+        url: rootUrl,
+        logo: { "@type": "ImageObject", "@id": logoId, url: logoUrl, contentUrl: logoUrl, caption: site.name },
+        image: { "@id": logoId },
         description: dict.meta.siteDescription,
-        url: `${site.baseUrl}${homePath(locale)}`,
-        logo: `${site.baseUrl}${site.logoPath}`,
-        image: `${site.baseUrl}${site.logoPath}`,
-        telephone: site.phoneHref.replace("tel:", ""),
-        email: site.email,
         foundingDate: site.foundingDate,
-        identifier: { "@type": "PropertyValue", propertyID: "Hong Kong Business Registration Number", value: site.brn },
-        // Service-area business: district only, matching the Google Business Profile.
-        // No hasMap / geo: the profile publishes no pin that matches West Kowloon.
-        address: { "@type": "PostalAddress", addressLocality: site.district, addressRegion: "Hong Kong", addressCountry: "HK" },
+        founder: { "@id": personId },
+        telephone: site.phoneDisplay,
+        email: site.email,
         areaServed: [
           { "@type": "City", name: "Hong Kong" },
-          { "@type": "City", name: "Macau" },
-          { "@type": "Country", name: "China" },
+          { "@type": "City", name: "Shenzhen" },
         ],
-        availableLanguage: languages,
-        founder: { "@id": personId },
-        sameAs: [site.linkedinUrl, site.googleBusinessUrl, site.ufePartnerUrl],
+        knowsLanguage: languageCodes,
         contactPoint: [
           {
             "@type": "ContactPoint",
             name: site.founder,
-            telephone: site.phoneHref.replace("tel:", ""),
-            email: site.email,
             contactType: "customer service",
+            telephone: site.phoneDisplay,
+            email: site.email,
+            url: `https://wa.me/${site.whatsappNumber}`,
+            areaServed: ["HK", "CN"],
             availableLanguage: languages,
           },
           // Backup contact for when the founder is unavailable.
@@ -79,6 +83,10 @@ export function organisationJsonLd(locale: Locale) {
             contactType: "customer service",
           },
         ],
+        identifier: { "@type": "PropertyValue", propertyID: "Hong Kong Business Registration Number", value: site.brn },
+        // UFE is a separate organisation, so it is a membership rather than a sameAs.
+        memberOf: ufe,
+        sameAs: [site.linkedinUrl, site.googleBusinessUrl],
         hasOfferCatalog: {
           "@type": "OfferCatalog",
           name: dict.services.pageTitle,
@@ -89,6 +97,15 @@ export function organisationJsonLd(locale: Locale) {
         },
       },
       {
+        "@type": "WebSite",
+        "@id": websiteId,
+        url: rootUrl,
+        name: site.name,
+        alternateName: site.alternateName,
+        inLanguage: ["fr", "en", "zh-Hans"],
+        publisher: { "@id": orgId },
+      },
+      {
         "@type": "Person",
         "@id": personId,
         name: founder.name,
@@ -96,14 +113,13 @@ export function organisationJsonLd(locale: Locale) {
         url: `${site.baseUrl}/${locale}/about#advisor`,
         image: `${site.baseUrl}${encodeURI(FOUNDER_PORTRAIT_SRC)}`,
         worksFor: { "@id": orgId },
-        workLocation: { "@type": "Place", name: `${site.district}, Hong Kong` },
         alumniOf: founder.education.map((ed) => ({ "@type": "EducationalOrganization", name: ed.school })),
         knowsLanguage: languages,
         subjectOf: {
           "@type": "Article",
           headline: founder.press.title.replace(/^[«“「]\s*|\s*[»”」]$/g, ""),
           url: founder.press.url,
-          publisher: { "@type": "Organization", name: "UFE Hong Kong" },
+          publisher: ufe,
         },
       },
     ],
@@ -209,5 +225,21 @@ export function faqJsonLd(items: FaqItem[]) {
       name: q,
       acceptedAnswer: { "@type": "Answer", text: a },
     })),
+  };
+}
+
+/** Contact page: points at the site-wide business entity instead of repeating it. */
+export function contactJsonLd(locale: Locale) {
+  const url = `${site.baseUrl}/${locale}/contact`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "@id": `${url}#webpage`,
+    url,
+    name: withBrand(getPageTitles(locale).contact),
+    inLanguage: inLanguage[locale],
+    isPartOf: { "@id": websiteId },
+    about: { "@id": orgId },
+    mainEntity: { "@id": orgId },
   };
 }

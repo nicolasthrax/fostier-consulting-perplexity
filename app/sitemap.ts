@@ -3,6 +3,8 @@ import { site } from "@/lib/site";
 import { hreflangs, locales, localePath, type Locale } from "@/lib/i18n/config";
 import { serviceSlugs } from "@/lib/i18n/service-slugs";
 import { guidePaths, hasGuides, updatedOf, visibleGuides } from "@/lib/guides";
+import { jobs, publicBase } from "@/lib/careers/config";
+import { careersLocales, type CareersLocale } from "@/lib/careers/i18n";
 
 /**
  * Real revision dates for `lastmod`. Legal dates mirror the "Last updated" line
@@ -15,7 +17,7 @@ const legalUpdated: Record<string, string> = {
   "/legal-notice": "2026-09-30",
 };
 
-const sharedRoutes = ["", "/services", "/about", "/privacy", "/cookies", "/terms", "/legal-notice"];
+const sharedRoutes = ["", "/services", "/about", "/contact", "/privacy", "/cookies", "/terms", "/legal-notice"];
 
 /** Each route as its path per locale (service pages have localised slugs). */
 const routes: Record<Locale, string>[] = [
@@ -54,6 +56,22 @@ function guideEntries(): MetadataRoute.Sitemap {
   ];
 }
 
+/** Last revision of the careers listings and their copy (lib/careers/config.ts, i18n.ts). */
+const careersUpdated = "2026-10-04";
+
+/**
+ * Careers portal (French and English only, outside the locale tree): the landing
+ * page and each open listing. Application forms and the candidate notice are noindex.
+ */
+function careerEntries(): MetadataRoute.Sitemap {
+  const pages = ["", ...jobs.filter((j) => j.open).map((j) => `/jobs/${j.slug}`)];
+  return pages.flatMap((page) => {
+    const url = (l: CareersLocale) => `${site.baseUrl}${publicBase(l)}${page}`;
+    const languages = Object.fromEntries([...careersLocales.map((l) => [l, url(l)]), ["x-default", url("fr")]]);
+    return careersLocales.map((l) => ({ url: url(l), lastModified: careersUpdated, alternates: { languages } }));
+  });
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [...routes.flatMap((route) =>
     locales.map((locale) => ({
@@ -66,5 +84,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ]),
       },
     }))
-  ), ...guideEntries()];
+  ), ...guideEntries(), ...careerEntries()];
 }

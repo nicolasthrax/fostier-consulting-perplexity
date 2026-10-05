@@ -9,7 +9,7 @@ import { localizedMetadata } from "@/lib/metadata";
 import { formatUpdated } from "@/lib/i18n/dates";
 import { faqHeading } from "@/lib/i18n/faq";
 import { findGuide, guidePaths, guidesCopy, updatedOf, visibleGuides } from "@/lib/guides";
-import { guideJsonLd } from "@/lib/structured-data";
+import { guideJsonLd, jsonLd } from "@/lib/structured-data";
 import { site } from "@/lib/site";
 import { PageHero, Section } from "@/components/SectionHeading";
 import { Faq } from "@/components/Faq";
@@ -47,7 +47,7 @@ export default async function GuidePage(props: { params: Promise<{ lang: string;
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(guideJsonLd(lang, guide)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(guideJsonLd(lang, guide)) }} />
       <PageHero
         title={tr.title}
         lead={tr.lead}

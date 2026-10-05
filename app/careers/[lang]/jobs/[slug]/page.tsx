@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { jobs, openJob, publicBase } from "@/lib/careers/config";
 import { careersCopy, careersLocales, type CareersLocale } from "@/lib/careers/i18n";
+import { withBrand } from "@/lib/metadata";
 import { site } from "@/lib/site";
 
 const body = "text-[17px] leading-[1.7] text-slate sm:text-lg lg:text-xl";
@@ -19,7 +20,19 @@ export const dynamicParams = false;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
   const job = openJob(slug);
-  return { title: job ? job.title[lang] : careersCopy[lang].careers };
+  if (!job) return { title: careersCopy[lang].careers };
+  const path = (l: CareersLocale) => `${publicBase(l)}/jobs/${job.slug}`;
+  return {
+    title: { absolute: withBrand(job.title[lang]) },
+    description: job.summary[lang],
+    alternates: {
+      canonical: path(lang),
+      languages: {
+        ...Object.fromEntries(careersLocales.map((l) => [l, path(l)])),
+        "x-default": path("fr"),
+      },
+    },
+  };
 }
 
 /** The job description; its Apply button leads to the application form (./apply). */

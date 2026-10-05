@@ -27,13 +27,21 @@ const nextConfig = {
         ],
       },
       {
-        // Unlisted recruitment portal: never indexed, never cached by shared caches.
+        // Recruitment portal: never cached by shared caches.
         source: "/careers/:path*",
-        headers: [
-          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
-          { key: "Cache-Control", value: "private, no-store" },
-        ],
+        headers: [{ key: "Cache-Control", value: "private, no-store" }],
       },
+      // Its landing and job pages are indexable; the rest stays out of search results,
+      // with the same values as the middleware (see careersRobots in middleware.ts).
+      // Admin and API come second so they win over /careers/api/apply matching ".../apply".
+      ...["/careers/:path*/apply", "/careers/:path*/privacy"].map((source) => ({
+        source,
+        headers: [{ key: "X-Robots-Tag", value: "noindex, noarchive" }],
+      })),
+      ...["/careers/admin/:path*", "/careers/api/:path*"].map((source) => ({
+        source,
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+      })),
       {
         // Candidates' CVs: a crafted file runs nothing on this origin (no scripts, forms or
         // same-origin access). Listed last so it replaces the site-wide policy above.

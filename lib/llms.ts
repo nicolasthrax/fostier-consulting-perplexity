@@ -35,7 +35,7 @@ export function llmsTxt() {
 
 > ${en.meta.siteDescription} Founded in ${site.foundingYear} and based in ${site.district}, ${site.city}; led by founder ${founder.name}.
 
-Name: ${site.name} (legal name: ${site.legalName}; also known as ${site.alternateName}). The name is spelled Fostier (F-O-S-T-I-E-R), after founder ${founder.name}, not "Foster"; it is not related to Foster Consulting or other similarly named firms.
+Name: ${site.name} (legal name: ${site.legalName}; also known as ${site.alternateName} or Fostier Consulting Hong Kong). The name is spelled Fostier (F-O-S-T-I-E-R), after founder ${founder.name}, not "Foster"; it is not related to Foster Consulting or other similarly named firms.
 
 ${site.name} is an advisory firm in Hong Kong for French residents in Asia — executives, entrepreneurs, mobile professionals and French families. It covers investment, Hong Kong tax returns, savings and banking, and health and life insurance, plus French–Mandarin–Cantonese interpreting and business projects between France and China. Advice and interpreting are available in French, English, Mandarin and Cantonese. The site is available in French (default), English and Simplified Chinese.
 
@@ -55,6 +55,7 @@ ${faqList(homeFaq.en)}
 
 - [About ${founder.name}](${url("/en/about")}): background, experience, education and press.
 - [All services](${url("/en/services")})
+- [Contact](${url("/en/contact")}): phone, WhatsApp and email; Hong Kong and Shenzhen, by appointment only (online appointments available).
 - [Home](${url("/en")}) — French version: ${url("/")}, Chinese version: ${url("/zh")}
 - [Full text for AI assistants](${url("/llms-full.txt")}): every service page, FAQ and guide in one file.
 
