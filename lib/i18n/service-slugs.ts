@@ -1,4 +1,4 @@
-import type { Locale } from "./config";
+import { homePath, type Locale } from "./config";
 
 /**
  * Localised URL slugs for each service page, in the same order as
@@ -21,7 +21,7 @@ export const serviceIndex = (locale: Locale, slug: string) =>
 /** Maps a pathname to its equivalent in another locale, translating service slugs. */
 export function localizePath(pathname: string, target: Locale): string {
   const match = pathname.match(/^\/(fr|en|zh)(\/.*)?$/);
-  if (!match) return `/${target}`;
+  if (!match) return homePath(target);
   const [, from, rest = ""] = match;
   const service = rest.match(/^\/services\/([^/]+)(.*)$/);
   if (service) {
@@ -30,5 +30,5 @@ export function localizePath(pathname: string, target: Locale): string {
   }
   // Guide slugs are per translation and not every guide is translated: land on the guides index.
   if (/^\/guides\/[^/]+/.test(rest)) return `/${target}/guides`;
-  return `/${target}${rest}`;
+  return rest && rest !== "/" ? `/${target}${rest}` : homePath(target);
 }

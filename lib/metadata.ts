@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { site } from "./site";
-import { hreflangs, ogLocales, locales, type Locale } from "./i18n/config";
+import { hreflangs, ogLocales, locales, localePath, type Locale } from "./i18n/config";
 
 /**
  * Appends " | Fostier Consulting" unless the title already ends with a brand suffix
@@ -29,11 +29,11 @@ export function localizedMetadata({
 }): Metadata {
   const pathFor = (l: Locale) => (typeof path === "string" ? path : path[l]);
   const available = locales.filter((l) => pathFor(l) !== undefined);
-  const canonical = `${site.baseUrl}/${locale}${pathFor(locale) ?? ""}`;
+  const canonical = `${site.baseUrl}${localePath(locale, pathFor(locale) ?? "")}`;
   const defaultLocale = available.includes("fr") ? "fr" : locale;
   const languages = Object.fromEntries([
-    ...available.map((l) => [hreflangs[l], `${site.baseUrl}/${l}${pathFor(l)}`]),
-    ["x-default", `${site.baseUrl}/${defaultLocale}${pathFor(defaultLocale) ?? ""}`],
+    ...available.map((l) => [hreflangs[l], `${site.baseUrl}${localePath(l, pathFor(l)!)}`]),
+    ["x-default", `${site.baseUrl}${localePath(defaultLocale, pathFor(defaultLocale) ?? "")}`],
   ]);
 
   const fullTitle = withBrand(title);

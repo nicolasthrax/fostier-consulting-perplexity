@@ -6,7 +6,7 @@ import Link from "next/link";
 export function Logo({ locale, className = "h-[46px] w-[96px] sm:h-[54px] sm:w-[112px]" }: { locale: string; className?: string }) {
   return (
     <Link
-      href={`/${locale}`}
+      href={locale === "fr" ? "/" : `/${locale}`}
       className="focus-ring flex shrink-0 items-center rounded-sm"
       aria-label="Fostier Consulting"
     >

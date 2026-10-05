@@ -74,19 +74,29 @@ export function middleware(request: NextRequest) {
 }
 
 /**
- * Paths without a locale prefix are sent to the French version: real pages
- * permanently (308), anything else temporarily (307, then a 404 under /fr).
+ * The French home is served at "/" and /fr redirects there. Other paths without
+ * a locale prefix are sent to the French version: real pages permanently (308),
+ * anything else temporarily (307, then a 404 under /fr).
  * Everything under a known locale passes through.
  */
 function route(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const careers = careersPortal(request);
   if (careers) return careers;
+  const url = request.nextUrl.clone();
+  // The French home lives at the root (served from /fr) so Google reads the site name there.
+  if (pathname === "/") {
+    url.pathname = "/fr";
+    return NextResponse.rewrite(url);
+  }
+  if (pathname === "/fr" || pathname === "/fr/") {
+    url.pathname = "/";
+    return NextResponse.redirect(url, 308);
+  }
   const first = pathname.split("/")[1];
   if ((locales as readonly string[]).includes(first)) return NextResponse.next();
 
-  const url = request.nextUrl.clone();
-  url.pathname = pathname === "/" ? "/fr" : `/fr${pathname}`;
+  url.pathname = `/fr${pathname}`;
   return NextResponse.redirect(url, knownPaths.has(pathname.replace(/\/$/, "") || "/") ? 308 : 307);
 }
 

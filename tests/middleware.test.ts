@@ -122,8 +122,12 @@ describe("middleware, rest of the site", () => {
     expect(redirectedTo(res)).toBe("/fr/nope");
   });
 
-  it("redirects / to /fr and passes locale paths through", () => {
-    expect(redirectedTo(run("/"))).toBe("/fr");
+  it("serves the French home at / and redirects /fr there", () => {
+    expect(rewrittenTo(run("/"))).toBe("/fr");
+    const res = run("/fr");
+    expect(res.status).toBe(308);
+    expect(redirectedTo(res)).toBe("/");
+    expect(passesThrough(run("/fr/about"))).toBe(true);
     expect(passesThrough(run("/en/about"))).toBe(true);
   });
 });
