@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n/config";
+import { homePath, type Locale } from "./i18n/config";
 import { getDictionary } from "./i18n/get-dictionary";
 import { serviceSlugs } from "./i18n/service-slugs";
 import { getFounder, FOUNDER_PORTRAIT_SRC } from "./i18n/founder";
