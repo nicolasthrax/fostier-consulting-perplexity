@@ -63,6 +63,9 @@ body {
 
   /* Hero headline: each line rises from behind a mask. Pure CSS so LCP isn't gated on hydration. */
   .rise-line { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
+  /* Chinese clauses: one per line, all sized down (never up) so the longest fits the column. */
+  .rise-clauses { container-type: inline-size; }
+  .rise-clauses .rise-line { display: block; white-space: nowrap; font-size: min(1em, 100cqi / var(--glyphs)); }
   .rise-line > span { display: inline-block; animation: rise .9s cubic-bezier(.22,1,.36,1) both; }
   @keyframes rise { from { transform: translateY(105%); } to { transform: none; } }
   .fade-in { animation: fade-in .8s ease-out both; }
