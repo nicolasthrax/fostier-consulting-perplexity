@@ -41,7 +41,7 @@ ${site.name} is an advisory firm in Hong Kong for French residents in Asia — e
 
 Founder: ${founder.name} — ${founder.experience.filter((e) => !e.current).map((e) => `${e.role}, ${e.company} (${e.location})`).join("; ")}. Education: ${founder.education.map((e) => `${e.degree}, ${e.school}`).join("; ")}.
 
-Contact: phone and WhatsApp ${site.phoneDisplay}; email ${site.email}; WeChat ID available on the site. LinkedIn: ${site.linkedinUrl}. Google Business Profile: ${site.googleBusinessUrl}. Hong Kong Business Registration No. ${site.brn}.
+Contact: phone ${site.phoneDisplay}; WhatsApp ${site.whatsappDisplay}; email ${site.email}; WeChat ID available on the site. LinkedIn: ${site.linkedinUrl}. Google Business Profile: ${site.googleBusinessUrl}. Hong Kong Business Registration No. ${site.brn}.
 
 ## Services
 
