@@ -75,9 +75,7 @@ export default async function HomePage(props: { params: Promise<{ lang: string }
       <section className="relative overflow-hidden bg-white">
         <div className="container-site grid items-center gap-14 pb-20 pt-12 sm:pt-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pb-28 lg:pt-20">
           <div>
-            {/* The brand leads the h1 so the homepage, not /about, ranks for "Fostier Consulting". */}
             <RiseTitle
-              eyebrow={site.name}
               text={dict.hero.title}
               className="h-serif text-[2.6rem] leading-[1.04] sm:text-[3.4rem] xl:text-[4rem]"
             />
