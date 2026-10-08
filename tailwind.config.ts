@@ -26,8 +26,9 @@ const config: Config = {
         wechat: { DEFAULT: "#058A42", 700: "#047A3A" },
       },
       fontFamily: {
-        // Latin glyphs come from the web fonts; CJK falls through to the system fonts.
-        serif: ["var(--font-serif)", "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", "Georgia", "serif"],
+        // Latin glyphs come from the web fonts. Chinese serif comes from the self-hosted Noto
+        // Serif SC subset; characters it lacks, and Chinese sans, fall through to the system fonts.
+        serif: ["var(--font-serif)", "Noto Serif SC Subset", "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", "Georgia", "serif"],
         sans: ["var(--font-sans)", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "system-ui", "sans-serif"],
       },
       maxWidth: {

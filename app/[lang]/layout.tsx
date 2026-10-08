@@ -13,6 +13,7 @@ import { getPageTitles } from "@/lib/i18n/titles";
 import { withBrand } from "@/lib/metadata";
 import { guidesCopy, hasGuides } from "@/lib/guides";
 import "../globals.css";
+import "../zh-serif.css";
 
 const skipLinkLabel: Record<Locale, string> = {
   fr: "Aller au contenu",

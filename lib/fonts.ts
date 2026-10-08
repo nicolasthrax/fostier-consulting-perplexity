@@ -29,5 +29,7 @@ export const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
-// Chinese uses the system CJK fonts listed in tailwind.config.ts. Web-font Noto SC
+// Chinese sans uses the system CJK fonts listed in tailwind.config.ts. Web-font Noto SC
 // put ~128 KB of render-blocking @font-face CSS on every page, FR and EN included.
+// The Chinese serif is a self-hosted Noto Serif SC subset instead (app/zh-serif.css,
+// built by `npm run zh-font`): iOS has no Chinese serif, so iPhones fell back to PingFang.
