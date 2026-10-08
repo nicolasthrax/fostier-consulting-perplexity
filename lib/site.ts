@@ -12,7 +12,10 @@ export const site = {
   city: "Hong Kong",
   phoneDisplay: "+852 6537 4439",
   phoneHref: "tel:+85265374439",
-  whatsappNumber: "85265374439",
+  /** WhatsApp Business line, separate from the Hong Kong voice-call number above. */
+  whatsappDisplay: "+86 198 7587 8198",
+  /** Digits only, as wa.me expects: country code, no plus sign or spaces. */
+  whatsappNumber: "8619875878198",
   email: "lucie@fostierconsulting.com",
   emailHref: "mailto:lucie@fostierconsulting.com",
   founder: "Lucie Fostier",

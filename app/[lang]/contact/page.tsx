@@ -78,7 +78,7 @@ export default async function ContactPage(props: { params: Promise<{ lang: strin
               </Row>
               <Row icon={<WhatsAppLogo className="h-4 w-4 shrink-0" />} label={c.whatsapp}>
                 <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={`${valueLink} tabular`}>
-                  {site.phoneDisplay}
+                  {site.whatsappDisplay}
                 </a>
               </Row>
               <Row icon={<Mail className={icon} aria-hidden="true" />} label={c.primaryEmail}>

@@ -38,7 +38,7 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
     },
     {
       q: "Comment prendre contact ?",
-      a: `Par WhatsApp ou par téléphone au ${site.phoneDisplay}, par e-mail à ${site.email}, ou sur WeChat. Un premier échange, en français, permet de comprendre votre situation.`,
+      a: `Par WhatsApp au ${site.whatsappDisplay}, par téléphone au ${site.phoneDisplay}, par e-mail à ${site.email}, ou sur WeChat. Un premier échange, en français, permet de comprendre votre situation.`,
     },
     {
       q: "Comment le statut d'intermédiaire en assurance est-il communiqué ?",
@@ -68,7 +68,7 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
     },
     {
       q: "How do I get in touch?",
-      a: `Message or call ${site.phoneDisplay} on WhatsApp or by phone, email ${site.email}, or add us on WeChat. A first conversation helps us understand your situation.`,
+      a: `Message ${site.whatsappDisplay} on WhatsApp, call ${site.phoneDisplay}, email ${site.email}, or add us on WeChat. A first conversation helps us understand your situation.`,
     },
     {
       q: "How is the insurance intermediary status disclosed?",
@@ -98,7 +98,7 @@ export const homeFaq: Record<Locale, FaqItem[]> = {
     },
     {
       q: "如何联系？",
-      a: `可通过 WhatsApp 或电话（${site.phoneDisplay}）、电子邮件（${site.email}）或微信联系我们。先聊一聊，了解您的情况。`,
+      a: `可通过 WhatsApp（${site.whatsappDisplay}）、电话（${site.phoneDisplay}）、电子邮件（${site.email}）或微信联系我们。先聊一聊，了解您的情况。`,
     },
     {
       q: "保险中介身份如何披露？",
