@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { BlobPreconditionFailedError, del, get, list, put } from "@vercel/blob";
-import { RETAINED_STAGES, RETENTION_DAYS, type ApplicationRecord, type Note, type Stage } from "./config";
+import { RETAINED_STAGES, RETENTION_DAYS, duplicatesOf, type ApplicationRecord, type Note, type Stage } from "./config";
 
 /**
  * Application storage, server code only. Two backends, picked automatically:
@@ -51,10 +51,16 @@ const idTime = (id: string) => parseInt(id.split("-")[0], 36);
 type Snapshot = { records: ApplicationRecord[]; version: string | null };
 
 type Backend = {
-  load(): Promise<Snapshot>;
+  /**
+   * Runs `select` on the latest records and resolves to a copy of what it returned,
+   * so a lookup only copies what it picks out, not the whole store. `select` must
+   * not modify the records it is given.
+   */
+  read<T>(select: (records: readonly ApplicationRecord[]) => T): Promise<T>;
   /**
    * Applies `change` to the latest records and saves them, unless it returns
-   * null (nothing to save). Resolves to whatever `change` returned.
+   * null (nothing to save). Resolves to a copy of whatever `change` returned.
+   * `change` must build new arrays and objects rather than modify the ones it is given.
    */
   mutate<T>(change: (records: ApplicationRecord[]) => { records: ApplicationRecord[]; result: T } | null): Promise<T | null>;
   putCv(file: string, data: Buffer, type: string): Promise<void>;
@@ -72,9 +78,11 @@ const MAX_WRITE_ATTEMPTS = 6;
 
 const cvFiles = (records: ApplicationRecord[]) => records.flatMap((r) => (r.cv ? [r.cv.file] : []));
 
-/** Last index this instance read or wrote; a re-read only downloads it if it changed. */
+/**
+ * Last index this instance read or wrote; a re-read only downloads it if it changed.
+ * Never handed out as is: callers get copies of what they select (see Backend.read).
+ */
 let cached: Snapshot | null = null;
-const copy = (s: Snapshot): Snapshot => ({ records: structuredClone(s.records), version: s.version });
 
 async function blobText(pathname: string) {
   const res = await get(pathname, { access: "private", useCache: false, ...blobAuth() });
@@ -121,7 +129,7 @@ async function createIndex(): Promise<Snapshot> {
     const again = await get(INDEX, { access: "private", useCache: false, ...blobAuth() });
     if (again?.statusCode !== 200) throw err;
     cached = { records: JSON.parse(await new Response(again.stream).text()), version: again.blob.etag };
-    return copy(cached);
+    return cached;
   }
   // Deletes are free; the old copies must go so the retention purge covers everything.
   const referenced = new Set(cvFiles(records).map((f) => `${CVS}${path.basename(f)}`));
@@ -130,27 +138,33 @@ async function createIndex(): Promise<Snapshot> {
   );
   const stale = [...legacy, ...orphans];
   if (stale.length) await del(stale, { ...blobAuth() }).catch(() => undefined);
-  return copy(cached);
+  return cached;
+}
+
+/** The latest index, downloaded only if it changed since this instance last saw it. Shared: don't modify. */
+async function latest(): Promise<Snapshot> {
+  const res = await get(INDEX, { access: "private", useCache: false, ifNoneMatch: cached?.version ?? undefined, ...blobAuth() });
+  if (!res) return createIndex();
+  if (res.statusCode === 304 && cached) return cached;
+  if (res.statusCode !== 200) throw new Error(`Unexpected Blob response ${res.statusCode}`);
+  cached = { records: JSON.parse(await new Response(res.stream).text()), version: res.blob.etag };
+  return cached;
 }
 
 const blob: Backend = {
-  async load() {
-    const res = await get(INDEX, { access: "private", useCache: false, ifNoneMatch: cached?.version ?? undefined, ...blobAuth() });
-    if (!res) return createIndex();
-    if (res.statusCode === 304 && cached) return copy(cached);
-    if (res.statusCode !== 200) throw new Error(`Unexpected Blob response ${res.statusCode}`);
-    cached = { records: JSON.parse(await new Response(res.stream).text()), version: res.blob.etag };
-    return copy(cached);
+  async read(select) {
+    return structuredClone(select((await latest()).records));
   },
   async mutate(change) {
     for (let attempt = 1; ; attempt++) {
-      const { records, version } = await blob.load();
+      const { records, version } = await latest();
       const out = change(records);
       if (!out) return null;
       try {
         const res = await putIndex(out.records, { ifMatch: version ?? undefined, allowOverwrite: true });
-        cached = { records: structuredClone(out.records), version: res.etag };
-        return out.result;
+        // Unchanged records are shared with the previous snapshot, which nothing modifies.
+        cached = { records: out.records, version: res.etag };
+        return structuredClone(out.result);
       } catch (err) {
         if (!(err instanceof BlobPreconditionFailedError) || attempt >= MAX_WRITE_ATTEMPTS) throw err;
         // Someone else saved in between: start again from their version.
@@ -215,8 +229,9 @@ async function localWriteAll(records: ApplicationRecord[]) {
 }
 
 const local: Backend = {
-  async load() {
-    return { records: await localReadAll(), version: null };
+  // Parsed fresh from the file on every call, so nothing else holds these records.
+  async read(select) {
+    return select(await localReadAll());
   },
   mutate(change) {
     return withLock(async () => {
@@ -242,8 +257,15 @@ const backend = () => (storageBackend() === "blob" ? blob : local);
 
 // ——— Public API ———
 
-export const readApplications = async () => (await backend().load()).records;
-export const readApplication = async (id: string) => (await readApplications()).find((r) => r.id === id) ?? null;
+export const readApplications = () => backend().read((records) => [...records]);
+export const readApplication = (id: string) => backend().read((records) => records.find((r) => r.id === id) ?? null);
+
+/** One application and the other applications from the same email for the same job, from a single read. */
+export const readApplicationWithDuplicates = (id: string) =>
+  backend().read((records) => {
+    const app = records.find((r) => r.id === id);
+    return app ? { app, duplicates: duplicatesOf(app, records) } : null;
+  });
 export const readCv = (file: string) => backend().readCv(file);
 
 /** Applications past the retention period, except offers and hires (see RETAINED_STAGES). */
@@ -341,7 +363,8 @@ export async function readApplicationsPurged(now = Date.now()) {
     return kept.length < records.length ? { records: kept, result: records.filter((r) => isExpired(r, now)) } : null;
   });
   await b.removeCvs(cvFiles(expired ?? [])).catch(() => undefined);
-  return kept;
+  // `kept` holds the stored records themselves when nothing expired.
+  return structuredClone(kept);
 }
 
 /**

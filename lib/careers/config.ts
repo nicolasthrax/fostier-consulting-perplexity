@@ -462,7 +462,7 @@ export const ageLabel = (app: Pick<ApplicationRecord, "adult" | "age">) =>
 const emailKey = (email: string) => email.trim().toLowerCase();
 
 /** Other applications from the same email address for the same listing, oldest first. */
-export function duplicatesOf(app: ApplicationRecord, all: ApplicationRecord[]) {
+export function duplicatesOf(app: ApplicationRecord, all: readonly ApplicationRecord[]) {
   const key = emailKey(app.email);
   return all
     .filter((a) => a.id !== app.id && a.jobSlug === app.jobSlug && emailKey(a.email) === key)
