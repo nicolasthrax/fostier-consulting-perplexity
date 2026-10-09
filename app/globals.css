@@ -93,6 +93,18 @@ body {
   .wipe-row:hover .wipe-fg, .wipe-row:focus-visible .wipe-fg { color: #fff; }
   .wipe-fg { transition: color .3s ease; }
 
+  /* Services detail panel (see <ServicesExplorer>): the old one leaves, then the new one arrives. */
+  .panel-in { animation: panel-in .3s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes panel-in { from { opacity: 0; transform: translateY(14px); } }
+  .panel-out { animation: panel-out .3s cubic-bezier(.22,1,.36,1) both; pointer-events: none; }
+  @keyframes panel-out { to { opacity: 0; transform: translateY(-10px); } }
+
+  /* University tooltip (see <UniversityHighlight>); --tip-y points away from the trigger. */
+  .tip-in { animation: tip-in .22s ease-out both; }
+  @keyframes tip-in { from { opacity: 0; transform: translateY(var(--tip-y)); } }
+  .tip-out { animation: tip-out .22s ease-out both; pointer-events: none; }
+  @keyframes tip-out { to { opacity: 0; transform: translateY(calc(var(--tip-y) / 2)); } }
+
   .spin-slow { animation: spin 48s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .blink-colon { animation: blink 2s steps(1) infinite; }

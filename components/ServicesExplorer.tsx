@@ -3,7 +3,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 
 export type ExplorerService = {
   slug: string;
@@ -13,8 +12,6 @@ export type ExplorerService = {
   disclaimer: string;
   href: string;
 };
-
-const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
 function ServiceDetail({ service, moreLabel }: { service: ExplorerService; moreLabel: string }) {
   return (
@@ -87,6 +84,15 @@ function ServiceTitle({
 export function ServicesExplorer({ services, moreLabel }: { services: ExplorerService[]; moreLabel: string }) {
   const [active, setActive] = useState(0);
   const current = services[Math.max(0, active)] ?? services[0];
+  // The desktop panel finishes leaving before the newly chosen service comes in (CSS, see .panel-out).
+  const [shown, setShown] = useState(current);
+  const [phase, setPhase] = useState<"idle" | "out" | "in">("idle");
+  if (current.slug !== shown.slug && phase !== "out") setPhase("out");
+  const onPanelAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.target !== e.currentTarget || phase !== "out") return;
+    setShown(current);
+    setPhase("in");
+  };
 
   useEffect(() => {
     const slug = window.location.hash.replace("#", "");
@@ -136,24 +142,21 @@ export function ServicesExplorer({ services, moreLabel }: { services: ExplorerSe
 
       <div className="relative mt-10 hidden lg:mt-0 lg:block">
         <div className="sticky top-28">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={current.slug}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3, ease: EASE }}
-              className="relative overflow-hidden rounded-sm bg-mist p-8 pt-10 sm:p-10 sm:pt-12"
-            >
-              <div aria-hidden="true" className="par-avion par-avion-drift absolute inset-x-0 top-0 h-2" />
-              <p className="font-serif text-3xl leading-tight tracking-[-0.01em] text-navy sm:text-4xl">
-                {current.title}
-              </p>
-              <div className="mt-5">
-                <ServiceDetail service={current} moreLabel={moreLabel} />
-              </div>
-            </motion.div>
-          </AnimatePresence>
+          <div
+            key={shown.slug}
+            onAnimationEnd={onPanelAnimationEnd}
+            className={`relative overflow-hidden rounded-sm bg-mist p-8 pt-10 sm:p-10 sm:pt-12 ${
+              phase === "out" ? "panel-out" : phase === "in" ? "panel-in" : ""
+            }`}
+          >
+            <div aria-hidden="true" className="par-avion par-avion-drift absolute inset-x-0 top-0 h-2" />
+            <p className="font-serif text-3xl leading-tight tracking-[-0.01em] text-navy sm:text-4xl">
+              {shown.title}
+            </p>
+            <div className="mt-5">
+              <ServiceDetail service={shown} moreLabel={moreLabel} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
