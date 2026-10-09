@@ -92,6 +92,7 @@ export function AdminBoard({
   const lastPoll = useRef(0);
   // The list version on screen: polls send it back and get an empty 304 while nothing changed.
   const etag = useRef(initialEtag);
+  const replayed = useRef<boolean | null>(null);
 
   const poll = useCallback(async () => {
     lastPoll.current = Date.now();
@@ -118,9 +119,10 @@ export function AdminBoard({
     }
     // A page just rendered by the server is current, so the first check waits for the
     // timer. A cached replay (back from a candidate page) may be stale: check at once.
-    const replayed = shownRenders.has(renderId);
+    // Decided once per mount, so React's dev-only second effect run doesn't count as a replay.
+    replayed.current ??= shownRenders.has(renderId);
     shownRenders.add(renderId);
-    if (replayed) tick();
+    if (replayed.current) tick();
     else schedule();
     // Back in view: check now (unless we just did). Hidden: switch to the slower pace.
     const onVisibility = () =>
