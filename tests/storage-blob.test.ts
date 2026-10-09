@@ -160,11 +160,12 @@ describe("Blob storage", () => {
     found!.app.fullName = "Changed";
     const [moved] = await storage.updateStatus([id], "interview", "alice");
     moved.history!.push({ at: "2026-01-01T00:00:00Z", by: "x", from: "interview", to: "hired" });
-    const purged = await storage.readApplicationsPurged();
-    purged[0].email = "changed@example.com";
+    const purged = await storage.readApplicationListPurged();
+    purged.applications[0].email = "changed@example.com";
+    purged.applications[0].cv!.originalName = "changed.pdf";
 
     const now = await storage.readApplication(id);
-    expect(now).toMatchObject({ status: "interview", fullName: "Alice Martin", email: "alice@example.com" });
+    expect(now).toMatchObject({ status: "interview", fullName: "Alice Martin", email: "alice@example.com", cv: { originalName: "cv.pdf" } });
     expect(now!.history!.map((h) => h.to)).toEqual(["interview"]);
   });
 

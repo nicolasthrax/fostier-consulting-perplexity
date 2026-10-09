@@ -139,17 +139,20 @@ describe("local storage", () => {
     expect(await storage.purgeExpired()).toBe(0);
   });
 
-  it("readApplicationsPurged returns what's left after the purge, and the purge is saved", async () => {
+  it("readApplicationListPurged lists what's left after the purge, newest first, and the purge is saved", async () => {
     const old = record({ id: idDaysAgo(400, "a") });
     const hired = record({ id: idDaysAgo(400, "b"), status: "hired" });
     const recent = record({ id: idDaysAgo(10, "c") });
     await seed([old, hired, recent]);
 
-    expect((await storage.readApplicationsPurged()).map((r) => r.id).sort()).toEqual([hired.id, recent.id].sort());
+    const first = await storage.readApplicationListPurged();
+    expect(first.applications.map((r) => r.id).sort()).toEqual([hired.id, recent.id].sort());
     expect((await storage.readApplications()).map((r) => r.id).sort()).toEqual([hired.id, recent.id].sort());
     expect(await exists(cvPath(old.cv!.file))).toBe(false);
-    // Nothing left to purge: the same records, unchanged.
-    expect((await storage.readApplicationsPurged()).map((r) => r.id).sort()).toEqual([hired.id, recent.id].sort());
+    // Nothing left to purge: the same list, and the same version as the API reports.
+    const again = await storage.readApplicationListPurged();
+    expect(again).toEqual(first);
+    expect((await storage.readApplicationList()).etag).toBe(first.etag);
   });
 
   it("addApplication drops expired applications and their CVs in the same write", async () => {

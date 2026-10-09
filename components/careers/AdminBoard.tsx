@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ChevronRight, Download, FileText, LayoutGrid, LogOut, Rows3 } from "lucide-react";
-import { API_BASE, ageLabel, duplicateCounts, labelFor, type ApplicationRecord, type Option, type Stage } from "@/lib/careers/config";
+import { API_BASE, ageLabel, duplicateCounts, labelFor, type ApplicationSummary, type Option, type Stage } from "@/lib/careers/config";
 import { applicationsCsv } from "@/lib/careers/csv";
 import { matchTargetUniversities } from "@/lib/careers/universities";
 import { UniversityBadges } from "./UniversityBadges";
@@ -28,6 +28,11 @@ const POLL_HIDDEN_MS = 15 * 60_000;
 /** Flicking between tabs doesn't trigger a check more often than this. */
 const POLL_MIN_GAP_MS = 30_000;
 const VIEW_KEY = "careers-admin-view";
+/**
+ * Server renders this tab has already shown. Mounting one again means the router
+ * replayed a cached page (e.g. back from a candidate), which may be out of date.
+ */
+const shownRenders = new Set<string>();
 
 const NewBadge = () => (
   <span className="inline-flex items-center rounded-sm bg-fred px-1.5 py-0.5 text-[11px] font-semibold uppercase leading-none tracking-wide text-white">New</span>
@@ -35,6 +40,8 @@ const NewBadge = () => (
 
 export function AdminBoard({
   initial,
+  initialEtag,
+  renderId,
   storageError,
   storageStatus,
   adminName,
@@ -45,7 +52,11 @@ export function AdminBoard({
   retentionDays,
   adminBase,
 }: {
-  initial: ApplicationRecord[];
+  initial: ApplicationSummary[];
+  /** ETag of `initial` as the list API would send it; empty when storage failed. */
+  initialEtag: string;
+  /** Unique per server render, to tell a fresh page from a cached replay. */
+  renderId: string;
   storageError: string;
   /** Which backend is in use, e.g. "Storage: Vercel Blob (private)"; empty when storage failed. */
   storageStatus: string;
@@ -79,13 +90,19 @@ export function AdminBoard({
 
   // ——— Refresh: new applications appear with their "New" badge ———
   const lastPoll = useRef(0);
+  // The list version on screen: polls send it back and get an empty 304 while nothing changed.
+  const etag = useRef(initialEtag);
 
   const poll = useCallback(async () => {
     lastPoll.current = Date.now();
-    const res = await fetch(`${API_BASE}/admin/applications`, { cache: "no-store" }).catch(() => null);
+    const res = await fetch(`${API_BASE}/admin/applications`, {
+      cache: "no-store",
+      headers: etag.current ? { "If-None-Match": etag.current } : undefined,
+    }).catch(() => null);
     if (res?.status === 401) return router.refresh();
-    if (!res?.ok) return;
-    const { applications } = (await res.json()) as { applications: ApplicationRecord[] };
+    if (res?.status === 304 || !res?.ok) return;
+    const { applications } = (await res.json()) as { applications: ApplicationSummary[] };
+    etag.current = res.headers.get("ETag") ?? "";
     setApps(applications);
   }, [router]);
 
@@ -99,17 +116,25 @@ export function AdminBoard({
       poll();
       schedule();
     }
-    // Check once on arrival too: coming back from a candidate page can show a cached list.
-    tick();
+    // A page just rendered by the server is current, so the first check waits for the
+    // timer. A cached replay (back from a candidate page) may be stale: check at once.
+    const replayed = shownRenders.has(renderId);
+    shownRenders.add(renderId);
+    if (replayed) tick();
+    else schedule();
     // Back in view: check now (unless we just did). Hidden: switch to the slower pace.
     const onVisibility = () =>
       document.visibilityState === "visible" && Date.now() - lastPoll.current >= POLL_MIN_GAP_MS ? tick() : schedule();
+    // Restored from the browser's back/forward cache: the page wasn't re-rendered, so check.
+    const onPageShow = (e: PageTransitionEvent) => e.persisted && tick();
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onPageShow);
     return () => {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShow);
     };
-  }, [poll]);
+  }, [poll, renderId]);
 
   const [query, setQuery] = useState("");
   const [job, setJob] = useState("");
@@ -119,7 +144,7 @@ export function AdminBoard({
    * Undoes an optimistic change for the given applications only, so anything a
    * poll brought in meanwhile (new applications, other admins' changes) stays.
    */
-  const revert = (before: ApplicationRecord[], ids: Set<string>) => {
+  const revert = (before: ApplicationSummary[], ids: Set<string>) => {
     const old = new Map(before.filter((a) => ids.has(a.id)).map((a) => [a.id, a]));
     setApps((list) => list.map((a) => old.get(a.id) ?? a));
   };
@@ -130,7 +155,7 @@ export function AdminBoard({
   }, [apps, query, job]);
   const pipeline = stages.filter((s) => s.value !== "rejected");
   const rejected = filtered.filter((a) => a.status === "rejected");
-  const href = (a: ApplicationRecord) => `${adminBase}/${a.id}`;
+  const href = (a: ApplicationSummary) => `${adminBase}/${a.id}`;
   // Counted over every application, not just the filtered ones.
   const duplicates = useMemo(() => duplicateCounts(apps), [apps]);
 
@@ -176,7 +201,7 @@ export function AdminBoard({
       setSaveError(`The status of ${ids.length} application${ids.length === 1 ? "" : "s"} couldn't be saved. Try again.`);
       return;
     }
-    const { applications: updated } = (await res.json()) as { applications: ApplicationRecord[] };
+    const { applications: updated } = (await res.json()) as { applications: ApplicationSummary[] };
     const byId = new Map(updated.map((a) => [a.id, a]));
     setApps((list) => list.map((a) => byId.get(a.id) ?? a));
     setSelected(new Set());
@@ -218,7 +243,7 @@ export function AdminBoard({
   };
 
   // Render helpers (plain functions, not components, so selects keep focus across re-renders).
-  const statusSelect = (app: ApplicationRecord) => (
+  const statusSelect = (app: ApplicationSummary) => (
     <select
       value={app.status}
       onChange={(e) => setStatus(app.id, e.target.value as Stage)}
@@ -229,7 +254,7 @@ export function AdminBoard({
     </select>
   );
 
-  const flag = (app: ApplicationRecord) =>
+  const flag = (app: ApplicationSummary) =>
     app.knockouts.length ? (
       <span className="inline-flex items-center gap-1 text-xs font-semibold text-fred-700">
         <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
@@ -237,7 +262,7 @@ export function AdminBoard({
       </span>
     ) : null;
 
-  const duplicateBadge = (app: ApplicationRecord) => {
+  const duplicateBadge = (app: ApplicationSummary) => {
     const n = duplicates(app);
     if (!n) return null;
     const detail = `${n} other application${n === 1 ? "" : "s"} from this email for this job`;
@@ -248,7 +273,7 @@ export function AdminBoard({
     );
   };
 
-  const card = (a: ApplicationRecord) => {
+  const card = (a: ApplicationSummary) => {
     const unis = matchTargetUniversities(a.university);
     const age = a.adult || a.age ? ageLabel(a) : "";
     return (

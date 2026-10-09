@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { BlobPreconditionFailedError, del, get, list, put } from "@vercel/blob";
 import { RETAINED_STAGES, RETENTION_DAYS, duplicatesOf, type ApplicationRecord, type Note, type Stage } from "./config";
+import { adminList } from "./list";
 
 /**
  * Application storage, server code only. Two backends, picked automatically:
@@ -260,6 +261,13 @@ const backend = () => (storageBackend() === "blob" ? blob : local);
 export const readApplications = () => backend().read((records) => [...records]);
 export const readApplication = (id: string) => backend().read((records) => records.find((r) => r.id === id) ?? null);
 
+/** The admin board's list as the API sends it (JSON body and ETag; see adminList). */
+export const readApplicationList = () =>
+  backend().read((records) => {
+    const { body, etag } = adminList(records);
+    return { body, etag };
+  });
+
 /** One application and the other applications from the same email for the same job, from a single read. */
 export const readApplicationWithDuplicates = (id: string) =>
   backend().read((records) => {
@@ -354,17 +362,18 @@ export async function purgeExpired(now = Date.now()) {
   return expired?.length ?? 0;
 }
 
-/** All applications, after dropping expired ones: what the admin board shows, for the price of one read. */
-export async function readApplicationsPurged(now = Date.now()) {
+/** The admin board's list (summaries and ETag) after dropping expired applications, as the board's first render needs it. */
+export async function readApplicationListPurged(now = Date.now()) {
   const b = backend();
-  let kept: ApplicationRecord[] = [];
+  let kept: readonly ApplicationRecord[] = [];
   const expired = await b.mutate((records) => {
     kept = records.filter((r) => !isExpired(r, now));
-    return kept.length < records.length ? { records: kept, result: records.filter((r) => isExpired(r, now)) } : null;
+    return kept.length < records.length ? { records: [...kept], result: records.filter((r) => isExpired(r, now)) } : null;
   });
   await b.removeCvs(cvFiles(expired ?? [])).catch(() => undefined);
-  // `kept` holds the stored records themselves when nothing expired.
-  return structuredClone(kept);
+  const { applications, etag } = adminList(kept);
+  // Summaries still share their cv and knockouts with the stored records.
+  return structuredClone({ applications, etag });
 }
 
 /**
