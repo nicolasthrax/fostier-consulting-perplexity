@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { randomUUID } from "node:crypto";
 import { adminEnabled, currentAdmin, namedLogins } from "@/lib/careers/auth";
-import { readApplicationsPurged, storageAvailable, storageBackend, storageSelfTest } from "@/lib/careers/storage";
-import { RETENTION_DAYS, commissionOptions, jobs, pipelineStages, publicBase, workAuthorizationOptions, type ApplicationRecord } from "@/lib/careers/config";
+import { readApplicationListPurged, storageAvailable, storageBackend, storageSelfTest } from "@/lib/careers/storage";
+import { RETENTION_DAYS, commissionOptions, jobs, pipelineStages, publicBase, workAuthorizationOptions, type ApplicationSummary } from "@/lib/careers/config";
 import { DEFAULT_CAREERS_LOCALE } from "@/lib/careers/i18n";
 import { AdminLogin } from "@/components/careers/AdminLogin";
 import { AdminBoard } from "@/components/careers/AdminBoard";
@@ -30,7 +31,8 @@ export default async function CareersAdminPage() {
 
   // A plain read costs one simple Blob operation (or a cheap 304). The self-test
   // writes a blob, an advanced operation, so it only runs to explain a failure.
-  let applications: ApplicationRecord[] = [];
+  let applications: ApplicationSummary[] = [];
+  let etag = "";
   let storageError = "";
   if (!storageAvailable()) {
     // On Vercel without a Blob store, local reads "succeed" with nothing in them.
@@ -39,7 +41,7 @@ export default async function CareersAdminPage() {
   } else {
     try {
       // Expired applications are dropped in the same pass (no extra read, and a write only if any expired).
-      applications = await readApplicationsPurged();
+      ({ applications, etag } = await readApplicationListPurged());
     } catch (err) {
       const check = await storageSelfTest();
       storageError = check.ok
@@ -48,11 +50,11 @@ export default async function CareersAdminPage() {
     }
   }
 
-  applications.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
-
   return (
     <AdminBoard
       initial={applications}
+      initialEtag={etag}
+      renderId={randomUUID()}
       storageError={storageError}
       storageStatus={storageError ? "" : storageBackend() === "blob" ? "Storage: Vercel Blob (private)" : "Storage: local files"}
       adminName={admin}

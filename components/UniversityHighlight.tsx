@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useId } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { UNIVERSITY_HIGHLIGHTS } from "@/lib/i18n/founder";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -25,6 +24,9 @@ export function UniversityHighlight({
   className = "",
 }: UniversityHighlightProps) {
   const [open, setOpen] = useState(false);
+  // Stays true while the card plays its closing animation (CSS, see .tip-out).
+  const [mounted, setMounted] = useState(false);
+  if (open && !mounted) setMounted(true);
   const [placement, setPlacement] = useState<"top" | "bottom">("top");
   const [pos, setPos] = useState({ left: 0, width: MAX_WIDTH });
   const containerRef = useRef<HTMLSpanElement>(null);
@@ -119,46 +121,43 @@ export function UniversityHighlight({
         {children}
       </span>
 
-      <AnimatePresence>
-        {open && (
-          <motion.span
-            ref={tooltipRef}
-            id={tooltipId}
-            role="tooltip"
-            tabIndex={-1}
-            initial={{ opacity: 0, y: offset }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: offset / 2 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            onClick={() => {
-              if (lastPointer.current !== "mouse") setOpen(false);
-              lastPointer.current = "mouse";
-            }}
-            style={{ left: `${pos.left}px`, width: `${pos.width}px` }}
-            className={`absolute z-40 block overflow-hidden outline-none rounded-sm border-t-4 border-navy bg-white text-left font-sans not-italic shadow-pop ${
-              placement === "top" ? "bottom-[calc(100%+12px)]" : "top-[calc(100%+12px)]"
-            }`}
-          >
-            <span className="flex items-center justify-between gap-4 border-b border-line px-5 py-3.5">
-              <span className="flex min-w-0 items-center gap-2.5">
-                <img src={LOGOS[uniKey]} alt="" className="h-6 w-6 shrink-0 object-contain" />
-                <span className="truncate font-serif text-base text-ink">
-                  {highlight.title}
-                </span>
-              </span>
-              <span className="flex shrink-0 flex-col items-end leading-none">
-                <span className="tabular font-serif text-2xl text-fred">{highlight.stat.value}</span>
-                <span className="mt-1 text-sm font-medium text-muted">
-                  {highlight.stat.label}
-                </span>
+      {mounted && (
+        <span
+          ref={tooltipRef}
+          id={tooltipId}
+          role="tooltip"
+          tabIndex={-1}
+          onAnimationEnd={(e) => {
+            if (e.target === e.currentTarget && !open) setMounted(false);
+          }}
+          onClick={() => {
+            if (lastPointer.current !== "mouse") setOpen(false);
+            lastPointer.current = "mouse";
+          }}
+          style={{ left: `${pos.left}px`, width: `${pos.width}px`, "--tip-y": `${offset}px` } as React.CSSProperties}
+          className={`absolute z-40 block overflow-hidden outline-none rounded-sm border-t-4 border-navy bg-white text-left font-sans not-italic shadow-pop ${
+            placement === "top" ? "bottom-[calc(100%+12px)]" : "top-[calc(100%+12px)]"
+          } ${open ? "tip-in" : "tip-out"}`}
+        >
+          <span className="flex items-center justify-between gap-4 border-b border-line px-5 py-3.5">
+            <span className="flex min-w-0 items-center gap-2.5">
+              <img src={LOGOS[uniKey]} alt="" className="h-6 w-6 shrink-0 object-contain" />
+              <span className="truncate font-serif text-base text-ink">
+                {highlight.title}
               </span>
             </span>
-            <span className="block bg-mist px-5 py-4 text-[14px] font-normal leading-relaxed text-slate">
-              {highlight.text}
+            <span className="flex shrink-0 flex-col items-end leading-none">
+              <span className="tabular font-serif text-2xl text-fred">{highlight.stat.value}</span>
+              <span className="mt-1 text-sm font-medium text-muted">
+                {highlight.stat.label}
+              </span>
             </span>
-          </motion.span>
-        )}
-      </AnimatePresence>
+          </span>
+          <span className="block bg-mist px-5 py-4 text-[14px] font-normal leading-relaxed text-slate">
+            {highlight.text}
+          </span>
+        </span>
+      )}
     </span>
   );
 }

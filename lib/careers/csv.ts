@@ -1,4 +1,4 @@
-import { ageLabel, commissionOptions, labelFor, pipelineStages, workAuthorizationOptions, type ApplicationRecord } from "./config";
+import { ageLabel, commissionOptions, labelFor, pipelineStages, workAuthorizationOptions, type ApplicationSummary } from "./config";
 
 /**
  * One CSV cell. Values a spreadsheet would run as a formula (=, +, -, @, tab, CR)
@@ -9,7 +9,7 @@ export function csvCell(value: string) {
   return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
-const columns: [string, (a: ApplicationRecord) => string][] = [
+const columns: [string, (a: ApplicationSummary) => string][] = [
   ["Reference", (a) => a.id],
   ["Submitted", (a) => a.submittedAt],
   ["Position", (a) => a.jobTitle],
@@ -29,7 +29,7 @@ const columns: [string, (a: ApplicationRecord) => string][] = [
 ];
 
 /** The applications as CSV, with a BOM so Excel reads accented names correctly. */
-export function applicationsCsv(apps: ApplicationRecord[]) {
+export function applicationsCsv(apps: readonly ApplicationSummary[]) {
   const rows = [columns.map(([h]) => h), ...apps.map((a) => columns.map(([, get]) => get(a)))];
   return `﻿${rows.map((r) => r.map(csvCell).join(",")).join("\r\n")}\r\n`;
 }

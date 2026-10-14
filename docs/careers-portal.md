@@ -117,6 +117,18 @@ Google Sheet and saves the CV to a Drive folder.
 Sheets set up before the yes/no age question keep their old "Age" header; the
 column now holds `yes`/`no` (or the exact age for older applications).
 
+When the Blob store (or local files) saved the application, the webhook is only a
+backup: it is sent after the candidate gets their confirmation, so a slow endpoint
+never delays them. If the endpoint was unreachable or answered 429/502/503/504, it
+is tried once more 5 seconds later; any other failure, including a timeout, is not
+retried, since the copy may have arrived. A backup that fails for good is logged as
+`[careers] webhook backup failed for <reference>` (no CV, no secret); the
+application is still in primary storage, and its JSON export can be re-sent by
+hand. Each copy carries the reference as `application.id` and as an
+`Idempotency-Key` header, so a receiver that must never see duplicates can skip
+IDs it already has. When primary storage is missing or failed, the webhook is the
+only copy, so the candidate waits for it, as before.
+
 ## Emails
 
 On each application (once it's stored), the portal sends two emails through

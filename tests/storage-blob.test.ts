@@ -151,6 +151,53 @@ describe("Blob storage", () => {
     expect((await storage.readApplications())[0].status).toBe("applied");
   });
 
+  it("single-record reads and write results are copies too", async () => {
+    const id = idDaysAgo(1, "d");
+    await storage.addApplication(record({ id }), Buffer.from("%PDF"));
+    const one = await storage.readApplication(id);
+    one!.status = "hired";
+    const found = await storage.readApplicationWithDuplicates(id);
+    found!.app.fullName = "Changed";
+    const [moved] = await storage.updateStatus([id], "interview", "alice");
+    moved.history!.push({ at: "2026-01-01T00:00:00Z", by: "x", from: "interview", to: "hired" });
+    const purged = await storage.readApplicationListPurged();
+    purged.applications[0].email = "changed@example.com";
+    purged.applications[0].cv!.originalName = "changed.pdf";
+
+    const now = await storage.readApplication(id);
+    expect(now).toMatchObject({ status: "interview", fullName: "Alice Martin", email: "alice@example.com", cv: { originalName: "cv.pdf" } });
+    expect(now!.history!.map((h) => h.to)).toEqual(["interview"]);
+  });
+
+  it("a cached (304) single-record read downloads nothing and copies only that record", async () => {
+    const a = record({ id: idDaysAgo(1, "a") });
+    const b = record({ id: idDaysAgo(2, "b") });
+    fake.write(INDEX, JSON.stringify([a, b]));
+    await storage.readApplications();
+    fake.get.mockClear();
+    const clone = vi.spyOn(globalThis, "structuredClone");
+
+    expect((await storage.readApplication(b.id))?.id).toBe(b.id);
+    expect((await fake.get.mock.results[0].value)?.statusCode).toBe(304);
+    expect(clone).toHaveBeenCalledTimes(1);
+    expect(clone.mock.calls[0][0]).toMatchObject({ id: b.id });
+    clone.mockRestore();
+  });
+
+  it("readApplicationWithDuplicates finds the record and same-email applications for the same job in one read", async () => {
+    const first = record({ id: idDaysAgo(3, "a"), email: "Alice@Example.com", submittedAt: "2026-01-01T00:00:00Z" });
+    const again = record({ id: idDaysAgo(2, "b"), submittedAt: "2026-01-02T00:00:00Z" });
+    const otherJob = record({ id: idDaysAgo(1, "c"), jobSlug: "private-client-acquisition" });
+    fake.write(INDEX, JSON.stringify([first, again, otherJob]));
+    fake.get.mockClear();
+
+    const found = await storage.readApplicationWithDuplicates(again.id);
+    expect(found?.app.id).toBe(again.id);
+    expect(found?.duplicates.map((d) => d.id)).toEqual([first.id]);
+    expect(fake.get).toHaveBeenCalledTimes(1);
+    expect(await storage.readApplicationWithDuplicates(idDaysAgo(5, "e"))).toBeNull();
+  });
+
   it("retries a write that lost a race, keeping both changes", async () => {
     const a = record({ id: idDaysAgo(1, "a") });
     const b = record({ id: idDaysAgo(1, "b") });

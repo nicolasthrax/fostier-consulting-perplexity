@@ -12,8 +12,8 @@ import {
   type CvExtension,
 } from "@/lib/careers/config";
 import { DEFAULT_CAREERS_LOCALE, careersCopy, isCareersLocale } from "@/lib/careers/i18n";
-import { addApplication, newId, storageAvailable } from "@/lib/careers/storage";
-import { forwardToWebhook, webhookUrl } from "@/lib/careers/webhook";
+import { newId } from "@/lib/careers/storage";
+import { deliverApplication } from "@/lib/careers/deliver";
 import { sendApplicationEmails } from "@/lib/careers/email";
 
 export const runtime = "nodejs";
@@ -81,30 +81,9 @@ export async function POST(request: Request) {
   };
 
   record.cv = { file: `${id}.${ext}`, originalName: file.name.slice(0, 200), size: file.size, type: CV_TYPES[ext] };
-  let storedLocally = false;
-  if (storageAvailable()) {
-    try {
-      // Also drops expired applications in the same write.
-      await addApplication(record, data);
-      storedLocally = true;
-    } catch (err) {
-      console.error("[careers] save failed:", (err as Error).message);
-    }
-  } else {
-    console.error("[careers] no storage configured: connect a Vercel Blob store or set CAREERS_WEBHOOK_URL");
-  }
-
-  let forwarded = false;
-  if (webhookUrl()) {
-    try {
-      forwarded = await forwardToWebhook(record, { name: file.name, type: CV_TYPES[ext], data });
-    } catch (err) {
-      console.error("[careers] webhook failed:", (err as Error).message);
-    }
-  }
-
-  if (!storedLocally && !forwarded)
-    return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 503 });
+  // An optional webhook backup runs after the response once primary storage has the application.
+  const saved = await deliverApplication(record, { name: file.name, type: CV_TYPES[ext], data }, after);
+  if (!saved) return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 503 });
   // After the response, so a slow mail provider never delays the candidate.
   after(() => sendApplicationEmails(record, job.title[lang]));
   return NextResponse.json({ ok: true, id });

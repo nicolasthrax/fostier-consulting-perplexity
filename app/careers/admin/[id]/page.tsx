@@ -4,12 +4,11 @@ import { notFound, redirect } from "next/navigation";
 import { after } from "next/server";
 import { AlertTriangle, ArrowLeft, Copy, Download, ExternalLink, FileText } from "lucide-react";
 import { currentAdmin } from "@/lib/careers/auth";
-import { isSafeId, markViewed, readApplications } from "@/lib/careers/storage";
+import { isSafeId, markViewed, readApplicationWithDuplicates } from "@/lib/careers/storage";
 import {
   API_BASE,
   ageLabel,
   commissionOptions,
-  duplicatesOf,
   labelFor,
   pipelineStages,
   publicBase,
@@ -67,10 +66,10 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
   if (!admin) redirect(adminBase);
   const { id } = await params;
   if (!isSafeId(id)) notFound();
-  // One read of the index serves both this record and its duplicates.
-  const all = await readApplications();
-  const app = all.find((a) => a.id === id);
-  if (!app) notFound();
+  // One read of the index serves both this record and its duplicates; only those are copied out of it.
+  const found = await readApplicationWithDuplicates(id);
+  if (!found) notFound();
+  const { app, duplicates } = found;
   // Opening an application clears its "new" notification; shown in Activity straight away.
   // The write (a re-read plus a full index upload to Blob) runs after the response, so it doesn't hold up the page.
   if (!app.viewedAt) {
@@ -78,7 +77,6 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
     app.viewedAt = new Date().toISOString();
     app.viewedBy = admin;
   }
-  const duplicates = duplicatesOf(app, all);
   const activity = activityOf(app);
 
   const cvUrl = `${API_BASE}/admin/cv/${app.id}`;

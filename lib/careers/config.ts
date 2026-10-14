@@ -391,6 +391,14 @@ export type ApplicationRecord = ApplicationInput & {
   age?: string;
 };
 
+/**
+ * An application as the admin board lists it: everything but the status history
+ * and notes, which only the candidate page shows.
+ */
+export type ApplicationSummary = Omit<ApplicationRecord, "history" | "notes">;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const toSummary = ({ history, notes, ...summary }: ApplicationRecord): ApplicationSummary => summary;
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9 ()\-.]{6,20}$/;
 /** Separators alone ("------") pass PHONE_RE, so the digits are counted too. */
@@ -462,18 +470,20 @@ export const ageLabel = (app: Pick<ApplicationRecord, "adult" | "age">) =>
 const emailKey = (email: string) => email.trim().toLowerCase();
 
 /** Other applications from the same email address for the same listing, oldest first. */
-export function duplicatesOf(app: ApplicationRecord, all: ApplicationRecord[]) {
+export function duplicatesOf(app: ApplicationRecord, all: readonly ApplicationRecord[]) {
   const key = emailKey(app.email);
   return all
     .filter((a) => a.id !== app.id && a.jobSlug === app.jobSlug && emailKey(a.email) === key)
     .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
 }
 
+type DuplicateKey = Pick<ApplicationRecord, "jobSlug" | "email">;
+
 /** Count of applications per email address and listing, for flagging duplicates on the board. */
-export function duplicateCounts(all: ApplicationRecord[]) {
+export function duplicateCounts(all: readonly DuplicateKey[]) {
   const counts = new Map<string, number>();
   for (const a of all) counts.set(`${a.jobSlug}|${emailKey(a.email)}`, (counts.get(`${a.jobSlug}|${emailKey(a.email)}`) ?? 0) + 1);
-  return (app: ApplicationRecord) => (counts.get(`${app.jobSlug}|${emailKey(app.email)}`) ?? 1) - 1;
+  return (app: DuplicateKey) => (counts.get(`${app.jobSlug}|${emailKey(app.email)}`) ?? 1) - 1;
 }
 
 /**
