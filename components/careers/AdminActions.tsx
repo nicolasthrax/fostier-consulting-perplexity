@@ -46,7 +46,11 @@ export function AdminActions({
   };
 
   const remove = async () => {
-    if (!window.confirm(`Delete ${name}'s application and CV permanently? Use this when a candidate withdraws or asks for erasure.`)) return;
+    // Offers and hires are kept out of the automatic purge: their documents belong in a personnel file first.
+    const warning = RETAINED_STAGES.includes(status)
+      ? `${name} is at ${stages.find((s) => s.value === status)?.label ?? status}. Their documents are kept beyond the 12-month purge so they can go to a personnel file: move them there first.\n\n`
+      : "";
+    if (!window.confirm(`${warning}Delete ${name}'s application and CV permanently? Use this when a candidate withdraws or asks for erasure.`)) return;
     setBusy(true);
     const res = await fetch(`${API_BASE}/admin/applications/${id}`, { method: "DELETE" }).catch(() => null);
     setBusy(false);

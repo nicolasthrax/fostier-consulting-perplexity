@@ -105,7 +105,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
   ];
 
   return (
-    <div className="container-site py-8 sm:py-12">
+    <div className="container-site max-w-admin py-8 sm:py-12">
       <Link href={adminBase} className="focus-ring inline-flex items-center gap-1.5 text-sm font-semibold text-navy">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         <span className="link-underline">All candidates</span>

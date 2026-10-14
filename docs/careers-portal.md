@@ -13,6 +13,7 @@ the page head has `<meta name="robots" content="noindex, nofollow">`.
 | `/careers[/en]/jobs/<job-slug>/apply` | 4-step application form |
 | `/careers[/en]/privacy` | Candidate privacy notice (PICS) |
 | `/careers/admin` (or `/<slug>/admin`) | Candidate pipeline, one login per person |
+| `/careers/admin/deletions` (or `/<slug>/admin/deletions`) | Deletion log (see [Deletion log](#deletion-log)) |
 | `/careers/api/*` | Submission and admin endpoints |
 
 ## Configuration (environment variables)
@@ -56,8 +57,9 @@ Hired, plus Rejected. Each change is recorded with who made it and when, and
 shows in the candidate's **Activity**. Admins can add internal **Notes** to a
 candidate (never shown to them, but included in **Export data**). The board
 marks a **Duplicate** when the same email applied to the same listing more than
-once, and the table view can export the current filtered list as CSV or move
-several candidates to a stage at once.
+once, and the table view can export the current filtered list as CSV, move
+several candidates to a stage at once, or delete the selected candidates (each
+row also has its own delete button).
 
 ## Storage
 
@@ -65,6 +67,7 @@ When the app runs on a Node server (`next start`, a VPS, Docker…):
 
 - `data/applications/applications.json` — candidate records and pipeline status
 - `data/cvs/<id>.pdf|docx` — uploaded CVs (type checked by extension *and* file signature, max 4 MB)
+- `data/applications/deletions.json` — the [deletion log](#deletion-log)
 
 `/data/` is git-ignored and files are written with `0600` permissions. Back the
 folder up. Records are deleted automatically after 12 months (see Legal and compliance).
@@ -81,8 +84,8 @@ Vercel's filesystem is read-only, so on Vercel applications are stored in
 4. Redeploy.
 
 The portal switches to Blob automatically when that variable exists: every
-record in one private JSON blob, `careers/index.json`, and each CV in
-`careers/cvs/`. The admin board, CV downloads, status changes, exports,
+record in one private JSON blob, `careers/index.json`, each CV in
+`careers/cvs/`, and the deletion log in `careers/deletions.json`. The admin board, CV downloads, status changes, exports,
 deletions and the 12-month purge all work the same as locally. Records stored
 one per blob in `careers/apps/` by earlier versions are moved into the index on
 the first read, and CVs that no record points to (left behind when a save
@@ -93,7 +96,9 @@ failed) are deleted at the same time.
 30 days past either. So the portal never lists on reads: it fetches the index,
 and a request that already has the latest copy gets a cheap "not modified".
 Each submission costs two puts (CV and index), each status change, note or
-first opening of a candidate one put. Writes are conditional on the
+first opening of a candidate one put; a delete (or a bulk delete) two, the
+index and the deletion log, and a retention purge the same, only when
+something expired. Writes are conditional on the
 index's ETag and retried on conflict, so two admins acting at once don't undo
 each other. The open dashboard checks for new applications every 3 minutes
 (every 15 while the tab is in the background). Watch usage under Vercel →
@@ -183,7 +188,7 @@ What the portal does, and what stays with you:
 | Automatic screening disclosed, with human review (GDPR Art. 22 safeguards) | "No" to commission-only pay starts in **Rejected**; the notice says so, staff see every application and can move it back, and candidates can ask for reconsideration. Other knockouts are only flagged |
 | Data minimisation (PCPD Code of Practice on Human Resource Management) | No HKID/passport collected; candidates are asked to leave them and sensitive data out of CVs |
 | Retention: unsuccessful applications kept ≤ 2 years under the PCPD code; notice promises 12 months | `RETENTION_DAYS` in `config.ts`; records and CVs are purged automatically on every submission and admin load, except candidates at **Offer** or **Hired** (`RETAINED_STAGES`): move a hire's data to their personnel file, then delete it here. For Google Sheets, add the daily trigger in `google-apps-script.gs` |
-| Access, correction and erasure requests (PDPO; GDPR) | Admin → candidate → **Export data** (JSON) and **Delete** |
+| Access, correction and erasure requests (PDPO; GDPR) | Admin → candidate → **Export data** (JSON) and **Delete**; each deletion is recorded in the [deletion log](#deletion-log) |
 | Anti-discrimination ordinances (SDO, DDO, FSDO, RDO) | Equal-opportunity statement on every listing; no questions on sex, family or ethnicity; age only as "18 or over?", needed for minors' parental agreement |
 | Job ad pay, licensing and conduct transparency | "Pay and conduct" block on each listing (`terms` in `config.ts`) |
 | Main site privacy policy consistency | `/privacy` now mentions job applications and points to the separate notice |
@@ -213,3 +218,21 @@ What the portal does, and what stays with you:
   with their badge.
 - With [emails](#emails) set up, the team also gets an email for each new
   application, whether or not the dashboard is open.
+
+## Deletion log
+
+Every deleted application is recorded at `/careers/admin/deletions`, so the
+team can show when an erasure request was carried out, and by whom, without
+keeping the candidate's data. An entry holds only: when, who (the admin's
+name, or `system` for the retention purge), why (`admin` or `retention`), the
+application's reference (random, and the one in the candidate's confirmation
+email, so they can quote it), the job title, the submission date and the stage
+it had reached. Never the name, contact details, answers, notes or CV.
+
+- The log is written after the records and CVs are gone. If that write fails,
+  the deletion still stands and the failure is logged as
+  `[careers] deletion log write failed (<reason>, <references>)`, so it can be
+  added back by hand.
+- Entries are kept for two years (`DELETION_LOG_DAYS` in `config.ts`), the
+  longest the PCPD's HR code allows for recruitment records, then dropped on
+  the next write. The log names staff, so it isn't kept forever either.

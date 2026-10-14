@@ -2,7 +2,7 @@
 export default function CandidateLoading() {
   const block = "animate-pulse rounded-sm bg-white";
   return (
-    <div className="container-site py-8 sm:py-12" aria-busy="true" aria-label="Loading candidate">
+    <div className="container-site max-w-admin py-8 sm:py-12" aria-busy="true" aria-label="Loading candidate">
       <div className="h-5 w-32 animate-pulse rounded-sm bg-line" />
       <div className="mt-5 h-10 w-72 animate-pulse rounded-sm bg-line" />
       <div className="mt-3 h-5 w-48 animate-pulse rounded-sm bg-line" />

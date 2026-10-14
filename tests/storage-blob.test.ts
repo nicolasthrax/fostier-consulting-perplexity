@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ApplicationRecord } from "@/lib/careers/config";
+import type { ApplicationRecord, DeletionEntry } from "@/lib/careers/config";
 import { clearStorageEnv } from "./env";
 import { idDaysAgo, record } from "./fixtures";
 
@@ -68,11 +68,14 @@ vi.mock("@vercel/blob", () => ({
 }));
 
 const INDEX = "careers/index.json";
+const DELETIONS = "careers/deletions.json";
 type Storage = typeof import("@/lib/careers/storage");
 let storage: Storage;
 
 const index = () => JSON.parse(fake.store.get(INDEX)!.text) as ApplicationRecord[];
 const indexPuts = () => fake.put.mock.calls.filter(([p]) => p === INDEX);
+const log = () => JSON.parse(fake.store.get(DELETIONS)!.text) as DeletionEntry[];
+const logPuts = () => fake.put.mock.calls.filter(([p]) => p === DELETIONS);
 
 beforeEach(async () => {
   clearStorageEnv();
@@ -242,11 +245,143 @@ describe("Blob storage", () => {
     expect(fake.store.has(`careers/cvs/${recent.cv!.file}`)).toBe(true);
   });
 
+  it("deleteApplications removes several records in one index write and deletes their CV blobs", async () => {
+    const a = record({ id: idDaysAgo(1, "a") });
+    const b = record({ id: idDaysAgo(2, "b") });
+    const c = record({ id: idDaysAgo(3, "c") });
+    fake.write(INDEX, JSON.stringify([a, b, c]));
+    for (const r of [a, b, c]) fake.write(`careers/cvs/${r.cv!.file}`, "cv");
+
+    const deleted = await storage.deleteApplications([a.id, c.id, idDaysAgo(4, "d")], "alice");
+    expect(deleted.sort()).toEqual([a.id, c.id].sort());
+    expect(indexPuts()).toHaveLength(1);
+    expect(index().map((r) => r.id)).toEqual([b.id]);
+    expect(fake.del).toHaveBeenCalledTimes(1);
+    expect(fake.store.has(`careers/cvs/${a.cv!.file}`)).toBe(false);
+    expect(fake.store.has(`careers/cvs/${c.cv!.file}`)).toBe(false);
+    expect(fake.store.has(`careers/cvs/${b.cv!.file}`)).toBe(true);
+  });
+
+  it("deleteApplications with no matching id writes nothing", async () => {
+    fake.write(INDEX, JSON.stringify([record({ id: idDaysAgo(1, "a") })]));
+    expect(await storage.deleteApplications([idDaysAgo(2, "b")], "alice")).toEqual([]);
+    expect(fake.put).not.toHaveBeenCalled();
+    expect(fake.del).not.toHaveBeenCalled();
+  });
+
   it("addApplication stores the CV blob and appends the record", async () => {
     const rec = record({ id: idDaysAgo(0, "a") });
     await storage.addApplication(rec, Buffer.from("%PDF"));
     expect(fake.store.get(`careers/cvs/${rec.cv!.file}`)?.text).toBe("%PDF");
     expect(index()).toEqual([rec]);
     expect((await storage.readCv(rec.cv!.file))?.toString()).toBe("%PDF");
+  });
+
+  it("deleteApplications logs the batch in one write, with no candidate data", async () => {
+    const a = record({ id: idDaysAgo(1, "a"), status: "screened" });
+    const b = record({ id: idDaysAgo(2, "b") });
+    fake.write(INDEX, JSON.stringify([a, b]));
+    await storage.deleteApplications([a.id, b.id], "alice");
+    expect(logPuts()).toHaveLength(1);
+    // Created with allowOverwrite: false, then conditional on its ETag.
+    expect(logPuts()[0][2]).toMatchObject({ access: "private", allowOverwrite: false });
+    expect(log().find((e) => e.id === a.id)).toEqual({
+      at: expect.any(String),
+      by: "alice",
+      reason: "admin",
+      id: a.id,
+      jobTitle: a.jobTitle,
+      submittedAt: a.submittedAt,
+      status: "screened",
+    });
+    const text = fake.store.get(DELETIONS)!.text;
+    for (const personal of [a.fullName, a.email, a.phone, a.university, a.cv!.originalName]) expect(text).not.toContain(personal);
+
+    const c = record({ id: idDaysAgo(3, "c") });
+    fake.write(INDEX, JSON.stringify([c]));
+    await new Promise((r) => setTimeout(r, 5));
+    await storage.deleteApplication(c.id, "bob");
+    expect(logPuts()[1][2]).toMatchObject({ ifMatch: expect.any(String), allowOverwrite: true });
+    expect((await storage.readDeletionLog()).map((e) => e.by)).toEqual(["bob", "alice", "alice"]);
+  });
+
+  it("a deletion log write that lost a race retries and keeps both entries", async () => {
+    const a = record({ id: idDaysAgo(1, "a") });
+    const b = record({ id: idDaysAgo(2, "b") });
+    fake.write(INDEX, JSON.stringify([a, b]));
+    await storage.deleteApplication(a.id, "alice");
+    const other: DeletionEntry = { ...log()[0], id: idDaysAgo(5, "e"), by: "bob" };
+    // Another instance appends between this one's read of the log and its put.
+    const realPut = fake.put.getMockImplementation()!;
+    let raced = false;
+    fake.put.mockImplementation(async (pathname, body, opts) => {
+      if (pathname === DELETIONS && !raced) {
+        raced = true;
+        fake.write(DELETIONS, JSON.stringify([...log(), other]));
+      }
+      return realPut(pathname, body, opts);
+    });
+    try {
+      await storage.deleteApplication(b.id, "alice");
+    } finally {
+      fake.put.mockImplementation(realPut);
+    }
+    expect(log().map((e) => e.id)).toEqual([a.id, other.id, b.id]);
+  });
+
+  it("purges log retention entries, and a purge with nothing expired touches no log", async () => {
+    const old = record({ id: idDaysAgo(400, "a") });
+    fake.write(INDEX, JSON.stringify([old, record({ id: idDaysAgo(10, "b") })]));
+    expect(await storage.purgeExpired()).toBe(1);
+    expect(log()).toEqual([
+      { at: expect.any(String), by: "system", reason: "retention", id: old.id, jobTitle: old.jobTitle, submittedAt: old.submittedAt, status: "applied" },
+    ]);
+    fake.get.mockClear();
+    fake.put.mockClear();
+    expect(await storage.purgeExpired()).toBe(0);
+    await storage.readApplicationListPurged();
+    expect(fake.put).not.toHaveBeenCalled();
+    expect(fake.get.mock.calls.filter(([p]) => p === DELETIONS)).toEqual([]);
+  });
+
+  it("a failed log write doesn't stop or undo the deletion", async () => {
+    const a = record({ id: idDaysAgo(1, "a") });
+    fake.write(INDEX, JSON.stringify([a]));
+    fake.write(`careers/cvs/${a.cv!.file}`, "cv");
+    const realPut = fake.put.getMockImplementation()!;
+    fake.put.mockImplementation(async (pathname, body, opts) => {
+      if (pathname === DELETIONS) throw new Error("Store suspended");
+      return realPut(pathname, body, opts);
+    });
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      expect(await storage.deleteApplications([a.id], "alice")).toEqual([a.id]);
+      expect(logged).toHaveBeenCalledWith(expect.stringContaining(a.id), "Store suspended");
+    } finally {
+      fake.put.mockImplementation(realPut);
+      logged.mockRestore();
+    }
+    expect(index()).toEqual([]);
+    expect(fake.store.has(`careers/cvs/${a.cv!.file}`)).toBe(false);
+    expect(fake.store.has(DELETIONS)).toBe(false);
+  });
+
+  it("the log drops entries older than two years when it is written", async () => {
+    const entry = (daysAgo: number, id: string): DeletionEntry => ({
+      at: new Date(Date.now() - daysAgo * 86_400_000).toISOString(),
+      by: "alice",
+      reason: "admin",
+      id,
+      jobTitle: "Job",
+      submittedAt: "2024-01-01T00:00:00.000Z",
+      status: "applied",
+    });
+    const tooOld = idDaysAgo(900, "a");
+    const kept = idDaysAgo(800, "b");
+    fake.write(DELETIONS, JSON.stringify([entry(731, tooOld), entry(700, kept)]));
+    const rec = record({ id: idDaysAgo(1, "c") });
+    fake.write(INDEX, JSON.stringify([rec]));
+    await storage.deleteApplication(rec.id, "bob");
+    expect(log().map((e) => e.id)).toEqual([kept, rec.id]);
   });
 });
