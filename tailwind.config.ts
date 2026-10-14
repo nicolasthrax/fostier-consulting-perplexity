@@ -33,6 +33,8 @@ const config: Config = {
       },
       maxWidth: {
         site: "76rem",
+        // The admin board, so its table fits without scrolling sideways.
+        admin: "100rem",
       },
       boxShadow: {
         // Only for layers that float above the page (modal, tooltip).

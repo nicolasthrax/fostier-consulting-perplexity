@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ApplicationRecord } from "@/lib/careers/config";
+import type { ApplicationRecord, DeletionEntry } from "@/lib/careers/config";
 import { clearStorageEnv } from "./env";
 import { freshId, idDaysAgo, record } from "./fixtures";
 
@@ -10,6 +10,8 @@ type Storage = typeof import("@/lib/careers/storage");
 let storage: Storage;
 let dir: string;
 const dbFile = () => path.join(dir, "applications", "applications.json");
+const logFile = () => path.join(dir, "applications", "deletions.json");
+const readLog = async () => JSON.parse(await fs.readFile(logFile(), "utf8")) as DeletionEntry[];
 const cvPath = (file: string) => path.join(dir, "cvs", file);
 const exists = (p: string) => fs.access(p).then(() => true, () => false);
 
@@ -108,11 +110,39 @@ describe("local storage", () => {
     const a = await add();
     const b = await add();
     expect(await exists(cvPath(a.cv!.file))).toBe(true);
-    expect(await storage.deleteApplication(a.id)).toBe(true);
+    expect(await storage.deleteApplication(a.id, "alice")).toBe(true);
     expect((await storage.readApplications()).map((r) => r.id)).toEqual([b.id]);
     expect(await exists(cvPath(a.cv!.file))).toBe(false);
     expect(await exists(cvPath(b.cv!.file))).toBe(true);
-    expect(await storage.deleteApplication(a.id)).toBe(false);
+    expect(await storage.deleteApplication(a.id, "alice")).toBe(false);
+  });
+
+  it("deleteApplications removes several records and their CVs in one write, ignoring unknown ids", async () => {
+    const a = await add();
+    const b = await add();
+    const c = await add();
+    const unknown = freshId();
+    const writes = vi.spyOn(fs, "rename");
+    const deleted = await storage.deleteApplications([a.id, unknown, b.id], "alice");
+    // One write of the records, one of the deletion log.
+    expect(writes.mock.calls.map(([, to]) => path.basename(String(to)))).toEqual(["applications.json", "deletions.json"]);
+    writes.mockRestore();
+    expect(deleted.sort()).toEqual([a.id, b.id].sort());
+    expect((await storage.readApplications()).map((r) => r.id)).toEqual([c.id]);
+    expect(await exists(cvPath(a.cv!.file))).toBe(false);
+    expect(await exists(cvPath(b.cv!.file))).toBe(false);
+    expect(await exists(cvPath(c.cv!.file))).toBe(true);
+  });
+
+  it("deleteApplications with no matching id writes nothing", async () => {
+    const a = await add();
+    const writes = vi.spyOn(fs, "rename");
+    expect(await storage.deleteApplications([freshId(), freshId()], "alice")).toEqual([]);
+    expect(writes).not.toHaveBeenCalled();
+    writes.mockRestore();
+    expect(await exists(logFile())).toBe(false);
+    expect((await storage.readApplications()).map((r) => r.id)).toEqual([a.id]);
+    expect(await exists(cvPath(a.cv!.file))).toBe(true);
   });
 
   it("isExpired: past the retention period unless offered or hired", () => {
@@ -162,5 +192,100 @@ describe("local storage", () => {
     const rec = await add();
     expect((await storage.readApplications()).map((r) => r.id).sort()).toEqual([hired.id, rec.id].sort());
     expect(await exists(cvPath(old.cv!.file))).toBe(false);
+  });
+
+  it("deleteApplications logs who deleted what, with no candidate data", async () => {
+    const a = await add({ status: "interview" });
+    const b = await add();
+    await storage.deleteApplications([a.id, b.id], "alice");
+    const log = await readLog();
+    expect(log).toHaveLength(2);
+    expect(log.find((e) => e.id === a.id)).toEqual({
+      at: expect.any(String),
+      by: "alice",
+      reason: "admin",
+      id: a.id,
+      jobTitle: a.jobTitle,
+      submittedAt: a.submittedAt,
+      status: "interview",
+    });
+    const text = await fs.readFile(logFile(), "utf8");
+    for (const personal of [a.fullName, a.email, a.phone, a.university, a.cv!.originalName]) expect(text).not.toContain(personal);
+    if (process.platform !== "win32") expect((await fs.stat(logFile())).mode & 0o777).toBe(0o600);
+
+    // Newest first, and each later batch appends.
+    const c = await add();
+    await new Promise((r) => setTimeout(r, 5));
+    expect(await storage.deleteApplication(c.id, "bob")).toBe(true);
+    const read = await storage.readDeletionLog();
+    expect(read.map((e) => e.by)).toEqual(["bob", "alice", "alice"]);
+    expect(read[0].id).toBe(c.id);
+  });
+
+  it("retention purges log a \"system\" entry, and only when something expired", async () => {
+    const old = record({ id: idDaysAgo(400, "a"), status: "rejected" });
+    const recent = record({ id: idDaysAgo(10, "b") });
+    await seed([old, recent]);
+    expect(await storage.purgeExpired()).toBe(1);
+    expect(await readLog()).toEqual([
+      { at: expect.any(String), by: "system", reason: "retention", id: old.id, jobTitle: old.jobTitle, submittedAt: old.submittedAt, status: "rejected" },
+    ]);
+    const writes = vi.spyOn(fs, "rename");
+    expect(await storage.purgeExpired()).toBe(0);
+    await storage.readApplicationListPurged();
+    expect(writes).not.toHaveBeenCalled();
+    writes.mockRestore();
+    expect(await readLog()).toHaveLength(1);
+  });
+
+  it("readApplicationListPurged and addApplication log what they purge", async () => {
+    const first = record({ id: idDaysAgo(400, "a") });
+    await seed([first]);
+    await storage.readApplicationListPurged();
+    expect((await readLog()).map((e) => [e.id, e.reason, e.by])).toEqual([[first.id, "retention", "system"]]);
+
+    const second = record({ id: idDaysAgo(400, "b") });
+    await seed([second]);
+    await add();
+    expect((await readLog()).map((e) => e.id)).toEqual([first.id, second.id]);
+  });
+
+  it("a failed log write doesn't stop or undo the deletion", async () => {
+    const a = await add();
+    const realRename = fs.rename.bind(fs);
+    const rename = vi.spyOn(fs, "rename").mockImplementation(async (from, to) => {
+      if (String(to).endsWith("deletions.json")) throw new Error("disk full");
+      return realRename(from, to);
+    });
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      expect(await storage.deleteApplications([a.id], "alice")).toEqual([a.id]);
+      expect(logged).toHaveBeenCalledWith(expect.stringContaining(a.id), "disk full");
+    } finally {
+      rename.mockRestore();
+      logged.mockRestore();
+    }
+    expect(await storage.readApplications()).toEqual([]);
+    expect(await exists(cvPath(a.cv!.file))).toBe(false);
+  });
+
+  it("the log drops entries older than two years when it is written", async () => {
+    const day = 86_400_000;
+    const entry = (daysAgo: number, id: string): DeletionEntry => ({
+      at: new Date(Date.now() - daysAgo * day).toISOString(),
+      by: "alice",
+      reason: "admin",
+      id,
+      jobTitle: "Job",
+      submittedAt: "2024-01-01T00:00:00.000Z",
+      status: "applied",
+    });
+    const tooOld = idDaysAgo(900, "a");
+    const kept = idDaysAgo(800, "b");
+    await fs.mkdir(path.dirname(logFile()), { recursive: true });
+    await fs.writeFile(logFile(), JSON.stringify([entry(731, tooOld), entry(700, kept)]));
+    const rec = await add();
+    await storage.deleteApplication(rec.id, "bob");
+    expect((await readLog()).map((e) => e.id)).toEqual([kept, rec.id]);
   });
 });

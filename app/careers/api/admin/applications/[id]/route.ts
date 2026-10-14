@@ -41,10 +41,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 }
 
-/** Deletes the application and CV (withdrawal or erasure request). */
+/** Deletes the application and CV (withdrawal or erasure request), recorded in the deletion log under the admin's name. */
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await currentAdmin())) return unauthorised();
+  const admin = await currentAdmin();
+  if (!admin) return unauthorised();
   const { id } = await params;
-  if (!isSafeId(id) || !(await deleteApplication(id))) return notFound();
+  if (!isSafeId(id) || !(await deleteApplication(id, admin))) return notFound();
   return NextResponse.json({ ok: true });
 }

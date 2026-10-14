@@ -23,13 +23,17 @@ const botProtected = [
 export function CareersShell({
   lang,
   showLanguageSwitch = true,
+  wide = false,
   children,
 }: {
   lang: CareersLocale;
   showLanguageSwitch?: boolean;
+  /** Wider page column, for the admin board's table. */
+  wide?: boolean;
   children: React.ReactNode;
 }) {
   const t = careersCopy[lang];
+  const container = `container-site${wide ? " max-w-admin" : ""}`;
   const link = "focus-ring min-h-6 inline-block hover:text-navy";
   return (
     <html lang={t.htmlLang} className={`${newsreader.variable} ${bricolage.variable} font-sans`}>
@@ -42,7 +46,7 @@ export function CareersShell({
         </a>
         <header className="bg-white">
           <div aria-hidden="true" className="par-avion h-1.5" />
-          <div className="container-site flex items-center justify-between gap-4 py-4">
+          <div className={`${container} flex items-center justify-between gap-4 py-4`}>
             <a href={`/${lang}`} className="focus-ring inline-block shrink-0">
               <Image
                 src={site.logoPath}
@@ -63,7 +67,7 @@ export function CareersShell({
         </header>
         <main id="main" className="flex-1">{children}</main>
         <footer className="border-t border-line bg-white">
-          <div className="container-site flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-6 text-sm text-muted">
+          <div className={`${container} flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-6 text-sm text-muted`}>
             <p>© {new Date().getFullYear()} {site.legalName}, {site.city} · {t.footer.brn}</p>
             {showLanguageSwitch && (
               <ul className="flex flex-wrap gap-x-5 gap-y-1">

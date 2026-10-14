@@ -28,6 +28,13 @@ export type CvExtension = keyof typeof CV_TYPES;
  */
 export const RETENTION_DAYS = 365;
 
+/**
+ * How long the deletion log keeps an entry. Two years: the longest the PCPD's HR
+ * code allows for recruitment records, so the team can still show an erasure was
+ * done if a candidate or the PCPD asks; the log names staff, so it isn't kept forever.
+ */
+export const DELETION_LOG_DAYS = 730;
+
 /** Candidates say whether they are at least this old; younger ones are flagged for review, not rejected. */
 export const ADULT_AGE = 18;
 
@@ -39,16 +46,19 @@ export type Option = {
   label: Localized;
   /** A knockout answer is not rejected; it is flagged on the admin board for a person to review. */
   knockout?: boolean;
+  /** Brief English label for the admin table, where the full one is too long. */
+  short?: string;
 };
 
 export const workAuthorizationOptions: Option[] = [
-  { value: "hk-permanent", label: { en: "Hong Kong permanent resident", fr: "Résident permanent de Hong Kong" } },
+  { value: "hk-permanent", label: { en: "Hong Kong permanent resident", fr: "Résident permanent de Hong Kong" }, short: "HK permanent resident" },
   {
     value: "hk-visa",
     label: {
       en: "Valid Hong Kong visa with the right to work (work, dependant, IANG…)",
       fr: "Visa de Hong Kong valide autorisant à travailler (travail, dépendant, IANG…)",
     },
+    short: "HK visa, can work",
   },
   {
     value: "student-visa",
@@ -56,17 +66,20 @@ export const workAuthorizationOptions: Option[] = [
       en: "Non-local student in Hong Kong (student visa)",
       fr: "Étudiant non local à Hong Kong (visa étudiant)",
     },
+    short: "Student visa",
     // Not rejected: student visas limit outside work, so a person checks each case.
     knockout: true,
   },
   {
     value: "needs-sponsorship",
     label: { en: "Would need visa sponsorship", fr: "J'aurais besoin d'un parrainage de visa" },
+    short: "Needs sponsorship",
     knockout: true,
   },
   {
     value: "remote-other",
     label: { en: "Based outside Hong Kong, remote only", fr: "Basé hors de Hong Kong, à distance uniquement" },
+    short: "Remote, outside HK",
     knockout: true,
   },
 ];
@@ -389,6 +402,22 @@ export type ApplicationRecord = ApplicationInput & {
   notes?: Note[];
   /** Exact age, asked by earlier versions of the form; new applications have `adult` instead. */
   age?: string;
+};
+
+/**
+ * A deleted application, as the deletion log keeps it: the reference (random, and in
+ * the candidate's confirmation email), the job, when it was submitted and its stage.
+ * Never the candidate's name, contact details, answers or CV.
+ */
+export type DeletionEntry = {
+  at: string;
+  /** The admin's name, or "system" for the retention purge. */
+  by: string;
+  reason: "admin" | "retention";
+  id: string;
+  jobTitle: string;
+  submittedAt: string;
+  status: Stage;
 };
 
 /**

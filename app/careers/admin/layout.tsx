@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 export const viewport = { themeColor: "#002395", width: "device-width", initialScale: 1 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <CareersShell lang="en" showLanguageSwitch={false}>{children}</CareersShell>;
+  return <CareersShell lang="en" showLanguageSwitch={false} wide>{children}</CareersShell>;
 }

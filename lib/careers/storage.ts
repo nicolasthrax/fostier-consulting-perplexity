@@ -2,7 +2,16 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { BlobPreconditionFailedError, del, get, list, put } from "@vercel/blob";
-import { RETAINED_STAGES, RETENTION_DAYS, duplicatesOf, type ApplicationRecord, type Note, type Stage } from "./config";
+import {
+  DELETION_LOG_DAYS,
+  RETAINED_STAGES,
+  RETENTION_DAYS,
+  duplicatesOf,
+  type ApplicationRecord,
+  type DeletionEntry,
+  type Note,
+  type Stage,
+} from "./config";
 import { adminList } from "./list";
 
 /**
@@ -21,6 +30,9 @@ import { adminList } from "./list";
  * index, and only when it changed (ETag). Writes replace the index only if no one
  * else wrote it in between (ifMatch), and retry otherwise, so two admins acting
  * at once can't undo each other's changes.
+ *
+ * Deletions are recorded in a separate log (careers/deletions.json, or
+ * deletions.json next to the records) that holds no candidate data: see DeletionEntry.
  */
 
 /** Blob credentials, found under the default names or any custom prefix. */
@@ -48,6 +60,12 @@ export const isSafeId = (id: string) => SAFE_ID.test(id);
 /** Submission time, read from the ID itself. */
 const idTime = (id: string) => parseInt(id.split("-")[0], 36);
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Drops log entries older than DELETION_LOG_DAYS; runs on each log write. */
+const pruneLog = (entries: DeletionEntry[], now = Date.now()) =>
+  entries.filter((e) => Date.parse(e.at) >= now - DELETION_LOG_DAYS * DAY_MS);
+
 /** The records and the version they were read at (Blob ETag; null for local files). */
 type Snapshot = { records: ApplicationRecord[]; version: string | null };
 
@@ -67,6 +85,10 @@ type Backend = {
   putCv(file: string, data: Buffer, type: string): Promise<void>;
   readCv(file: string): Promise<Buffer | null>;
   removeCvs(files: string[]): Promise<void>;
+  /** The deletion log as stored, oldest first. */
+  readDeletions(): Promise<DeletionEntry[]>;
+  /** Appends to the deletion log in one write, pruning old entries. */
+  appendDeletions(entries: DeletionEntry[]): Promise<void>;
 };
 
 // ——— Vercel Blob ———
@@ -75,7 +97,11 @@ const INDEX = "careers/index.json";
 const CVS = "careers/cvs/";
 /** Per-application records written by earlier versions, moved into the index on first read. */
 const LEGACY_APPS = "careers/apps/";
+const DELETIONS = "careers/deletions.json";
 const MAX_WRITE_ATTEMPTS = 6;
+
+/** Waits a little longer on each attempt, with jitter, before retrying a write that lost a race. */
+const backoff = (attempt: number) => new Promise((r) => setTimeout(r, 50 * attempt + Math.random() * 100));
 
 const cvFiles = (records: ApplicationRecord[]) => records.flatMap((r) => (r.cv ? [r.cv.file] : []));
 
@@ -152,6 +178,20 @@ async function latest(): Promise<Snapshot> {
   return cached;
 }
 
+type LogSnapshot = { entries: DeletionEntry[]; version: string | null };
+/** Last deletion log this instance read or wrote, like `cached` for the index. */
+let cachedLog: LogSnapshot | null = null;
+
+/** The latest deletion log (empty until the first deletion), downloaded only if it changed. Shared: don't modify. */
+async function latestLog(): Promise<LogSnapshot> {
+  const res = await get(DELETIONS, { access: "private", useCache: false, ifNoneMatch: cachedLog?.version ?? undefined, ...blobAuth() });
+  if (!res) return (cachedLog = { entries: [], version: null });
+  if (res.statusCode === 304 && cachedLog) return cachedLog;
+  if (res.statusCode !== 200) throw new Error(`Unexpected Blob response ${res.statusCode}`);
+  cachedLog = { entries: JSON.parse(await new Response(res.stream).text()), version: res.blob.etag };
+  return cachedLog;
+}
+
 const blob: Backend = {
   async read(select) {
     return structuredClone(select((await latest()).records));
@@ -170,7 +210,7 @@ const blob: Backend = {
         if (!(err instanceof BlobPreconditionFailedError) || attempt >= MAX_WRITE_ATTEMPTS) throw err;
         // Someone else saved in between: start again from their version.
         cached = null;
-        await new Promise((r) => setTimeout(r, 50 * attempt + Math.random() * 100));
+        await backoff(attempt);
       }
     }
   },
@@ -190,6 +230,33 @@ const blob: Backend = {
   async removeCvs(files) {
     if (files.length) await del(files.map((f) => `${CVS}${path.basename(f)}`), { ...blobAuth() });
   },
+  async readDeletions() {
+    return structuredClone((await latestLog()).entries);
+  },
+  // Same conditional write and retry as the index: one put per call, more only on a conflict.
+  async appendDeletions(entries) {
+    for (let attempt = 1; ; attempt++) {
+      const { entries: current, version } = await latestLog();
+      const next = pruneLog([...current, ...entries]);
+      try {
+        const res = await put(DELETIONS, JSON.stringify(next), {
+          access: "private",
+          contentType: "application/json",
+          addRandomSuffix: false,
+          // The first entry creates the log, which fails if another request just created it.
+          ...(version ? { ifMatch: version, allowOverwrite: true } : { allowOverwrite: false }),
+          ...blobAuth(),
+        });
+        cachedLog = { entries: next, version: res.etag };
+        return;
+      } catch (err) {
+        const raced = err instanceof BlobPreconditionFailedError || (!version && (await blobText(DELETIONS).catch(() => null)) !== null);
+        if (!raced || attempt >= MAX_WRITE_ATTEMPTS) throw err;
+        cachedLog = null;
+        await backoff(attempt);
+      }
+    }
+  },
 };
 
 // ——— Local files ———
@@ -198,6 +265,7 @@ const DATA_DIR = path.resolve(process.env.CAREERS_DATA_DIR || path.join(process.
 const APPLICATIONS_DIR = path.join(DATA_DIR, "applications");
 const CV_DIR = path.join(DATA_DIR, "cvs");
 const DB_FILE = path.join(APPLICATIONS_DIR, "applications.json");
+const LOG_FILE = path.join(APPLICATIONS_DIR, "deletions.json");
 
 // Serialise writes within this process so concurrent requests don't clobber each other.
 let queue: Promise<unknown> = Promise.resolve();
@@ -212,21 +280,22 @@ async function ensureDirs() {
   await fs.mkdir(CV_DIR, { recursive: true, mode: 0o700 });
 }
 
-async function localReadAll(): Promise<ApplicationRecord[]> {
+/** A JSON array file (the records or the deletion log); empty if it doesn't exist yet. */
+async function localReadAll<T = ApplicationRecord>(file = DB_FILE): Promise<T[]> {
   try {
-    return JSON.parse(await fs.readFile(DB_FILE, "utf8")) as ApplicationRecord[];
+    return JSON.parse(await fs.readFile(file, "utf8")) as T[];
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw err;
   }
 }
 
-async function localWriteAll(records: ApplicationRecord[]) {
+async function localWriteAll(records: unknown[], file = DB_FILE) {
   await ensureDirs();
   // Write then rename, so a crash never leaves a half-written database.
-  const tmp = `${DB_FILE}.${process.pid}.tmp`;
+  const tmp = `${file}.${process.pid}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(records, null, 2), { mode: 0o600 });
-  await fs.rename(tmp, DB_FILE);
+  await fs.rename(tmp, file);
 }
 
 const local: Backend = {
@@ -251,6 +320,12 @@ const local: Backend = {
   },
   async removeCvs(files) {
     for (const f of files) await fs.rm(path.join(CV_DIR, path.basename(f)), { force: true });
+  },
+  readDeletions() {
+    return localReadAll<DeletionEntry>(LOG_FILE);
+  },
+  appendDeletions(entries) {
+    return withLock(async () => localWriteAll(pruneLog([...(await localReadAll<DeletionEntry>(LOG_FILE)), ...entries]), LOG_FILE));
   },
 };
 
@@ -278,11 +353,34 @@ export const readCv = (file: string) => backend().readCv(file);
 
 /** Applications past the retention period, except offers and hires (see RETAINED_STAGES). */
 export const isExpired = (record: ApplicationRecord, now = Date.now()) =>
-  !RETAINED_STAGES.includes(record.status) && idTime(record.id) < now - RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  !RETAINED_STAGES.includes(record.status) && idTime(record.id) < now - RETENTION_DAYS * DAY_MS;
+
+/** Who the retention purge is recorded as in the deletion log. */
+const SYSTEM = "system";
+
+/**
+ * Records deleted applications in the deletion log, after they are gone. A failed
+ * log write is reported, never thrown: the erasure matters more than its record.
+ */
+async function logDeletions(records: readonly ApplicationRecord[], reason: DeletionEntry["reason"], by: string) {
+  if (!records.length) return;
+  const at = new Date().toISOString();
+  // Field by field, so nothing about the candidate can slip in.
+  const entries = records.map((r): DeletionEntry => ({ at, by, reason, id: r.id, jobTitle: r.jobTitle, submittedAt: r.submittedAt, status: r.status }));
+  try {
+    await backend().appendDeletions(entries);
+  } catch (err) {
+    console.error(`[careers] deletion log write failed (${reason}, ${entries.map((e) => e.id).join(", ")}):`, (err as Error).message);
+  }
+}
+
+/** The deletion log, newest first. */
+export const readDeletionLog = async () => (await backend().readDeletions()).sort((a, b) => b.at.localeCompare(a.at));
 
 /**
  * Stores the CV and the record (`record.cv` must already describe the file). The
- * same write drops expired applications, so the purge costs nothing extra.
+ * same write drops expired applications, so the purge costs nothing extra (a
+ * deletion log write only when something expired).
  */
 export async function addApplication(record: ApplicationRecord, cv: Buffer) {
   const b = backend();
@@ -298,6 +396,7 @@ export async function addApplication(record: ApplicationRecord, cv: Buffer) {
       throw err;
     });
   await b.removeCvs(cvFiles(expired ?? [])).catch(() => undefined);
+  await logDeletions(expired ?? [], "retention", SYSTEM);
 }
 
 /** Changes the status of one or more applications, recording who did it. Returns the updated records. */
@@ -334,23 +433,35 @@ export async function addNote(id: string, text: string, by: string) {
   });
 }
 
-/** Deletes one application and its CV (withdrawal or erasure request). */
-export async function deleteApplication(id: string) {
+/**
+ * Deletes applications and their CVs in one write, then records them in the deletion
+ * log under the admin's name. Returns the IDs that existed and were deleted.
+ */
+export async function deleteApplications(ids: string[], by: string): Promise<string[]> {
+  const set = new Set(ids);
   const b = backend();
   const removed = await b.mutate((records) => {
-    const rec = records.find((r) => r.id === id);
-    return rec ? { records: records.filter((r) => r.id !== id), result: rec } : null;
+    const gone = records.filter((r) => set.has(r.id));
+    return gone.length ? { records: records.filter((r) => !set.has(r.id)), result: gone } : null;
   });
-  if (!removed) return false;
-  await b.removeCvs(cvFiles([removed]));
-  return true;
+  if (!removed) return [];
+  try {
+    await b.removeCvs(cvFiles(removed));
+  } finally {
+    // The records are gone even if a CV wasn't, so the log says so either way.
+    await logDeletions(removed, "admin", by);
+  }
+  return removed.map((r) => r.id);
 }
+
+/** Deletes one application and its CV (withdrawal or erasure request). */
+export const deleteApplication = async (id: string, by: string) => (await deleteApplications([id], by)).length > 0;
 
 /**
  * Enforces the retention period promised in the candidate privacy notice: deletes
  * applications (and CVs) submitted more than RETENTION_DAYS ago, except offers and
  * hires. Runs on each new submission and each admin page load, so no scheduler is
- * needed; it only writes when something expired.
+ * needed; it only writes (the index, then the deletion log) when something expired.
  */
 export async function purgeExpired(now = Date.now()) {
   const b = backend();
@@ -358,7 +469,11 @@ export async function purgeExpired(now = Date.now()) {
     const gone = records.filter((r) => isExpired(r, now));
     return gone.length ? { records: records.filter((r) => !isExpired(r, now)), result: gone } : null;
   });
-  await b.removeCvs(cvFiles(expired ?? []));
+  try {
+    await b.removeCvs(cvFiles(expired ?? []));
+  } finally {
+    await logDeletions(expired ?? [], "retention", SYSTEM);
+  }
   return expired?.length ?? 0;
 }
 
@@ -371,6 +486,7 @@ export async function readApplicationListPurged(now = Date.now()) {
     return kept.length < records.length ? { records: [...kept], result: records.filter((r) => isExpired(r, now)) } : null;
   });
   await b.removeCvs(cvFiles(expired ?? [])).catch(() => undefined);
+  await logDeletions(expired ?? [], "retention", SYSTEM);
   const { applications, etag } = adminList(kept);
   // Summaries still share their cv and knockouts with the stored records.
   return structuredClone({ applications, etag });
