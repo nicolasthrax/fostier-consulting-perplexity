@@ -22,8 +22,11 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          // Only frame-ancestors: a script/style CSP would need nonces for Next's inline scripts.
-          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+          // No script-src here: it would need a nonce per request, which would make every static
+          // page dynamic. The admin pages, which show what candidates typed, get a full nonce
+          // policy from middleware.ts. These directives need no nonce: no plugins, no <base>
+          // pointing elsewhere, forms only post to this site, and no framing by other sites.
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" },
         ],
       },
       {
@@ -52,5 +55,5 @@ const nextConfig = {
   },
 };
 
-// BotID: proxies its challenge script through this origin (see components/careers/CareersShell.tsx).
+// BotID: proxies its challenge script through this origin (started by components/careers/BotIdInit.tsx).
 export default withBotId(nextConfig);

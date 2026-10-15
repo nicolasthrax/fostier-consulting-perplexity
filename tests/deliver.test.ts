@@ -24,6 +24,8 @@ let errors: ReturnType<typeof vi.spyOn>;
 
 const ok = () => new Response("ok", { status: 200 });
 const status = (code: number) => new Response("no", { status: code });
+/** What the Apps Script receiver answers, always with a 200. */
+const appsScript = (ok: boolean) => Response.json({ ok });
 /** A webhook that only answers when told to. */
 function slowWebhook() {
   let answer!: (r: Response) => void;
@@ -131,6 +133,26 @@ describe("deliverApplication", () => {
     expect(storage.addApplication).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(deferred).toHaveLength(0);
+  });
+
+  it("no primary storage + a receiver answering {ok: false} (wrong secret): reports failure, not retried", async () => {
+    storage.available = false;
+    fetchMock.mockResolvedValue(appsScript(false));
+    expect(await deliverApplication(record(), cv, defer)).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(errors.mock.calls)).toContain("CAREERS_WEBHOOK_SECRET");
+    expectCleanLogs();
+    fetchMock.mockResolvedValue(appsScript(true));
+    expect(await deliverApplication(record(), cv, defer)).toBe(true);
+  });
+
+  it("primary saved + a backup answering {ok: false}: still succeeds, and the refused backup is logged", async () => {
+    fetchMock.mockResolvedValue(appsScript(false));
+    expect(await deliverApplication(record(), cv, defer)).toBe(true);
+    await Promise.all(deferred.map((t) => t()));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(errors.mock.calls)).toContain("webhook backup failed");
+    expectCleanLogs();
   });
 
   it("both fail: reports failure, so the candidate is never told it worked", async () => {

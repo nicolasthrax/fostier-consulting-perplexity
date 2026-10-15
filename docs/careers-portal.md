@@ -22,10 +22,11 @@ the page head has `<meta name="robots" content="noindex, nofollow">`.
 | --- | --- | --- |
 | `CAREERS_ADMIN_USERS` | for admin | One login per person, as JSON: `{"nicolas":"…","lucie":"…"}` (passwords 8+ chars). Status changes, notes and "opened by" record the name. |
 | `CAREERS_ADMIN_PASSWORD` | no | Older single shared password (8+ chars), signing in as `admin`. With neither variable set, the admin is disabled. |
+| `CAREERS_SESSION_SECRET` | for admin | Signs the sign-in cookies (32+ random characters, e.g. `openssl rand -base64 32`). Without it, cookies are signed with the passwords and the admin board shows a warning. Changing it signs everyone out. See [Admin security](#admin-security). |
 | `CAREERS_PORTAL_SLUG` | no | Serve the portal at an unguessable path, e.g. `join-7f3k2q`. `/careers` pages then 404. Don't use `fr`, `en` or `zh`. Read at build time: redeploy after changing it. |
 | `CAREERS_DATA_DIR` | no | Where records and CVs are stored. Default `./data`. |
 | `CAREERS_WEBHOOK_URL` | no | Server-side copy of each application (JSON + base64 CV) to a free endpoint. |
-| `CAREERS_WEBHOOK_SECRET` | no | Sent as `secret` in the webhook payload so the receiver can reject forgeries. |
+| `CAREERS_WEBHOOK_SECRET` | with the webhook | Sent as `secret` in the webhook payload so the receiver can reject forgeries. The Apps Script receiver refuses everything until it has one. |
 | `RESEND_API_KEY` | for emails | Added by the Resend integration (see [Emails](#emails)). |
 | `CAREERS_EMAIL_FROM` | for emails | Sender on a domain verified in Resend, e.g. `Fostier Consulting <careers@fostierconsulting.com>`. |
 | `CAREERS_NOTIFY_EMAIL` | no | Where new-application alerts go. Default: the site's contact email. |
@@ -115,9 +116,17 @@ bodies.
 Google Sheet and saves the CV to a Drive folder.
 
 1. Create a Google Sheet, then **Extensions → Apps Script** and paste the file.
-2. Set `FOLDER_ID` (a Drive folder for CVs) and `SHARED_SECRET` (match `CAREERS_WEBHOOK_SECRET`).
+2. Set `FOLDER_ID` (a Drive folder for CVs) and `SHARED_SECRET` (match `CAREERS_WEBHOOK_SECRET`). The
+   secret is required: with it empty, the script refuses every request, so a leaked `/exec` URL can't
+   add rows or Drive files.
 3. **Deploy → New deployment → Web app**, execute as *Me*, access *Anyone*.
 4. Use the `/exec` URL as `CAREERS_WEBHOOK_URL`.
+
+The script stores values starting with `=`, `+`, `-` or `@` as text (with a leading
+apostrophe), as the admin's CSV export does, so a candidate can't plant a formula in
+the Sheet. It answers `{"ok": false}` when it refuses a request, and the portal
+counts that as not saved (logged with a hint to check the secret), not as a backup
+that arrived.
 
 Sheets set up before the yes/no age question keep their old "Age" header; the
 column now holds `yes`/`no` (or the exact age for older applications).
@@ -159,15 +168,52 @@ the admin login (`CareersShell` loads its client on portal pages only;
 on the form, the candidate is offered the email route instead. Every block is
 logged as `[careers] BotID blocked a request to …`. Locally, BotID always reports
 a human, so **test a Preview deployment after any change to the
-Content-Security-Policy** in `next.config.mjs`: if the CSP stopped BotID's
-browser script from running, every real candidate would be blocked too. The
+Content-Security-Policy** in `next.config.mjs` or `middleware.ts`: if the CSP stopped BotID's
+browser script from running, every real candidate would be blocked too. BotID is
+started by `BotIdInit` from the page's own bundle, not botid's `<BotIdClient>`,
+whose inline script the admin pages' CSP would block. The
 candidate privacy notice discloses the check. The in-memory login throttle (5 attempts per IP per
 15 minutes) only sees one server instance, so BotID is what stops distributed
-guessing; for more, add a Vercel Firewall rate-limit rule on
-`/careers/api/admin/login`.
+guessing, with the firewall rule below.
+
+A Vercel Firewall rule, **Careers: rate limit sign-in and applications**, allows
+10 `POST`s per IP per hour, shared between `/careers/api/admin/login` and
+`/careers/api/apply`, then answers 429. It protects the Blob operation quota and
+the confirmation emails from floods. The Hobby plan allows one rate-limit rule, so
+both endpoints share it. It lives in the Vercel dashboard (Firewall), not in this
+repo. The form shows the email route on a 429, and the login says to wait.
 
 CVs opened in the browser are served with `Content-Security-Policy: sandbox`,
 so a crafted file can't run scripts on the site's origin.
+
+## Admin security
+
+- **Sign-in cookie.** HttpOnly, `SameSite=Strict`, 8 hours, named
+  `__Host-fc_careers_admin` in production (HTTPS only, this exact host). It is
+  signed with `CAREERS_SESSION_SECRET` over the person's password, so changing a
+  password signs that person out, and rotating the secret signs everyone out. A
+  copied cookie gives nothing to guess a password from. Sign-out clears the cookie
+  from the browser; it can't revoke a copy taken earlier (rotate the secret for that).
+- **Idle sign-out.** After an hour without a click, key press, touch or scroll in
+  any admin tab, the admin is signed out and the page reloads.
+- **Same-origin writes.** Status changes, notes, deletions, sign-in and sign-out
+  are refused (403) when the browser's `Origin` isn't this site, so a page on
+  another site, or on another subdomain, can't act with an admin's cookie.
+- **Content-Security-Policy.** The admin pages, which show what candidates typed,
+  only run scripts carrying a per-request nonce (`middleware.ts`), so markup in a
+  candidate's answers could never run there. The rest of the site has a lighter
+  policy in `next.config.mjs` (no plugins, no foreign `<base>`, forms post only
+  here, no framing by other sites): a nonce on every page would stop them being
+  static. Test signing in on a Preview deployment after changing either.
+- **CV checks.** Uploads are checked for content that can act when the file is
+  opened: macros, embedded files, or a template, document, object or image loaded
+  from the internet in a Word file; JavaScript, launch actions, embedded files or
+  XFA forms in a PDF (only what isn't compressed). A flagged CV is still accepted;
+  the candidate's page says what was found and how to open it safely. No warning
+  doesn't mean a file is safe: open Word CVs in Protected View.
+- **Candidate email addresses** may only contain characters real addresses use,
+  and the admin's `mailto:` link is encoded, so an address can't add a hidden
+  `?bcc=` or a prefilled body.
 
 ## Languages
 

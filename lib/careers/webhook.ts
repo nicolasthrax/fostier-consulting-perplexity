@@ -39,7 +39,21 @@ export async function forwardToWebhook(record: ApplicationRecord, cv: WebhookCv 
     signal: AbortSignal.timeout(15_000),
   });
   if (!res.ok) throw new WebhookResponseError(res.status);
+  // Apps Script always answers 200: the receiver in docs/google-apps-script.gs reports a
+  // refusal (wrong or missing secret) as {"ok": false}, which must not count as saved.
+  if (res.headers.get("content-type")?.includes("json")) {
+    const body = (await res.json().catch(() => null)) as { ok?: unknown } | null;
+    if (body?.ok === false) throw new WebhookRefusedError();
+  }
   return true;
+}
+
+/** The endpoint answered but said it didn't keep the application (its secret doesn't match). */
+export class WebhookRefusedError extends Error {
+  constructor() {
+    super("Webhook refused the application (ok: false): check that CAREERS_WEBHOOK_SECRET matches the receiver's secret");
+    this.name = "WebhookRefusedError";
+  }
 }
 
 /**

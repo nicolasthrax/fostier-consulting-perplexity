@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { randomUUID } from "node:crypto";
-import { adminEnabled, currentAdmin, namedLogins } from "@/lib/careers/auth";
+import { adminEnabled, currentAdmin, namedLogins, sessionSecret } from "@/lib/careers/auth";
 import { readApplicationListPurged, storageAvailable, storageBackend, storageSelfTest } from "@/lib/careers/storage";
 import { RETENTION_DAYS, commissionOptions, jobs, pipelineStages, publicBase, workAuthorizationOptions, type ApplicationSummary } from "@/lib/careers/config";
 import { DEFAULT_CAREERS_LOCALE } from "@/lib/careers/i18n";
@@ -11,6 +11,8 @@ export const metadata: Metadata = { title: "Candidates" };
 export const dynamic = "force-dynamic";
 
 const STORAGE_FIX = "Fix: in Vercel, open Storage → your Blob store (Private) → Connect Project → this project, then redeploy.";
+const NO_SESSION_SECRET =
+  "CAREERS_SESSION_SECRET isn't set, so sign-in cookies are signed with your passwords: anyone who copies one could try to guess the password from it. Set it to a random value of 32+ characters (e.g. the output of openssl rand -base64 32) in Vercel → Settings → Environment Variables, then redeploy. Everyone will need to sign in again once.";
 
 export default async function CareersAdminPage() {
   if (!adminEnabled()) {
@@ -57,6 +59,7 @@ export default async function CareersAdminPage() {
       renderId={randomUUID()}
       storageError={storageError}
       storageStatus={storageError ? "" : storageBackend() === "blob" ? "Storage: Vercel Blob (private)" : "Storage: local files"}
+      configWarning={sessionSecret() ? "" : NO_SESSION_SECRET}
       adminName={admin}
       stages={[...pipelineStages]}
       jobs={jobs.map(({ slug, title, open }) => ({ slug, title: title.en, open }))}

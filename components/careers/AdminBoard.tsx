@@ -31,6 +31,33 @@ const VIEW_KEY = "careers-admin-view";
 /** How long a delete can be undone before it is sent. */
 const UNDO_MS = 10_000;
 /**
+ * Deletes sent but not yet confirmed by the server, on this device: IDs only, no
+ * candidate data. A delete sent as the page closes can't report a failure, so the
+ * next visit sends it again (deleting what is already gone changes nothing) and
+ * shows any error there.
+ */
+const UNCONFIRMED_KEY = "careers-admin-unconfirmed-deletes";
+
+function unconfirmedDeletes(): string[][] {
+  try {
+    const list: unknown = JSON.parse(localStorage.getItem(UNCONFIRMED_KEY) ?? "[]");
+    return Array.isArray(list) ? list.filter((ids): ids is string[] => Array.isArray(ids) && ids.every((id) => typeof id === "string")) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Records (`unconfirmed`) or clears the entry for these IDs. */
+function markUnconfirmed(ids: string[], unconfirmed: boolean) {
+  const key = ids.join();
+  const next = unconfirmedDeletes().filter((other) => other.join() !== key);
+  if (unconfirmed) next.push(ids);
+  try {
+    if (next.length) localStorage.setItem(UNCONFIRMED_KEY, JSON.stringify(next));
+    else localStorage.removeItem(UNCONFIRMED_KEY);
+  } catch {}
+}
+/**
  * Server renders this tab has already shown. Mounting one again means the router
  * replayed a cached page (e.g. back from a candidate), which may be out of date.
  */
@@ -68,6 +95,10 @@ type SortKey = "name" | "job" | "submitted" | "university" | "status";
 type Sort = { key: SortKey; desc: boolean };
 /** Applications waiting out the undo window: hidden from the board, not yet deleted on the server. */
 type PendingDelete = { ids: string[]; label: string };
+const pendingDelete = (picked: ApplicationSummary[]): PendingDelete => ({
+  ids: picked.map((a) => a.id),
+  label: picked.length === 1 ? picked[0].fullName : `${picked.length} applications`,
+});
 
 /** The short label for the table (full one in the tooltip). */
 const shortLabel = (options: Option[], value: string) => options.find((o) => o.value === value)?.short ?? labelFor(options, value);
@@ -78,6 +109,7 @@ export function AdminBoard({
   renderId,
   storageError,
   storageStatus,
+  configWarning = "",
   adminName,
   stages,
   jobs,
@@ -94,6 +126,8 @@ export function AdminBoard({
   storageError: string;
   /** Which backend is in use, e.g. "Storage: Vercel Blob (private)"; empty when storage failed. */
   storageStatus: string;
+  /** A security setting missing from the server environment; empty when all is set. */
+  configWarning?: string;
   /** The signed-in admin, shown next to Sign out. */
   adminName: string;
   stages: StageOption[];
@@ -286,18 +320,23 @@ export function AdminBoard({
   /** Sends the delete. `leaving`: the page is going away, so only make sure the request survives it. */
   const send = useCallback(
     async (p: PendingDelete, leaving = false) => {
+      // Kept until the server answers: if the page is gone by then, the next visit finishes the job.
+      markUnconfirmed(p.ids, true);
       const res = await fetch(`${API_BASE}/admin/applications`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: p.ids }),
         keepalive: leaving,
       }).catch(() => null);
+      if (res?.ok) markUnconfirmed(p.ids, false);
       if (leaving) return;
+      // Signed out: the entry stays, and the board sends it again after signing in.
       if (res?.status === 401) return router.refresh();
       if (res?.ok) {
         const gone = new Set(p.ids);
         setApps((list) => list.filter((a) => !gone.has(a.id)));
       } else {
+        markUnconfirmed(p.ids, false);
         setSaveError(`${p.ids.length === 1 ? `${p.label}'s application` : p.label} couldn't be deleted. Try again.`);
       }
       // Deleted rows have left the list; failed ones come back.
@@ -333,7 +372,7 @@ export function AdminBoard({
     }
     // One undo at a time: a new delete sends the previous one.
     flush();
-    const p: PendingDelete = { ids: picked.map((a) => a.id), label: picked.length === 1 ? picked[0].fullName : `${picked.length} applications` };
+    const p = pendingDelete(picked);
     setSaveError("");
     setHidden((h) => new Set([...h, ...p.ids]));
     undoRef.current = p;
@@ -349,6 +388,23 @@ export function AdminBoard({
     setUndo(null);
     unhide(p.ids);
   };
+
+  // Deletes this device sent without hearing back (the page closed first, or the request
+  // was cut off): any still listed are hidden and sent again, so a failure shows here.
+  const resumed = useRef(false);
+  useEffect(() => {
+    // A failed read lists nothing, which doesn't mean they're gone: keep them for the next visit.
+    if (resumed.current || storageError) return;
+    resumed.current = true;
+    for (const ids of unconfirmedDeletes()) {
+      markUnconfirmed(ids, false);
+      const picked = initial.filter((a) => ids.includes(a.id));
+      if (!picked.length) continue;
+      const p = pendingDelete(picked);
+      setHidden((h) => new Set([...h, ...p.ids]));
+      send(p);
+    }
+  }, [initial, send, storageError]);
 
   // Leaving the page (or opening a candidate) during the undo window still deletes.
   useEffect(() => {
@@ -526,6 +582,9 @@ export function AdminBoard({
 
       {storageError && (
         <p role="alert" className="mt-6 rounded-sm border border-fred-700/30 bg-white px-4 py-3 text-sm font-medium text-fred-700">{storageError}</p>
+      )}
+      {configWarning && (
+        <p role="alert" className="mt-6 rounded-sm border border-fred-700/30 bg-white px-4 py-3 text-sm font-medium text-fred-700">{configWarning}</p>
       )}
       {saveError && (
         <p role="alert" className="mt-6 rounded-sm border border-fred-700/30 bg-white px-4 py-3 text-sm font-medium text-fred-700">{saveError}</p>

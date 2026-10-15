@@ -13,6 +13,7 @@ import {
 } from "@/lib/careers/config";
 import { DEFAULT_CAREERS_LOCALE, careersCopy, isCareersLocale } from "@/lib/careers/i18n";
 import { newId } from "@/lib/careers/storage";
+import { cvWarnings } from "@/lib/careers/cv-check";
 import { deliverApplication } from "@/lib/careers/deliver";
 import { sendApplicationEmails } from "@/lib/careers/email";
 
@@ -80,7 +81,15 @@ export async function POST(request: Request) {
     history: [{ at: now, by: "system", from: null, to: status }],
   };
 
-  record.cv = { file: `${id}.${ext}`, originalName: file.name.slice(0, 200), size: file.size, type: CV_TYPES[ext] };
+  // Not refused: a flagged CV is shown to the admin with a warning to open it with care.
+  const warnings = cvWarnings(data, ext);
+  record.cv = {
+    file: `${id}.${ext}`,
+    originalName: file.name.slice(0, 200),
+    size: file.size,
+    type: CV_TYPES[ext],
+    ...(warnings.length ? { warnings } : {}),
+  };
   // An optional webhook backup runs after the response once primary storage has the application.
   const saved = await deliverApplication(record, { name: file.name, type: CV_TYPES[ext], data }, after);
   if (!saved) return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 503 });

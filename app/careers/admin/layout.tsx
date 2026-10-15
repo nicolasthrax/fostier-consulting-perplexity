@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { site } from "@/lib/site";
 import { CareersShell } from "@/components/careers/CareersShell";
+import { AdminIdleLogout } from "@/components/careers/AdminIdleLogout";
 import "../../globals.css";
 
 export const metadata: Metadata = {
@@ -13,5 +14,10 @@ export const metadata: Metadata = {
 export const viewport = { themeColor: "#002395", width: "device-width", initialScale: 1 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <CareersShell lang="en" showLanguageSwitch={false} wide>{children}</CareersShell>;
+  return (
+    <CareersShell lang="en" showLanguageSwitch={false} wide>
+      <AdminIdleLogout />
+      {children}
+    </CareersShell>
+  );
 }

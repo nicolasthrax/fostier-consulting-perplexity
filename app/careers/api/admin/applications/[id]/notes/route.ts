@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentAdmin } from "@/lib/careers/auth";
+import { currentAdmin, sameOrigin } from "@/lib/careers/auth";
 import { NOTE_MAX_LENGTH } from "@/lib/careers/config";
 import { addNote, isSafeId } from "@/lib/careers/storage";
 
@@ -11,6 +11,7 @@ const json = (body: unknown, status = 200) =>
 
 /** Adds an internal note to a candidate, signed with the admin's name. Notes are never shown to the candidate. */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!sameOrigin(request)) return json({ error: "Forbidden." }, 403);
   const admin = await currentAdmin();
   if (!admin) return json({ error: "Unauthorised." }, 401);
   const { id } = await params;

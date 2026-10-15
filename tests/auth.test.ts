@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { adminUsers, checkLogin, createSessionToken, namedLogins, verifyToken } from "@/lib/careers/auth";
+import { adminUsers, checkLogin, createSessionToken, namedLogins, sameOrigin, sessionSecret, verifyToken } from "@/lib/careers/auth";
 
 const setUsers = (users: Record<string, unknown> | string | undefined, shared?: string) => {
   if (users === undefined) delete process.env.CAREERS_ADMIN_USERS;
@@ -8,9 +8,15 @@ const setUsers = (users: Record<string, unknown> | string | undefined, shared?: 
   else process.env.CAREERS_ADMIN_PASSWORD = shared;
 };
 
-beforeEach(() => setUsers(undefined));
+const SECRET = "s".repeat(32);
+
+beforeEach(() => {
+  setUsers(undefined);
+  process.env.CAREERS_SESSION_SECRET = SECRET;
+});
 afterEach(() => {
   setUsers(undefined);
+  delete process.env.CAREERS_SESSION_SECRET;
   vi.useRealTimers();
   vi.restoreAllMocks();
 });
@@ -117,5 +123,56 @@ describe("session tokens", () => {
     expect(verifyToken(`${who}.${expires}`)).toBeNull();
     expect(verifyToken("")).toBeNull();
     expect(verifyToken(undefined)).toBeNull();
+  });
+});
+
+describe("session secret", () => {
+  beforeEach(() => setUsers({ nicolas: "nicolas-password" }));
+
+  it("needs 32+ characters", () => {
+    expect(sessionSecret()).toBe(SECRET);
+    process.env.CAREERS_SESSION_SECRET = "s".repeat(31);
+    expect(sessionSecret()).toBeNull();
+  });
+
+  it("signs everyone out when it is rotated", () => {
+    const token = createSessionToken("nicolas").value;
+    process.env.CAREERS_SESSION_SECRET = "t".repeat(32);
+    expect(verifyToken(token)).toBeNull();
+    expect(verifyToken(createSessionToken("nicolas").value)).toBe("nicolas");
+  });
+
+  it("without one, falls back to signing with the password, with a warning, and those sessions end once it is set", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    delete process.env.CAREERS_SESSION_SECRET;
+    const fallback = createSessionToken("nicolas").value;
+    expect(verifyToken(fallback)).toBe("nicolas");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("CAREERS_SESSION_SECRET"));
+    process.env.CAREERS_SESSION_SECRET = SECRET;
+    expect(verifyToken(fallback)).toBeNull();
+  });
+});
+
+describe("sameOrigin", () => {
+  const req = (headers: Record<string, string>) =>
+    new Request("https://www.fostierconsulting.com/careers/api/admin/applications", { method: "PATCH", headers });
+
+  it("accepts this site's own origin", () => {
+    expect(sameOrigin(req({ Origin: "https://www.fostierconsulting.com", Host: "www.fostierconsulting.com" }))).toBe(true);
+    // Behind a proxy that only sets X-Forwarded-Host.
+    expect(sameOrigin(new Request("http://internal/x", { headers: { Origin: "https://a.test", "X-Forwarded-Host": "a.test" } }))).toBe(true);
+  });
+
+  it("refuses another site, a sibling subdomain, and Origin: null", () => {
+    expect(sameOrigin(req({ Origin: "https://evil.example" }))).toBe(false);
+    expect(sameOrigin(req({ Origin: "https://blog.fostierconsulting.com" }))).toBe(false);
+    expect(sameOrigin(req({ Origin: "null" }))).toBe(false);
+  });
+
+  it("without Origin, goes by Sec-Fetch-Site, and lets non-browser clients through", () => {
+    expect(sameOrigin(req({ "Sec-Fetch-Site": "same-origin" }))).toBe(true);
+    expect(sameOrigin(req({ "Sec-Fetch-Site": "same-site" }))).toBe(false);
+    expect(sameOrigin(req({ "Sec-Fetch-Site": "cross-site" }))).toBe(false);
+    expect(sameOrigin(req({}))).toBe(true);
   });
 });

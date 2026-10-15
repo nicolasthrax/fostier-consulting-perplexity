@@ -393,7 +393,14 @@ export type ApplicationRecord = ApplicationInput & {
   updatedAt: string;
   status: Stage;
   knockouts: string[];
-  cv: { file: string; originalName: string; size: number; type: string } | null;
+  cv: {
+    file: string;
+    originalName: string;
+    size: number;
+    type: string;
+    /** What the upload check found that can act when the file is opened (see ./cv-check.ts); unset when nothing. */
+    warnings?: string[];
+  } | null;
   /** When an admin first opened the application; unset means it shows as new. */
   viewedAt?: string;
   viewedBy?: string;
@@ -428,7 +435,18 @@ export type ApplicationSummary = Omit<ApplicationRecord, "history" | "notes">;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const toSummary = ({ history, notes, ...summary }: ApplicationRecord): ApplicationSummary => summary;
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/**
+ * Only characters real addresses use: no "?", "&", "%", "," or ";", which would add
+ * recipients or fields (?bcc=…) to the admin's mailto: link, and no spaces, quotes or
+ * brackets. The domain is dot-separated letters, digits and hyphens.
+ */
+const EMAIL_RE = /^[\p{L}\p{N}.!#$*+/=^_`{|}~'-]+@[\p{L}\p{N}-]+(\.[\p{L}\p{N}-]+)+$/u;
+/**
+ * mailto: link to a candidate's address, percent-encoded so nothing in it can add fields
+ * such as ?bcc= (applications from before the stricter email check may hold one).
+ */
+export const mailtoHref = (email: string) => `mailto:${encodeURIComponent(email.trim()).replace(/%40/g, "@")}`;
+
 const PHONE_RE = /^\+?[0-9 ()\-.]{6,20}$/;
 /** Separators alone ("------") pass PHONE_RE, so the digits are counted too. */
 const PHONE_MIN_DIGITS = 6;

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { ADMIN_COOKIE } from "@/lib/careers/auth";
+import { sameOrigin, sessionCookie } from "@/lib/careers/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!sameOrigin(request)) return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(ADMIN_COOKIE, "", { httpOnly: true, sameSite: "strict", path: "/", maxAge: 0 });
+  res.cookies.set(sessionCookie("", 0));
   return res;
 }

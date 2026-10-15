@@ -167,7 +167,8 @@ export function ApplicationForm({
         throw new Error(t.networkError);
       }
       const data = (await res.json().catch(() => ({}))) as { id?: string; error?: string; errors?: Errors; fallbackEmail?: boolean };
-      if (data.fallbackEmail || res.status >= 500) setShowEmailFallback(true);
+      // 429: the firewall's rate limit (no JSON body), so the email route is the way to apply now.
+      if (data.fallbackEmail || res.status >= 500 || res.status === 429) setShowEmailFallback(true);
       if (!res.ok) {
         if (data.errors && Object.keys(data.errors).length) {
           setErrors(data.errors);
@@ -175,7 +176,7 @@ export function ApplicationForm({
           if (i >= 0) setStep(i);
           focusFirstError(data.errors);
         }
-        throw new Error(data.error || t.genericError);
+        throw new Error(data.error || (res.status === 429 ? t.rateLimited : t.genericError));
       }
       setDoneId(data.id ?? "sent");
     } catch (err) {

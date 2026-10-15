@@ -24,7 +24,9 @@ export function AdminLogin({ named = false }: { named?: boolean }) {
     }).catch(() => null);
     if (res?.ok) return router.refresh();
     setBusy(false);
-    setError(((await res?.json().catch(() => null)) as { error?: string } | null)?.error || "Sign-in failed.");
+    const message = ((await res?.json().catch(() => null)) as { error?: string } | null)?.error;
+    // A 429 without a message comes from the firewall's rate limit (10 sign-ins per hour per connection).
+    setError(message || (res?.status === 429 ? "Too many attempts. Wait an hour and try again." : "Sign-in failed."));
   };
 
   return (

@@ -8,11 +8,14 @@
  * time-driven trigger running purgeExpired() daily (Triggers → Add trigger).
  */
 const FOLDER_ID = "PUT_DRIVE_FOLDER_ID_HERE";
-const SHARED_SECRET = ""; // must equal CAREERS_WEBHOOK_SECRET; leave empty for the browser fallback
+// Required: the same value as CAREERS_WEBHOOK_SECRET. Until it is set, every request
+// is refused, so a leaked /exec URL can't add rows to the Sheet or files to Drive.
+const SHARED_SECRET = "";
 
 function doPost(e) {
   const payload = JSON.parse(e.postData.contents);
-  if (SHARED_SECRET && payload.secret !== SHARED_SECRET) {
+  if (!SHARED_SECRET || payload.secret !== SHARED_SECRET) {
+    // The portal treats {"ok": false} as not saved (see lib/careers/webhook.ts).
     return ContentService.createTextOutput(JSON.stringify({ ok: false })).setMimeType(ContentService.MimeType.JSON);
   }
   const a = payload.application || {};
@@ -28,8 +31,17 @@ function doPost(e) {
   }
   sheet.appendRow([a.submittedAt || new Date().toISOString(), a.id || "", a.lang || "", a.fullName, a.email, a.phone,
     a.linkedinUrl, a.portfolioUrl, a.jobTitle || a.jobSlug, a.adult || a.age || "", a.workAuthorization, a.commissionOnly,
-    (a.knockouts || []).join("; "), cvUrl, a.status || "applied", a.university || ""]);
+    (a.knockouts || []).join("; "), cvUrl, a.status || "applied", a.university || ""].map(asText));
   return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Candidates type most of these values. appendRow runs anything starting with = as a
+ * formula (one could send the other rows to a website), and reads + - @ as one too,
+ * so such values get a leading apostrophe and stay text, as in the admin's CSV export.
+ */
+function asText(value) {
+  return typeof value === "string" && /^[=+\-@\t\r]/.test(value) ? "'" + value : value;
 }
 
 /** Deletes rows (and their CV files) older than 365 days. Run daily from a time-driven trigger. */
