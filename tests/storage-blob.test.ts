@@ -19,6 +19,8 @@ const fake = vi.hoisted(() => {
     store,
     /** Runs once just before the next put of this pathname is checked, to simulate a concurrent writer. */
     beforePut: null as null | ((pathname: string) => void),
+    /** Reads answer weak ETags (W/"…"), as a compressed response does; writes still compare strongly. */
+    weakReads: false,
     write(pathname: string, text: string) {
       const etag = nextEtag();
       store.set(pathname, { text, etag });
@@ -39,12 +41,14 @@ const fake = vi.hoisted(() => {
     get: vi.fn(async (pathname: string, opts: { ifNoneMatch?: string }) => {
       const b = store.get(pathname);
       if (!b) return null;
-      if (opts.ifNoneMatch !== undefined && opts.ifNoneMatch === b.etag)
-        return { statusCode: 304, stream: null, blob: { etag: b.etag, pathname } };
+      const etag = state.weakReads ? `W/${b.etag}` : b.etag;
+      // If-None-Match compares weakly, so either form of the tag matches.
+      if (opts.ifNoneMatch !== undefined && opts.ifNoneMatch.replace(/^W\//, "") === b.etag)
+        return { statusCode: 304, stream: null, blob: { etag, pathname } };
       return {
         statusCode: 200,
         stream: new Response(b.text).body as ReadableStream<Uint8Array>,
-        blob: { etag: b.etag, pathname, size: b.text.length },
+        blob: { etag, pathname, size: b.text.length },
       };
     }),
     list: vi.fn(async (opts: { prefix?: string }) => ({
@@ -82,6 +86,7 @@ beforeEach(async () => {
   process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test";
   fake.store.clear();
   fake.beforePut = null;
+  fake.weakReads = false;
   vi.clearAllMocks();
   // Fresh module per test, so its in-memory index cache starts empty.
   vi.resetModules();
@@ -383,5 +388,54 @@ describe("Blob storage", () => {
     fake.write(INDEX, JSON.stringify([rec]));
     await storage.deleteApplication(rec.id, "bob");
     expect(log().map((e) => e.id)).toEqual([kept, rec.id]);
+  });
+
+  it("saves when reads return weak (compressed) ETags, which a conditional write never matches as they are", async () => {
+    fake.weakReads = true;
+    const a = record({ id: idDaysAgo(1, "a") });
+    const b = record({ id: idDaysAgo(2, "b") });
+    const c = record({ id: idDaysAgo(3, "c") });
+    fake.write(INDEX, JSON.stringify([a, b, c]));
+    // Read by another instance's write, so this one starts from a download, not its own put.
+    fake.write(DELETIONS, "[]");
+    const warned = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      await storage.updateStatus([a.id], "interview", "alice");
+      await storage.addNote(b.id, "Strong CV", "alice");
+      await storage.markViewed(c.id, "alice");
+      await storage.addApplication(record({ id: idDaysAgo(0, "d") }), Buffer.from("%PDF"));
+      expect(await storage.deleteApplications([b.id], "alice")).toEqual([b.id]);
+      // One put each, none retried.
+      expect(indexPuts()).toHaveLength(5);
+      expect(logPuts()).toHaveLength(1);
+      expect(warned).not.toHaveBeenCalled();
+    } finally {
+      warned.mockRestore();
+    }
+    const saved = index();
+    expect(saved.find((r) => r.id === a.id)?.status).toBe("interview");
+    expect(saved.find((r) => r.id === c.id)?.viewedBy).toBe("alice");
+    expect(saved.map((r) => r.id)).not.toContain(b.id);
+    expect(saved).toHaveLength(3);
+    expect(log().map((e) => e.id)).toEqual([b.id]);
+  });
+
+  it("reports the first write conflict once, saying whether reads returned weak ETags", async () => {
+    fake.weakReads = true;
+    const a = record({ id: idDaysAgo(1, "a") });
+    fake.write(INDEX, JSON.stringify([a]));
+    await storage.readApplications();
+    const warned = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      for (const status of ["screened", "interview"] as const) {
+        fake.beforePut = () => fake.write(INDEX, fake.store.get(INDEX)!.text);
+        await storage.updateStatus([a.id], status, "alice");
+      }
+      expect(warned).toHaveBeenCalledTimes(1);
+      expect(warned.mock.calls[0][0]).toBe("[careers] write to careers/index.json conflicted; Blob reads on this instance returned weak ETags");
+    } finally {
+      warned.mockRestore();
+    }
+    expect(index()[0].status).toBe("interview");
   });
 });

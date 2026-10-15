@@ -105,6 +105,28 @@ const backoff = (attempt: number) => new Promise((r) => setTimeout(r, 50 * attem
 
 const cvFiles = (records: ApplicationRecord[]) => records.flatMap((r) => (r.cv ? [r.cv.file] : []));
 
+/** Whether a Blob read on this instance has returned a weak ETag; reported with the first write conflict. */
+let sawWeakEtag = false;
+let reportedConflict = false;
+
+/**
+ * The ETag of a Blob read, in the strong form conditional writes compare against.
+ * A read can come back compressed, which marks its ETag weak (W/"…"), and ifMatch
+ * never matches a weak tag: every write would then fail as if someone had just saved.
+ */
+function strongEtag(etag: string) {
+  if (!etag.startsWith("W/")) return etag;
+  sawWeakEtag = true;
+  return etag.slice(2);
+}
+
+/** Logs the first write conflict on this instance, with what its reads' ETags looked like (never the tags themselves). */
+function reportConflict(pathname: string) {
+  if (reportedConflict) return;
+  reportedConflict = true;
+  console.warn(`[careers] write to ${pathname} conflicted; Blob reads on this instance returned ${sawWeakEtag ? "weak" : "only strong"} ETags`);
+}
+
 /**
  * Last index this instance read or wrote; a re-read only downloads it if it changed.
  * Never handed out as is: callers get copies of what they select (see Backend.read).
@@ -155,7 +177,7 @@ async function createIndex(): Promise<Snapshot> {
     // Another request created the index first: use theirs.
     const again = await get(INDEX, { access: "private", useCache: false, ...blobAuth() });
     if (again?.statusCode !== 200) throw err;
-    cached = { records: JSON.parse(await new Response(again.stream).text()), version: again.blob.etag };
+    cached = { records: JSON.parse(await new Response(again.stream).text()), version: strongEtag(again.blob.etag) };
     return cached;
   }
   // Deletes are free; the old copies must go so the retention purge covers everything.
@@ -174,7 +196,7 @@ async function latest(): Promise<Snapshot> {
   if (!res) return createIndex();
   if (res.statusCode === 304 && cached) return cached;
   if (res.statusCode !== 200) throw new Error(`Unexpected Blob response ${res.statusCode}`);
-  cached = { records: JSON.parse(await new Response(res.stream).text()), version: res.blob.etag };
+  cached = { records: JSON.parse(await new Response(res.stream).text()), version: strongEtag(res.blob.etag) };
   return cached;
 }
 
@@ -188,7 +210,7 @@ async function latestLog(): Promise<LogSnapshot> {
   if (!res) return (cachedLog = { entries: [], version: null });
   if (res.statusCode === 304 && cachedLog) return cachedLog;
   if (res.statusCode !== 200) throw new Error(`Unexpected Blob response ${res.statusCode}`);
-  cachedLog = { entries: JSON.parse(await new Response(res.stream).text()), version: res.blob.etag };
+  cachedLog = { entries: JSON.parse(await new Response(res.stream).text()), version: strongEtag(res.blob.etag) };
   return cachedLog;
 }
 
@@ -207,6 +229,7 @@ const blob: Backend = {
         cached = { records: out.records, version: res.etag };
         return structuredClone(out.result);
       } catch (err) {
+        if (err instanceof BlobPreconditionFailedError) reportConflict(INDEX);
         if (!(err instanceof BlobPreconditionFailedError) || attempt >= MAX_WRITE_ATTEMPTS) throw err;
         // Someone else saved in between: start again from their version.
         cached = null;
@@ -250,7 +273,8 @@ const blob: Backend = {
         cachedLog = { entries: next, version: res.etag };
         return;
       } catch (err) {
-        const raced = err instanceof BlobPreconditionFailedError || (!version && (await blobText(DELETIONS).catch(() => null)) !== null);
+        if (err instanceof BlobPreconditionFailedError) reportConflict(DELETIONS);
+        const raced = err instanceof BlobPreconditionFailedError ||(!version && (await blobText(DELETIONS).catch(() => null)) !== null);
         if (!raced || attempt >= MAX_WRITE_ATTEMPTS) throw err;
         cachedLog = null;
         await backoff(attempt);
