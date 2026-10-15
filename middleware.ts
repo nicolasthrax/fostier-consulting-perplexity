@@ -31,6 +31,44 @@ function careersRobots(target: string) {
 const under = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
 
 /**
+ * Content-Security-Policy for the admin pages, which show what candidates typed to a
+ * signed-in admin: only scripts carrying this request's nonce run (Next adds it to its own
+ * scripts, and 'strict-dynamic' lets those load the rest, BotID's challenge included), so
+ * markup slipped into a candidate's answers could never run. The site-wide policy is in
+ * next.config.mjs. After changing this, test signing in on a Preview deployment: if
+ * BotID's challenge is blocked, real people are refused too (see lib/careers/botid.ts).
+ */
+export function adminCsp(nonce: string) {
+  // React uses eval in development only, for its error overlay and call stacks.
+  const devEval = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'${devEval}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "worker-src 'self' blob:",
+    // The candidate page previews the PDF CV from this origin.
+    "frame-src 'self'",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'self'",
+  ].join("; ");
+}
+
+/** Passes the request on (or rewrites it) with a fresh nonce and the admin CSP on both the request, where Next reads the nonce, and the response. */
+function withAdminCsp(request: NextRequest, rewriteTo: URL | null) {
+  const csp = adminCsp(btoa(crypto.randomUUID()));
+  const headers = new Headers(request.headers);
+  headers.set("Content-Security-Policy", csp);
+  const res = rewriteTo ? NextResponse.rewrite(rewriteTo, { request: { headers } }) : NextResponse.next({ request: { headers } });
+  res.headers.set("Content-Security-Policy", csp);
+  return res;
+}
+
+/**
  * The recruitment portal lives outside the locale tree: French at /careers
  * (rewritten to /careers/fr) and English at /careers/en. With
  * CAREERS_PORTAL_SLUG set (e.g. "join-7f3k2q"), it is served at /<slug> instead and
@@ -60,10 +98,10 @@ function careersPortal(request: NextRequest) {
   }
   const target = PORTAL + (["api", "admin", "en"].includes(first) ? rest : `/fr${rest}`);
   const robots = careersRobots(target);
-  if (target === pathname) return noindex(NextResponse.next(), robots);
-  const url = request.nextUrl.clone();
-  url.pathname = target;
-  return noindex(NextResponse.rewrite(url), robots);
+  const url = target === pathname ? null : request.nextUrl.clone();
+  if (url) url.pathname = target;
+  if (under(target, `${PORTAL}/admin`)) return noindex(withAdminCsp(request, url), robots);
+  return noindex(url ? NextResponse.rewrite(url) : NextResponse.next(), robots);
 }
 
 /**

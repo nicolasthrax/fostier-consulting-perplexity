@@ -6,6 +6,7 @@ import {
   duplicatesOf,
   initialStatus,
   knockoutsFor,
+  mailtoHref,
   validateFields,
 } from "@/lib/careers/config";
 import { record, validInput } from "./fixtures";
@@ -21,6 +22,28 @@ describe("validateFields", () => {
 
   it.each(["------", "(+) .", "+1 23", "abc123456", ""])("rejects the phone number %j", (phone) => {
     expect(validateFields(validInput({ phone })).phone).toEqual(expect.any(String));
+  });
+
+  it.each(["alice@example.com", "o'brien+cv@mail.example.co.uk", "chloé.dupont@exemple.fr", "a@xn--bcher-kva.ch"])(
+    "accepts the email %j",
+    (email) => {
+      expect(validateFields(validInput({ email })).email).toBeUndefined();
+    }
+  );
+
+  it.each([
+    "jane@gmail.com?bcc=x%40evil.com",
+    "jane@gmail.com&body=hi",
+    "jane@gmail.com,bob@evil.com",
+    "jane@gmail.com;x",
+    "<jane@gmail.com>",
+    "jane doe@gmail.com",
+    "jane@gmail",
+    "jane@.com",
+    "jane@@gmail.com",
+    "",
+  ])("rejects the email %j", (email) => {
+    expect(validateFields(validInput({ email })).email).toEqual(expect.any(String));
   });
 
   it("requires adult to be yes or no, with an error message", () => {
@@ -129,5 +152,17 @@ describe("ageLabel", () => {
 describe("RETAINED_STAGES", () => {
   it("keeps offers and hires only", () => {
     expect([...RETAINED_STAGES].sort()).toEqual(["hired", "offer"]);
+  });
+});
+
+describe("mailtoHref", () => {
+  it("keeps a plain address readable", () => {
+    expect(mailtoHref("alice@example.com")).toBe("mailto:alice@example.com");
+  });
+
+  it("encodes anything that would add recipients or fields", () => {
+    const href = mailtoHref("jane@gmail.com?bcc=x%40evil.com&body=hi");
+    expect(href).toBe("mailto:jane@gmail.com%3Fbcc%3Dx%2540evil.com%26body%3Dhi");
+    expect(new URL(href).search).toBe("");
   });
 });

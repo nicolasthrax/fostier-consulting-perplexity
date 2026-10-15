@@ -16,6 +16,10 @@ const passesThrough = (res: Response) => res.headers.get("x-middleware-next") ==
 const noindexed = (res: Response) => expect(res.headers.get("x-robots-tag")).toContain("noindex");
 const indexable = (res: Response) => expect(res.headers.get("x-robots-tag")).toBeNull();
 const robots = (res: Response) => res.headers.get("x-robots-tag");
+const csp = (res: Response) => res.headers.get("content-security-policy");
+/** The CSP passed on to the page as a request header, where Next reads the nonce for its scripts. */
+const forwardedCsp = (res: Response) => res.headers.get("x-middleware-request-content-security-policy");
+const nonceOf = (policy: string | null) => /'nonce-([^']+)'/.exec(policy ?? "")?.[1];
 
 /** The page is served from `pathname`: either passed through or rewritten to itself. */
 const servedAt = (res: Response, pathname: string) => {
@@ -73,6 +77,26 @@ describe("middleware, default portal at /careers", () => {
     }
   });
 
+  it("gives admin pages a nonce-based CSP, a fresh nonce each time, on the response and the request", () => {
+    for (const p of ["/careers/admin", "/careers/admin/abc", "/careers/admin/deletions"]) {
+      const res = run(p);
+      expect(csp(res), p).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+      expect(csp(res), p).toContain("object-src 'none'");
+      expect(csp(res), p).toContain("frame-ancestors 'self'");
+      // Outside development, nothing but the nonce lets a script run: no inline or eval allowance.
+      const scriptSrc = csp(res)!.split("; ").find((d) => d.startsWith("script-src "));
+      expect(scriptSrc, p).not.toMatch(/'unsafe-inline'|'unsafe-eval'/);
+      expect(forwardedCsp(res), p).toBe(csp(res));
+    }
+    expect(nonceOf(csp(run("/careers/admin")))).not.toBe(nonceOf(csp(run("/careers/admin"))));
+  });
+
+  it("leaves the CSP of other portal pages and the API to next.config.mjs", () => {
+    for (const p of ["/careers", "/careers/jobs/x/apply", "/careers/api/apply", "/careers/api/admin/applications"]) {
+      expect(csp(run(p)), p).toBeNull();
+    }
+  });
+
   it("leaves paths that only start with 'careers' to the locale redirect", () => {
     const res = run("/careersx");
     expect(redirectedTo(res)).toBe("/fr/careersx");
@@ -106,6 +130,13 @@ describe("middleware, secret portal slug", () => {
     const res = run("/join-abc/fr/jobs/x");
     expect(res.status).toBe(308);
     expect(redirectedTo(res)).toBe("/join-abc/jobs/x");
+  });
+
+  it("gives the admin under the slug the same CSP", () => {
+    const res = run("/join-abc/admin");
+    expect(rewrittenTo(res)).toBe("/careers/admin");
+    expect(nonceOf(csp(res))).toBeTruthy();
+    expect(forwardedCsp(res)).toBe(csp(res));
   });
 
   it("404s the default /careers pages", () => {

@@ -7,7 +7,10 @@ import { clearStorageEnv } from "./env";
 import { idDaysAgo, record } from "./fixtures";
 
 const auth = vi.hoisted(() => ({ admin: "alice" as string | null }));
-vi.mock("@/lib/careers/auth", () => ({ currentAdmin: async () => auth.admin }));
+vi.mock("@/lib/careers/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/careers/auth")>()),
+  currentAdmin: async () => auth.admin,
+}));
 
 type Route = typeof import("@/app/careers/api/admin/applications/route");
 type Storage = typeof import("@/lib/careers/storage");
@@ -17,8 +20,8 @@ let dir: string;
 
 const URL_ = "http://localhost/careers/api/admin/applications";
 const get = (etag?: string) => route.GET(new Request(URL_, { headers: etag ? { "If-None-Match": etag } : {} }));
-const patch = (ids: string[], status: string) =>
-  route.PATCH(new Request(URL_, { method: "PATCH", body: JSON.stringify({ ids, status }), headers: { "Content-Type": "application/json" } }));
+const patch = (ids: string[], status: string, headers: Record<string, string> = {}) =>
+  route.PATCH(new Request(URL_, { method: "PATCH", body: JSON.stringify({ ids, status }), headers: { "Content-Type": "application/json", ...headers } }));
 const listOf = async (res: Response) => ((await res.json()) as { applications: ApplicationSummary[] }).applications;
 
 const seed = async (records: ApplicationRecord[]) => {
@@ -129,6 +132,20 @@ describe("admin list API", () => {
     expect(statuses).toEqual({ [older.id]: "reviewing", [newer.id]: "rejected" });
     // History is still recorded, only not listed.
     expect((await storage.readApplication(older.id))?.history?.map((h) => h.to)).toEqual(["applied", "reviewing"]);
+  });
+});
+
+describe("cross-site requests", () => {
+  it("refuses a bulk change sent from another origin, even with a valid session", async () => {
+    await seed(fixtures());
+    const res = await patch([older.id], "rejected", { Origin: "https://evil.example" });
+    expect(res.status).toBe(403);
+    expect((await storage.readApplication(older.id))?.status).toBe("applied");
+  });
+
+  it("accepts one from this origin", async () => {
+    await seed(fixtures());
+    expect((await patch([older.id], "reviewing", { Origin: "http://localhost" })).status).toBe(200);
   });
 });
 

@@ -10,6 +10,7 @@ import {
   ageLabel,
   commissionOptions,
   labelFor,
+  mailtoHref,
   pipelineStages,
   publicBase,
   workAuthorizationOptions,
@@ -82,7 +83,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
   const cvUrl = `${API_BASE}/admin/cv/${app.id}`;
   const isPdf = app.cv?.file.endsWith(".pdf");
   const rows: [string, React.ReactNode][] = [
-    ["Email", <a key="e" className="focus-ring break-all text-navy link-underline" href={`mailto:${app.email}`}>{app.email}</a>],
+    ["Email", <a key="e" className="focus-ring break-all text-navy link-underline" href={mailtoHref(app.email)}>{app.email}</a>],
     ["Phone", <a key="p" className="focus-ring tabular text-navy link-underline" href={`tel:${app.phone.replace(/[^\d+]/g, "")}`}>{app.phone}</a>],
     ["LinkedIn", <ExtLink key="l" href={app.linkedinUrl} />],
     ["Portfolio / GitHub", <ExtLink key="f" href={app.portfolioUrl} />],
@@ -215,12 +216,28 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
               </div>
             )}
           </div>
+          {app.cv?.warnings?.length ? (
+            <div role="note" className="mt-4 flex gap-3 rounded-sm border border-fred-700/30 bg-white px-4 py-3 text-sm text-fred-700">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="font-semibold">Open this file with care</p>
+                <p className="mt-0.5">
+                  The upload check found that it {app.cv.warnings.join("; ")}.{" "}
+                  {isPdf
+                    ? "Read it in the browser preview below, kept apart from this site, rather than opening it in Acrobat."
+                    : "Open it in Word's Protected View and don't click Enable Editing or Enable Content."}
+                </p>
+              </div>
+            </div>
+          ) : null}
           {!app.cv ? (
             <p className="mt-3 text-sm text-muted">No CV stored.</p>
           ) : isPdf ? (
             <iframe src={`${cvUrl}?inline=1`} title={`CV of ${app.fullName}`} className="mt-4 h-[75vh] w-full rounded-sm border border-line" />
           ) : (
-            <p className="mt-3 text-sm text-muted">{app.cv.originalName} — Word file, use Download to open it.</p>
+            <p className="mt-3 text-sm text-muted">
+              {app.cv.originalName} — Word file. Use Download, then read it in Word&rsquo;s Protected View (keep editing off).
+            </p>
           )}
         </section>
       </div>

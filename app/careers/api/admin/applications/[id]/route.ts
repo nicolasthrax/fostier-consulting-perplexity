@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentAdmin } from "@/lib/careers/auth";
+import { currentAdmin, sameOrigin } from "@/lib/careers/auth";
 import { isStage } from "@/lib/careers/config";
 import { deleteApplication, isSafeId, readApplication, updateStatus } from "@/lib/careers/storage";
 
@@ -8,9 +8,11 @@ export const dynamic = "force-dynamic";
 
 const unauthorised = () => NextResponse.json({ error: "Unauthorised." }, { status: 401 });
 const notFound = () => NextResponse.json({ error: "Not found." }, { status: 404 });
+const forbidden = () => NextResponse.json({ error: "Forbidden." }, { status: 403 });
 
 /** Moves the candidate to another stage; the change is recorded in their history under the admin's name. */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!sameOrigin(request)) return forbidden();
   const admin = await currentAdmin();
   if (!admin) return unauthorised();
   const { id } = await params;
@@ -42,7 +44,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 /** Deletes the application and CV (withdrawal or erasure request), recorded in the deletion log under the admin's name. */
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!sameOrigin(request)) return forbidden();
   const admin = await currentAdmin();
   if (!admin) return unauthorised();
   const { id } = await params;

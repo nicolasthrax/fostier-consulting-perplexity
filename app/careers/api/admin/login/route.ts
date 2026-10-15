@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { blockedAsBot } from "@/lib/careers/botid";
 import {
-  ADMIN_COOKIE,
   adminEnabled,
   checkLogin,
   clearLoginFailures,
   createSessionToken,
   loginThrottled,
   recordLoginFailure,
+  sameOrigin,
+  sessionCookie,
 } from "@/lib/careers/auth";
 
 export const runtime = "nodejs";
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   if (!adminEnabled()) return NextResponse.json({ error: "The admin is not configured." }, { status: 404 });
+  if (!sameOrigin(request)) return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   // BotID stops scripted password guessing across every instance; the throttle below only sees this one.
   if (await blockedAsBot("login")) return NextResponse.json({ error: "Sign-in blocked. Try again from a normal browser." }, { status: 403 });
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
@@ -30,12 +32,6 @@ export async function POST(request: Request) {
   clearLoginFailures(ip);
   const { value, maxAge } = createSessionToken(admin);
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(ADMIN_COOKIE, value, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge,
-  });
+  res.cookies.set(sessionCookie(value, maxAge));
   return res;
 }

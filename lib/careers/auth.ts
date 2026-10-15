@@ -8,12 +8,20 @@ import { cookies } from "next/headers";
  * - CAREERS_ADMIN_PASSWORD: a single shared password, signing in as "admin" (older setup).
  *
  * Passwords need 8+ characters; shorter ones are ignored. A successful login sets an
- * HttpOnly cookie holding the name and an expiry, signed with that person's password,
- * so changing someone's password signs them out. With no valid user, the admin is off.
+ * HttpOnly cookie holding the name and an expiry, signed with CAREERS_SESSION_SECRET
+ * over that person's password too, so changing someone's password signs them out and
+ * rotating the secret signs everyone out. With no valid user, the admin is off.
  */
-export const ADMIN_COOKIE = "fc_careers_admin";
+const PRODUCTION = process.env.NODE_ENV === "production";
+/**
+ * In production the __Host- prefix makes the browser accept the cookie only over HTTPS,
+ * for this exact host and path /, so no subdomain can set or overwrite it.
+ */
+export const ADMIN_COOKIE = PRODUCTION ? "__Host-fc_careers_admin" : "fc_careers_admin";
 const SESSION_SECONDS = 60 * 60 * 8;
 const MIN_PASSWORD = 8;
+/** Shortest CAREERS_SESSION_SECRET accepted, e.g. `openssl rand -base64 32` (44 characters). */
+const MIN_SECRET = 32;
 /** Name used for the shared CAREERS_ADMIN_PASSWORD login. */
 export const SHARED_ADMIN_NAME = "admin";
 const NAME_RE = /^[\p{L}\p{N} ._-]{1,40}$/u;
@@ -60,23 +68,78 @@ export function checkLogin(name: string, input: string): string | null {
   return password !== undefined && ok ? key : null;
 }
 
+/** CAREERS_SESSION_SECRET when long enough, read on each call like the logins. */
+export function sessionSecret() {
+  const secret = process.env.CAREERS_SESSION_SECRET || "";
+  return secret.length >= MIN_SECRET ? secret : null;
+}
+
+let warnedNoSecret = false;
+
+/**
+ * The session cookie's signature. With CAREERS_SESSION_SECRET as the key, a copied cookie
+ * gives nothing to guess a password from offline; the password is still part of what is
+ * signed, so changing it signs that person out. Without a secret, it falls back to the
+ * person's password as the key (the older setup), with a warning.
+ */
+function sessionMac(password: string, payload: string) {
+  const secret = sessionSecret();
+  if (secret) return createHmac("sha256", `careers-session:${secret}`).update(`${payload}\0${password}`).digest("hex");
+  if (!warnedNoSecret) {
+    warnedNoSecret = true;
+    console.warn("[careers] CAREERS_SESSION_SECRET is not set (32+ characters): admin sessions are signed with the password instead.");
+  }
+  return sign(password, payload);
+}
+
 export function createSessionToken(name: string) {
   const password = adminUsers().get(name);
   if (!password) throw new Error("Unknown admin");
   const expires = String(Math.floor(Date.now() / 1000) + SESSION_SECONDS);
   const who = Buffer.from(name).toString("base64url");
-  return { value: `${who}.${expires}.${sign(password, `${who}.${expires}`)}`, maxAge: SESSION_SECONDS };
+  return { value: `${who}.${expires}.${sessionMac(password, `${who}.${expires}`)}`, maxAge: SESSION_SECONDS };
 }
 
-/** The admin a session token belongs to, or null if it is invalid, expired or the password changed. */
+/** The admin a session token belongs to, or null if it is invalid, expired, or the password or secret changed. */
 export function verifyToken(token: string | undefined): string | null {
   if (!token) return null;
   const [who, expires, mac] = token.split(".");
   if (!who || !expires || !mac) return null;
   const name = Buffer.from(who, "base64url").toString();
   const password = adminUsers().get(name);
-  if (!password || !safeEqual(mac, sign(password, `${who}.${expires}`))) return null;
+  if (!password || !safeEqual(mac, sessionMac(password, `${who}.${expires}`))) return null;
   return Number(expires) > Date.now() / 1000 ? name : null;
+}
+
+/** Options for the session cookie; a maxAge of 0 clears it (a __Host- cookie must be cleared with the same attributes). */
+export const sessionCookie = (value: string, maxAge: number) => ({
+  name: ADMIN_COOKIE,
+  value,
+  httpOnly: true,
+  sameSite: "strict" as const,
+  secure: PRODUCTION,
+  path: "/",
+  maxAge,
+});
+
+/**
+ * Whether a request that changes something comes from this site's own pages. The
+ * SameSite=Strict cookie already keeps other sites out, but every subdomain counts as
+ * the same site; Origin names the exact host. Browsers send Origin (or at least
+ * Sec-Fetch-Site) on these requests; a client sending neither isn't a browser, so it
+ * can't be riding on an admin's cookie.
+ */
+export function sameOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  if (!origin) return (request.headers.get("sec-fetch-site") ?? "same-origin") === "same-origin";
+  let host: string;
+  try {
+    host = new URL(origin).host;
+  } catch {
+    return false; // includes Origin: null
+  }
+  const own = [request.headers.get("x-forwarded-host"), request.headers.get("host"), new URL(request.url).host];
+  return own.includes(host);
 }
 
 /** The signed-in admin's name, or null. */

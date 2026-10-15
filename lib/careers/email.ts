@@ -31,7 +31,12 @@ async function send(message: { to: string; subject: string; text: string; replyT
     }),
     signal: AbortSignal.timeout(10_000),
   });
-  if (!res.ok) throw new Error(`Resend responded ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok) {
+    // Only Resend's error code (e.g. "validation_error"): its message can quote the
+    // recipient's address, and the error ends up in the logs.
+    const code = ((await res.json().catch(() => null)) as { name?: unknown } | null)?.name;
+    throw new Error(`Resend responded ${res.status}${typeof code === "string" ? ` (${code.slice(0, 60)})` : ""}`);
+  }
 }
 
 /** Header-safe single line: candidate text in a subject can't add lines or run on. */

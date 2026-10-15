@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentAdmin } from "@/lib/careers/auth";
+import { currentAdmin, sameOrigin } from "@/lib/careers/auth";
 import { isStage, toSummary } from "@/lib/careers/config";
 import { etagMatches } from "@/lib/careers/list";
 import { deleteApplications, isSafeId, readApplicationList, updateStatus } from "@/lib/careers/storage";
@@ -13,6 +13,7 @@ const MAX_BULK_IDS = 500;
 
 const unauthorised = () => NextResponse.json({ error: "Unauthorised." }, { status: 401, headers: NO_STORE });
 const badRequest = (error: string) => NextResponse.json({ error }, { status: 400, headers: NO_STORE });
+const forbidden = () => NextResponse.json({ error: "Forbidden." }, { status: 403, headers: NO_STORE });
 
 /**
  * All applications, newest first, without history and notes: the admin dashboard
@@ -28,6 +29,7 @@ export async function GET(request: Request) {
 
 /** Bulk status change from the table view: `{ ids, status }`, saved in one write. */
 export async function PATCH(request: Request) {
+  if (!sameOrigin(request)) return forbidden();
   const admin = await currentAdmin();
   if (!admin) return unauthorised();
   const body = (await request.json().catch(() => null)) as { ids?: unknown; status?: unknown } | null;
@@ -42,6 +44,7 @@ export async function PATCH(request: Request) {
 
 /** Bulk delete from the table view: `{ ids }`, saved in one write and logged under the admin's name. Answers the IDs actually deleted. */
 export async function DELETE(request: Request) {
+  if (!sameOrigin(request)) return forbidden();
   const admin = await currentAdmin();
   if (!admin) return unauthorised();
   const body = (await request.json().catch(() => null)) as { ids?: unknown } | null;
