@@ -1,6 +1,6 @@
 import { deflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { cvWarnings } from "@/lib/careers/cv-check";
+import { cvWarnings, isWordPackage } from "@/lib/careers/cv-check";
 
 /** A minimal ZIP (CRCs left at 0: the check doesn't verify them). */
 function zip(files: Record<string, string | Buffer>, method: 0 | 8 = 8) {
@@ -106,5 +106,17 @@ describe("cvWarnings, PDF", () => {
 
   it("sees through #xx escapes in names", () => {
     expect(cvWarnings(pdf("/S /J#61vaScript"), "pdf")).toEqual(["contains JavaScript"]);
+  });
+});
+
+describe("isWordPackage", () => {
+  it("accepts a Word document", () => {
+    expect(isWordPackage(docx())).toBe(true);
+  });
+
+  it("refuses any other ZIP, and what isn't a ZIP", () => {
+    expect(isWordPackage(zip({ "photo.jpg": "x", "notes.txt": "y" }))).toBe(false);
+    expect(isWordPackage(zip({ "[Content_Types].xml": "<Types/>", "xl/workbook.xml": "<workbook/>" }))).toBe(false);
+    expect(isWordPackage(Buffer.from("PK\x03\x04 not really a zip"))).toBe(false);
   });
 });

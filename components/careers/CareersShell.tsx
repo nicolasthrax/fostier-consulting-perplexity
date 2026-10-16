@@ -36,7 +36,8 @@ export function CareersShell({
         <header className="bg-white">
           <div aria-hidden="true" className="par-avion h-1.5" />
           <div className={`${container} flex items-center justify-between gap-4 py-4`}>
-            <a href={`/${lang}`} className="focus-ring inline-block shrink-0">
+            {/* The French home is at "/" (/fr only redirects there). */}
+            <a href={lang === "fr" ? "/" : `/${lang}`} className="focus-ring inline-block shrink-0">
               <Image
                 src={site.logoPath}
                 alt="Fostier Consulting"

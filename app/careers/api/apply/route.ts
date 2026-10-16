@@ -2,6 +2,7 @@ import { after, NextResponse } from "next/server";
 import { blockedAsBot } from "@/lib/careers/botid";
 import {
   CV_TYPES,
+  cleanText,
   initialStatus,
   knockoutsFor,
   openJob,
@@ -13,7 +14,7 @@ import {
 } from "@/lib/careers/config";
 import { DEFAULT_CAREERS_LOCALE, careersCopy, isCareersLocale } from "@/lib/careers/i18n";
 import { newId } from "@/lib/careers/storage";
-import { cvWarnings } from "@/lib/careers/cv-check";
+import { cvWarnings, isWordPackage } from "@/lib/careers/cv-check";
 import { deliverApplication } from "@/lib/careers/deliver";
 import { sendApplicationEmails } from "@/lib/careers/email";
 
@@ -28,7 +29,7 @@ const FIELDS: (keyof ApplicationInput)[] = [
 /** Checks the file's first bytes, so a renamed executable isn't stored as a "PDF". */
 function sniff(buf: Buffer, ext: CvExtension) {
   if (ext === "pdf") return buf.subarray(0, 5).toString("latin1") === "%PDF-";
-  return buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04; // ZIP (DOCX)
+  return buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04 && isWordPackage(buf); // ZIP, holding a Word document
 }
 
 export async function POST(request: Request) {
@@ -46,13 +47,14 @@ export async function POST(request: Request) {
   if (await blockedAsBot("apply")) return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 403 });
 
   // Honeypot: real candidates never see this field.
-  if (String(form.get("company_website") ?? "")) return NextResponse.json({ ok: true, id: "received" });
+  // No reference: the success screen then shows none, rather than one no record has.
+  if (String(form.get("company_website") ?? "")) return NextResponse.json({ ok: true });
   if (form.get("consent") !== "yes") return NextResponse.json({ error: m.declaration }, { status: 400 });
 
   const job = openJob(String(form.get("job") ?? ""));
   if (!job) return NextResponse.json({ error: m.jobClosed }, { status: 400 });
 
-  const input = Object.fromEntries(FIELDS.map((k) => [k, String(form.get(k) ?? "").trim()])) as ApplicationInput;
+  const input = Object.fromEntries(FIELDS.map((k) => [k, cleanText(String(form.get(k) ?? ""))])) as ApplicationInput;
   const errors = validateFields(input, lang);
   if (Object.keys(errors).length) return NextResponse.json({ error: m.attention, errors }, { status: 400 });
 
@@ -85,7 +87,7 @@ export async function POST(request: Request) {
   const warnings = cvWarnings(data, ext);
   record.cv = {
     file: `${id}.${ext}`,
-    originalName: file.name.slice(0, 200),
+    originalName: cleanText(file.name).slice(0, 200),
     size: file.size,
     type: CV_TYPES[ext],
     ...(warnings.length ? { warnings } : {}),

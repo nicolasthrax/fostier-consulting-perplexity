@@ -69,6 +69,16 @@ function docxWarnings(data: Buffer) {
   return [...warnings];
 }
 
+/**
+ * Whether a ZIP is a Word package: a readable directory with the package's content types
+ * and a word/ folder. Any ZIP starts with the same bytes, so a renamed archive would pass
+ * the signature check alone.
+ */
+export function isWordPackage(data: Buffer) {
+  const names = zipEntries(data)?.map((e) => e.name) ?? [];
+  return names.includes("[Content_Types].xml") && names.some((n) => n.startsWith("word/"));
+}
+
 /** The ZIP's central directory (no ZIP64: CVs are at most 4 MB), or null if it isn't a ZIP. */
 function zipEntries(buf: Buffer): Entry[] | null {
   // The end-of-directory record is 22 bytes, followed by a comment of up to 64 KB.

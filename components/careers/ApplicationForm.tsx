@@ -4,6 +4,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, FileText, Loader2, Upload, X } from "lucide-react";
 import {
   API_BASE,
+  EMAIL_MAX_LENGTH,
+  URL_MAX_LENGTH,
   labelFor,
   validateCvMeta,
   validateFields,
@@ -33,7 +35,7 @@ const inputClass =
 
 const formatSize = (bytes: number, lang: CareersLocale) => {
   const [kb, mb] = lang === "fr" ? ["Ko", "Mo"] : ["KB", "MB"];
-  return bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} ${kb}` : `${(bytes / 1024 / 1024).toFixed(1)} ${mb}`;
+  return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} ${kb}` : `${(bytes / 1024 / 1024).toFixed(1)} ${mb}`;
 };
 
 function Label({ htmlFor, children, optional, lang }: { htmlFor: string; children: React.ReactNode; optional?: boolean; lang: CareersLocale }) {
@@ -113,23 +115,31 @@ export function ApplicationForm({
     return errs;
   };
 
+  /** Moves to a step, dropping the last submission's error: it is about answers the candidate is now changing. */
+  const goTo = (i: number) => {
+    setSubmitError("");
+    setShowEmailFallback(false);
+    setStep(i);
+  };
+
   const next = () => {
     const errs = validateStep(step);
     setErrors(errs);
     if (Object.keys(errs).length) return focusFirstError(errs);
-    setStep((s) => Math.min(s + 1, steps.length - 1));
+    goTo(Math.min(step + 1, steps.length - 1));
   };
 
   const back = () => {
     setErrors({});
-    setStep((s) => Math.max(s - 1, 0));
+    goTo(Math.max(step - 1, 0));
   };
 
   const pickFile = (file: File | undefined) => {
     if (!file) return;
     const e = validateCvMeta(file.name, file.size, lang);
     setErrors((er) => ({ ...er, cv: e ?? undefined }));
-    setCv(e ? null : file);
+    // A file that doesn't fit keeps the one already chosen.
+    if (!e) setCv(file);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -195,7 +205,7 @@ export function ApplicationForm({
         <h2 ref={headingRef} tabIndex={-1} className="h-serif text-3xl outline-none">{t.successTitle}</h2>
         <p className="body-lead">
           {t.success(values.fullName.split(" ")[0], job.title)}
-          <strong className="font-semibold text-ink">{values.email}</strong>
+          <strong className="font-semibold text-ink [overflow-wrap:anywhere]">{values.email}</strong>
           {t.successAfter}
         </p>
         {doneId !== "sent" && <p className="label tabular">{t.reference} {doneId}</p>}
@@ -293,13 +303,13 @@ export function ApplicationForm({
           </p>
           <div>
             <Label lang={lang} htmlFor={fid("fullName")}>{t.fullName}</Label>
-            <input {...a11y("fullName")} className={inputClass} autoComplete="name" value={values.fullName} onChange={set("fullName")} required />
+            <input {...a11y("fullName")} className={inputClass} maxLength={120} autoComplete="name" value={values.fullName} onChange={set("fullName")} required />
             {err("fullName")}
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <Label lang={lang} htmlFor={fid("email")}>{t.email}</Label>
-              <input {...a11y("email")} type="email" className={inputClass} autoComplete="email" value={values.email} onChange={set("email")} required />
+              <input {...a11y("email")} type="email" className={inputClass} maxLength={EMAIL_MAX_LENGTH} autoComplete="email" value={values.email} onChange={set("email")} required />
               {err("email")}
             </div>
             <div>
@@ -310,12 +320,12 @@ export function ApplicationForm({
           </div>
           <div>
             <Label lang={lang} htmlFor={fid("linkedinUrl")} optional>{t.linkedin}</Label>
-            <input {...a11y("linkedinUrl")} type="url" className={inputClass} placeholder="https://www.linkedin.com/in/…" value={values.linkedinUrl} onChange={set("linkedinUrl")} />
+            <input {...a11y("linkedinUrl")} type="url" className={inputClass} maxLength={URL_MAX_LENGTH} placeholder="https://www.linkedin.com/in/…" value={values.linkedinUrl} onChange={set("linkedinUrl")} />
             {err("linkedinUrl")}
           </div>
           <div>
             <Label lang={lang} htmlFor={fid("portfolioUrl")} optional>{t.portfolio}</Label>
-            <input {...a11y("portfolioUrl")} type="url" className={inputClass} placeholder="https://" value={values.portfolioUrl} onChange={set("portfolioUrl")} />
+            <input {...a11y("portfolioUrl")} type="url" className={inputClass} maxLength={URL_MAX_LENGTH} placeholder="https://" value={values.portfolioUrl} onChange={set("portfolioUrl")} />
             {err("portfolioUrl")}
           </div>
         </div>
@@ -362,7 +372,7 @@ export function ApplicationForm({
               onChange={(e) => pickFile(e.target.files?.[0])}
             />
           </div>
-          {err("cv")}
+          <div aria-live="polite">{err("cv")}</div>
           <p id={fid("cv-sensitive")} className="mt-3 text-sm leading-relaxed text-muted">{t.cvSensitive}</p>
           {cv && (
             <div className="mt-4 flex items-center gap-3 rounded-sm border border-line bg-mist px-4 py-3">
@@ -373,7 +383,11 @@ export function ApplicationForm({
               </div>
               <button
                 type="button"
-                onClick={() => setCv(null)}
+                onClick={() => {
+                  setCv(null);
+                  // The button is about to disappear: keep focus where the candidate picks a new file.
+                  document.getElementById(fid("cv-button"))?.focus();
+                }}
                 className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-sm text-slate hover:bg-white hover:text-fred-700"
                 aria-label={t.remove(cv.name)}
               >
@@ -387,6 +401,8 @@ export function ApplicationForm({
       {step === 2 && (
         <div className="space-y-5">
           <fieldset
+            role="radiogroup"
+            aria-required="true"
             aria-invalid={!!errors.adult}
             aria-describedby={[errors.adult && fid("adult-error"), fid("adult-hint")].filter(Boolean).join(" ")}
           >
@@ -430,6 +446,8 @@ export function ApplicationForm({
             {err("workAuthorization")}
           </div>
           <fieldset
+            role="radiogroup"
+            aria-required="true"
             aria-invalid={!!errors.commissionOnly}
             aria-describedby={errors.commissionOnly ? fid("commissionOnly-error") : undefined}
           >
@@ -467,15 +485,15 @@ export function ApplicationForm({
             <section key={group.step} aria-labelledby={fid(`review-${group.step}`)} className="border-t border-line pt-4">
               <div className="flex items-baseline justify-between gap-4">
                 <h3 id={fid(`review-${group.step}`)} className="font-serif text-lg text-ink">{t.steps[group.step]}</h3>
-                <button type="button" onClick={() => setStep(group.step)} className="focus-ring text-sm font-semibold text-navy link-underline">
+                <button type="button" onClick={() => goTo(group.step)} className="focus-ring text-sm font-semibold text-navy link-underline">
                   {t.edit}<span className="sr-only"> {t.steps[group.step]}</span>
                 </button>
               </div>
               <dl className="mt-3 space-y-2.5">
                 {group.items.map(([k, v]) => (
-                  <div key={k} className="grid gap-0.5 sm:grid-cols-[11rem_1fr] sm:gap-4">
+                  <div key={k} className="grid grid-cols-1 gap-0.5 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-4">
                     <dt className="text-sm text-muted">{k}</dt>
-                    <dd className="whitespace-pre-line break-words text-[15px] text-ink">{v}</dd>
+                    <dd className="min-w-0 whitespace-pre-line text-[15px] text-ink [overflow-wrap:anywhere]">{v}</dd>
                   </div>
                 ))}
               </dl>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 import { API_BASE, NOTE_MAX_LENGTH, type Note } from "@/lib/careers/config";
@@ -17,6 +17,13 @@ export function AdminNotes({ id, notes: initial, adminBase }: { id: string; note
   const router = useRouter();
   // Stored oldest first; shown newest first.
   const [notes, setNotes] = useState(() => [...initial].reverse());
+  // A refresh of the page (after a status change, say) brings notes other admins added since.
+  useEffect(() => {
+    setNotes((shown) => {
+      const fromServer = new Set(initial.map((n) => n.id));
+      return [...initial, ...shown.filter((n) => !fromServer.has(n.id))].sort((a, b) => b.at.localeCompare(a.at));
+    });
+  }, [initial]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");

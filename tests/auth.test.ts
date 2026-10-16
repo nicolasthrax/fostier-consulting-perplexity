@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { adminUsers, checkLogin, createSessionToken, namedLogins, sameOrigin, sessionSecret, verifyToken } from "@/lib/careers/auth";
+import { adminUsers, checkLogin, clientIp, createSessionToken, namedLogins, sameOrigin, sessionSecret, verifyToken } from "@/lib/careers/auth";
 
 const setUsers = (users: Record<string, unknown> | string | undefined, shared?: string) => {
   if (users === undefined) delete process.env.CAREERS_ADMIN_USERS;
@@ -174,5 +174,40 @@ describe("sameOrigin", () => {
     expect(sameOrigin(req({ "Sec-Fetch-Site": "same-site" }))).toBe(false);
     expect(sameOrigin(req({ "Sec-Fetch-Site": "cross-site" }))).toBe(false);
     expect(sameOrigin(req({}))).toBe(true);
+  });
+
+  it("refuses this host under a scheme other than HTTP(S)", () => {
+    expect(sameOrigin(req({ Origin: "ftp://www.fostierconsulting.com", Host: "www.fostierconsulting.com" }))).toBe(false);
+  });
+
+  it("in production, refuses plain HTTP except on localhost", async () => {
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "production");
+    try {
+      const { sameOrigin: prodSameOrigin } = await import("@/lib/careers/auth");
+      expect(prodSameOrigin(req({ Origin: "http://www.fostierconsulting.com", Host: "www.fostierconsulting.com" }))).toBe(false);
+      expect(prodSameOrigin(req({ Origin: "https://www.fostierconsulting.com", Host: "www.fostierconsulting.com" }))).toBe(true);
+      expect(prodSameOrigin(new Request("http://localhost:3000/x", { headers: { Origin: "http://localhost:3000" } }))).toBe(true);
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
+  });
+});
+
+describe("clientIp", () => {
+  const req = (headers: Record<string, string>) => new Request("https://www.fostierconsulting.com/careers/api/admin/login", { headers });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("off Vercel, uses the entry the nearest proxy appended, not one the client sent", () => {
+    vi.stubEnv("VERCEL", "");
+    expect(clientIp(req({ "X-Forwarded-For": "1.1.1.1, 203.0.113.7" }))).toBe("203.0.113.7");
+    expect(clientIp(req({}))).toBe("local");
+  });
+
+  it("on Vercel, uses the address Vercel sets", () => {
+    vi.stubEnv("VERCEL", "1");
+    expect(clientIp(req({ "X-Real-IP": "203.0.113.7", "X-Forwarded-For": "203.0.113.7" }))).toBe("203.0.113.7");
+    expect(clientIp(req({ "X-Forwarded-For": "203.0.113.8, 10.0.0.1" }))).toBe("203.0.113.8");
   });
 });

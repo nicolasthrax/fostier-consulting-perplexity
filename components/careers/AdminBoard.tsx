@@ -34,13 +34,14 @@ const UNDO_MS = 10_000;
  * Deletes sent but not yet confirmed by the server, on this device: IDs only, no
  * candidate data. A delete sent as the page closes can't report a failure, so the
  * next visit sends it again (deleting what is already gone changes nothing) and
- * shows any error there.
+ * shows any error there. Kept per admin, so a delete is only ever resent, and logged,
+ * under the name of the person who made it.
  */
-const UNCONFIRMED_KEY = "careers-admin-unconfirmed-deletes";
+const unconfirmedKey = (admin: string) => `careers-admin-unconfirmed-deletes:${admin}`;
 
-function unconfirmedDeletes(): string[][] {
+function unconfirmedDeletes(admin: string): string[][] {
   try {
-    const list: unknown = JSON.parse(localStorage.getItem(UNCONFIRMED_KEY) ?? "[]");
+    const list: unknown = JSON.parse(localStorage.getItem(unconfirmedKey(admin)) ?? "[]");
     return Array.isArray(list) ? list.filter((ids): ids is string[] => Array.isArray(ids) && ids.every((id) => typeof id === "string")) : [];
   } catch {
     return [];
@@ -48,13 +49,13 @@ function unconfirmedDeletes(): string[][] {
 }
 
 /** Records (`unconfirmed`) or clears the entry for these IDs. */
-function markUnconfirmed(ids: string[], unconfirmed: boolean) {
+function markUnconfirmed(admin: string, ids: string[], unconfirmed: boolean) {
   const key = ids.join();
-  const next = unconfirmedDeletes().filter((other) => other.join() !== key);
+  const next = unconfirmedDeletes(admin).filter((other) => other.join() !== key);
   if (unconfirmed) next.push(ids);
   try {
-    if (next.length) localStorage.setItem(UNCONFIRMED_KEY, JSON.stringify(next));
-    else localStorage.removeItem(UNCONFIRMED_KEY);
+    if (next.length) localStorage.setItem(unconfirmedKey(admin), JSON.stringify(next));
+    else localStorage.removeItem(unconfirmedKey(admin));
   } catch {}
 }
 /**
@@ -165,9 +166,24 @@ export function AdminBoard({
   // The list version on screen: polls send it back and get an empty 304 while nothing changed.
   const etag = useRef(initialEtag);
   const replayed = useRef<boolean | null>(null);
+  // Saves in progress, and a count bumped as each one starts and ends. A refresh that
+  // overlapped a save may hold the list from before it, which would put the old stage
+  // back on screen: it is dropped, and the next refresh picks the change up.
+  const writes = useRef({ pending: 0, generation: 0 });
+  const write = useCallback(async (url: string, init: RequestInit) => {
+    writes.current.pending++;
+    writes.current.generation++;
+    try {
+      return await fetch(url, init).catch(() => null);
+    } finally {
+      writes.current.pending--;
+      writes.current.generation++;
+    }
+  }, []);
 
   const poll = useCallback(async () => {
     lastPoll.current = Date.now();
+    const generation = writes.current.generation;
     const res = await fetch(`${API_BASE}/admin/applications`, {
       cache: "no-store",
       headers: etag.current ? { "If-None-Match": etag.current } : undefined,
@@ -175,6 +191,7 @@ export function AdminBoard({
     if (res?.status === 401) return router.refresh();
     if (res?.status === 304 || !res?.ok) return;
     const { applications } = (await res.json()) as { applications: ApplicationSummary[] };
+    if (writes.current.pending || writes.current.generation !== generation) return;
     etag.current = res.headers.get("ETag") ?? "";
     setApps(applications);
   }, [router]);
@@ -287,11 +304,11 @@ export function AdminBoard({
     setSaveError("");
     setBulkSaving(true);
     setApps((list) => list.map((a) => (selected.has(a.id) ? { ...a, status } : a)));
-    const res = await fetch(`${API_BASE}/admin/applications`, {
+    const res = await write(`${API_BASE}/admin/applications`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids, status }),
-    }).catch(() => null);
+    });
     setBulkSaving(false);
     if (res?.status === 401) return router.refresh();
     if (!res?.ok) {
@@ -321,14 +338,14 @@ export function AdminBoard({
   const send = useCallback(
     async (p: PendingDelete, leaving = false) => {
       // Kept until the server answers: if the page is gone by then, the next visit finishes the job.
-      markUnconfirmed(p.ids, true);
-      const res = await fetch(`${API_BASE}/admin/applications`, {
+      markUnconfirmed(adminName, p.ids, true);
+      const res = await write(`${API_BASE}/admin/applications`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: p.ids }),
         keepalive: leaving,
-      }).catch(() => null);
-      if (res?.ok) markUnconfirmed(p.ids, false);
+      });
+      if (res?.ok) markUnconfirmed(adminName, p.ids, false);
       if (leaving) return;
       // Signed out: the entry stays, and the board sends it again after signing in.
       if (res?.status === 401) return router.refresh();
@@ -336,13 +353,13 @@ export function AdminBoard({
         const gone = new Set(p.ids);
         setApps((list) => list.filter((a) => !gone.has(a.id)));
       } else {
-        markUnconfirmed(p.ids, false);
+        markUnconfirmed(adminName, p.ids, false);
         setSaveError(`${p.ids.length === 1 ? `${p.label}'s application` : p.label} couldn't be deleted. Try again.`);
       }
       // Deleted rows have left the list; failed ones come back.
       unhide(p.ids);
     },
-    [router]
+    [router, write, adminName]
   );
 
   /** Ends the undo window now and sends the delete. */
@@ -396,15 +413,15 @@ export function AdminBoard({
     // A failed read lists nothing, which doesn't mean they're gone: keep them for the next visit.
     if (resumed.current || storageError) return;
     resumed.current = true;
-    for (const ids of unconfirmedDeletes()) {
-      markUnconfirmed(ids, false);
+    for (const ids of unconfirmedDeletes(adminName)) {
+      markUnconfirmed(adminName, ids, false);
       const picked = initial.filter((a) => ids.includes(a.id));
       if (!picked.length) continue;
       const p = pendingDelete(picked);
       setHidden((h) => new Set([...h, ...p.ids]));
       send(p);
     }
-  }, [initial, send, storageError]);
+  }, [initial, send, storageError, adminName]);
 
   // Leaving the page (or opening a candidate) during the undo window still deletes.
   useEffect(() => {
@@ -433,11 +450,11 @@ export function AdminBoard({
     const prev = apps;
     setSaveError("");
     setApps((list) => list.map((a) => (a.id === id ? { ...a, status } : a)));
-    const res = await fetch(`${API_BASE}/admin/applications/${id}`, {
+    const res = await write(`${API_BASE}/admin/applications/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
-    }).catch(() => null);
+    });
     if (res?.status === 401) return router.refresh();
     if (!res?.ok) {
       revert(prev, new Set([id]));
@@ -468,14 +485,14 @@ export function AdminBoard({
       </button>
     );
   };
-  const statusSelect = (app: ApplicationSummary) => (
+  const statusSelect = (app: ApplicationSummary, className = "w-32") => (
     <Select
       compact
       danger={app.status === "rejected"}
       value={app.status}
       onChange={(e) => setStatus(app.id, e.target.value as Stage)}
       aria-label={`Status for ${app.fullName}`}
-      className="w-32"
+      className={className}
     >
       {stages.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
     </Select>
@@ -554,7 +571,8 @@ export function AdminBoard({
           {a.knockouts.length > 0 && <span className="mt-1 block">{flag(a)}</span>}
         </Link>
         <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-2">
-          {statusSelect(a)}
+          {/* Takes the card's width: a fixed one cut stage names off in narrow columns. */}
+          {statusSelect(a, "min-w-0 flex-1")}
           {deleteButton(a)}
         </div>
       </li>
@@ -634,7 +652,8 @@ export function AdminBoard({
       {view === "board" ? (
         <>
           {/* Stacked on phones; from md up, one column per stage, scrolling sideways when seven don't fit. */}
-          <div className="mt-6 grid gap-4 md:auto-cols-[minmax(10.5rem,1fr)] md:grid-flow-col md:overflow-x-auto md:pb-2">
+          {/* 12.5rem: the narrowest column whose status menu still shows "Reviewing" next to the delete button. */}
+          <div className="mt-6 grid gap-4 md:auto-cols-[minmax(12.5rem,1fr)] md:grid-flow-col md:overflow-x-auto md:pb-2">
             {pipeline.map((stage) => {
               const items = filtered.filter((a) => a.status === stage.value);
               return (
@@ -700,7 +719,8 @@ export function AdminBoard({
             </div>
           )}
           {/* Fits the page from about 1024px wide; narrower screens scroll it sideways. */}
-          <div className="mt-6 overflow-x-auto rounded-sm bg-white">
+          {/* Positioned, so the header's screen-reader-only text stays inside the scroll area instead of widening the page. */}
+          <div className="relative mt-6 overflow-x-auto rounded-sm bg-white">
             <table className="w-full min-w-[56rem] text-left text-sm">
               <thead className="border-b border-line text-muted">
                 <tr>

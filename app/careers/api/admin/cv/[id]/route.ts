@@ -16,7 +16,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!data) return new NextResponse("Not found", { status: 404 });
   const ext = rec.cv.file.split(".").pop();
   const inline = new URL(request.url).searchParams.get("inline") === "1" && ext === "pdf";
-  const name = `${rec.fullName.replace(/[^\p{L}\p{N} _-]/gu, "").trim().replace(/\s+/g, "-") || "candidate"}-CV.${ext}`;
+  // Line breaks and tabs count as spaces, so "Lu\nsecond" doesn't run together.
+  const name = `${rec.fullName.replace(/\s/g, " ").replace(/[^\p{L}\p{N} _-]/gu, "").trim().replace(/\s+/g, "-") || "candidate"}-CV.${ext}`;
   return new NextResponse(new Uint8Array(data), {
     headers: {
       "Content-Type": rec.cv.type,
