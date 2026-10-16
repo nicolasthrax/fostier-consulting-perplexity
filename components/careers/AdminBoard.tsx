@@ -7,6 +7,7 @@ import { AlertTriangle, ArrowDown, ArrowUp, ChevronDown, ChevronRight, Download,
 import { API_BASE, RETAINED_STAGES, ageLabel, duplicateCounts, labelFor, type ApplicationSummary, type Option, type Stage } from "@/lib/careers/config";
 import { applicationsCsv } from "@/lib/careers/csv";
 import { matchTargetUniversities } from "@/lib/careers/universities";
+import { writeTracker } from "@/lib/careers/write-tracker";
 import { UniversityBadges } from "./UniversityBadges";
 
 type StageOption = { value: Stage; label: string };
@@ -38,6 +39,8 @@ const UNDO_MS = 10_000;
  * under the name of the person who made it.
  */
 const unconfirmedKey = (admin: string) => `careers-admin-unconfirmed-deletes:${admin}`;
+/** The shared key used before entries were kept per admin; removed on load, not resent (it can't say whose they were). */
+const LEGACY_UNCONFIRMED_KEY = "careers-admin-unconfirmed-deletes";
 
 function unconfirmedDeletes(admin: string): string[][] {
   try {
@@ -166,24 +169,17 @@ export function AdminBoard({
   // The list version on screen: polls send it back and get an empty 304 while nothing changed.
   const etag = useRef(initialEtag);
   const replayed = useRef<boolean | null>(null);
-  // Saves in progress, and a count bumped as each one starts and ends. A refresh that
-  // overlapped a save may hold the list from before it, which would put the old stage
-  // back on screen: it is dropped, and the next refresh picks the change up.
-  const writes = useRef({ pending: 0, generation: 0 });
-  const write = useCallback(async (url: string, init: RequestInit) => {
-    writes.current.pending++;
-    writes.current.generation++;
-    try {
-      return await fetch(url, init).catch(() => null);
-    } finally {
-      writes.current.pending--;
-      writes.current.generation++;
-    }
-  }, []);
+  // A refresh that overlapped a save may hold the list from before it, which would put the
+  // old stage back on screen: it is dropped, and the next refresh picks the change up.
+  const [writes] = useState(writeTracker);
+  const write = useCallback(
+    (url: string, init: RequestInit) => writes.track(() => fetch(url, init).catch(() => null)),
+    [writes]
+  );
 
   const poll = useCallback(async () => {
     lastPoll.current = Date.now();
-    const generation = writes.current.generation;
+    const fresh = writes.begin();
     const res = await fetch(`${API_BASE}/admin/applications`, {
       cache: "no-store",
       headers: etag.current ? { "If-None-Match": etag.current } : undefined,
@@ -191,10 +187,10 @@ export function AdminBoard({
     if (res?.status === 401) return router.refresh();
     if (res?.status === 304 || !res?.ok) return;
     const { applications } = (await res.json()) as { applications: ApplicationSummary[] };
-    if (writes.current.pending || writes.current.generation !== generation) return;
+    if (!fresh()) return;
     etag.current = res.headers.get("ETag") ?? "";
     setApps(applications);
-  }, [router]);
+  }, [router, writes]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -413,6 +409,9 @@ export function AdminBoard({
     // A failed read lists nothing, which doesn't mean they're gone: keep them for the next visit.
     if (resumed.current || storageError) return;
     resumed.current = true;
+    try {
+      localStorage.removeItem(LEGACY_UNCONFIRMED_KEY);
+    } catch {}
     for (const ids of unconfirmedDeletes(adminName)) {
       markUnconfirmed(adminName, ids, false);
       const picked = initial.filter((a) => ids.includes(a.id));

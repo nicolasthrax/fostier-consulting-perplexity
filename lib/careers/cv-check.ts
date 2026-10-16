@@ -70,12 +70,15 @@ function docxWarnings(data: Buffer) {
 }
 
 /**
- * Whether a ZIP is a Word package: a readable directory with the package's content types
- * and a word/ folder. Any ZIP starts with the same bytes, so a renamed archive would pass
- * the signature check alone.
+ * Whether a ZIP is a Word package (the package's content types and a word/ folder): any ZIP
+ * starts with the same bytes, so a renamed archive would pass the signature check alone.
+ * Null when the directory can't be read (ZIP64, some streaming writers): such a file may
+ * still be a real CV, so it is accepted with cvWarnings' "isn't a readable Word file".
  */
-export function isWordPackage(data: Buffer) {
-  const names = zipEntries(data)?.map((e) => e.name) ?? [];
+export function isWordPackage(data: Buffer): boolean | null {
+  const entries = zipEntries(data);
+  if (!entries) return null;
+  const names = entries.map((e) => e.name);
   return names.includes("[Content_Types].xml") && names.some((n) => n.startsWith("word/"));
 }
 

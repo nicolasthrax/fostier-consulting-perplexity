@@ -158,14 +158,26 @@ export async function currentAdmin() {
 export const isAdmin = async () => (await currentAdmin()) !== null;
 
 /**
+ * Proxies in front of a self-hosted portal that append to X-Forwarded-For, from
+ * CAREERS_TRUSTED_PROXIES (default 1: one nginx). Behind a CDN and nginx, set 2, or every
+ * visitor through the same CDN edge would share one login throttle.
+ */
+function trustedProxies() {
+  const n = Number(process.env.CAREERS_TRUSTED_PROXIES ?? 1);
+  return Number.isInteger(n) && n >= 1 ? n : 1;
+}
+
+/**
  * The client's IP for the login throttle. Vercel sets X-Forwarded-For itself (a client's
  * own value is dropped), so its first entry is the client. Elsewhere a client can send its
- * own header, so the last entry, added by the nearest proxy, is used: run a self-hosted
- * portal behind a proxy that appends it (nginx's $proxy_add_x_forwarded_for).
+ * own header, so the entry added by the outermost trusted proxy is used, counting from the
+ * end: run a self-hosted portal behind proxies that append it (nginx's
+ * $proxy_add_x_forwarded_for).
  */
 export function clientIp(request: Request) {
   const forwarded = (request.headers.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  return (process.env.VERCEL ? request.headers.get("x-real-ip") || forwarded[0] : forwarded.at(-1)) || "local";
+  if (process.env.VERCEL) return request.headers.get("x-real-ip") || forwarded[0] || "local";
+  return forwarded[Math.max(0, forwarded.length - trustedProxies())] || "local";
 }
 
 /**

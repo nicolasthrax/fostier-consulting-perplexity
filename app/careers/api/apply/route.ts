@@ -29,7 +29,7 @@ const FIELDS: (keyof ApplicationInput)[] = [
 /** Checks the file's first bytes, so a renamed executable isn't stored as a "PDF". */
 function sniff(buf: Buffer, ext: CvExtension) {
   if (ext === "pdf") return buf.subarray(0, 5).toString("latin1") === "%PDF-";
-  return buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04 && isWordPackage(buf); // ZIP, holding a Word document
+  return buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04 && isWordPackage(buf) !== false; // ZIP, not another kind of archive
 }
 
 export async function POST(request: Request) {

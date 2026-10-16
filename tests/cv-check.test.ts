@@ -1,42 +1,6 @@
-import { deflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { cvWarnings, isWordPackage } from "@/lib/careers/cv-check";
-
-/** A minimal ZIP (CRCs left at 0: the check doesn't verify them). */
-function zip(files: Record<string, string | Buffer>, method: 0 | 8 = 8) {
-  const parts: Buffer[] = [];
-  const central: Buffer[] = [];
-  let offset = 0;
-  for (const [name, content] of Object.entries(files)) {
-    const raw = Buffer.from(content);
-    const data = method === 8 ? deflateRawSync(raw) : raw;
-    const nameBuf = Buffer.from(name);
-    const local = Buffer.alloc(30);
-    local.writeUInt32LE(0x04034b50, 0);
-    local.writeUInt16LE(method, 8);
-    local.writeUInt32LE(data.length, 18);
-    local.writeUInt32LE(raw.length, 22);
-    local.writeUInt16LE(nameBuf.length, 26);
-    const entry = Buffer.alloc(46);
-    entry.writeUInt32LE(0x02014b50, 0);
-    entry.writeUInt16LE(method, 10);
-    entry.writeUInt32LE(data.length, 20);
-    entry.writeUInt32LE(raw.length, 24);
-    entry.writeUInt16LE(nameBuf.length, 28);
-    entry.writeUInt32LE(offset, 42);
-    parts.push(local, nameBuf, data);
-    central.push(entry, nameBuf);
-    offset += 30 + nameBuf.length + data.length;
-  }
-  const directory = Buffer.concat(central);
-  const end = Buffer.alloc(22);
-  end.writeUInt32LE(0x06054b50, 0);
-  end.writeUInt16LE(central.length / 2, 8);
-  end.writeUInt16LE(central.length / 2, 10);
-  end.writeUInt32LE(directory.length, 12);
-  end.writeUInt32LE(offset, 16);
-  return Buffer.concat([...parts, directory, end]);
-}
+import { zip } from "./fixtures";
 
 const R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const rels = (...items: string[]) =>
@@ -114,9 +78,14 @@ describe("isWordPackage", () => {
     expect(isWordPackage(docx())).toBe(true);
   });
 
-  it("refuses any other ZIP, and what isn't a ZIP", () => {
+  it("refuses any other kind of ZIP", () => {
     expect(isWordPackage(zip({ "photo.jpg": "x", "notes.txt": "y" }))).toBe(false);
     expect(isWordPackage(zip({ "[Content_Types].xml": "<Types/>", "xl/workbook.xml": "<workbook/>" }))).toBe(false);
-    expect(isWordPackage(Buffer.from("PK\x03\x04 not really a zip"))).toBe(false);
+  });
+
+  it("can't tell when the ZIP directory is unreadable, so the caller keeps the file with a warning", () => {
+    expect(isWordPackage(Buffer.from("PK\x03\x04 not really a zip"))).toBeNull();
+    const truncated = docx();
+    expect(isWordPackage(truncated.subarray(0, truncated.length - 30))).toBeNull();
   });
 });

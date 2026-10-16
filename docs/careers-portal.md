@@ -26,6 +26,7 @@ carry `X-Robots-Tag: noindex, nofollow, noarchive` (see `careersRobots()` in
 | `CAREERS_ADMIN_PASSWORD` | no | Older single shared password (8+ chars), signing in as `admin`. With neither variable set, the admin is disabled. |
 | `CAREERS_SESSION_SECRET` | for admin | Signs the sign-in cookies (32+ random characters, e.g. `openssl rand -base64 32`). Without it, cookies are signed with the passwords and the admin board shows a warning. Changing it signs everyone out. See [Admin security](#admin-security). |
 | `CAREERS_PORTAL_SLUG` | no | Serve the portal at an unguessable path, e.g. `join-7f3k2q`. `/careers` pages then 404. Don't use `fr`, `en` or `zh`. Read at build time: redeploy after changing it. |
+| `CAREERS_TRUSTED_PROXIES` | no | Self-hosted only: how many proxies in front of the portal append to `X-Forwarded-For` (default 1). Set 2 behind a CDN and nginx. See [Bot protection](#bot-protection). |
 | `CAREERS_DATA_DIR` | no | Where records and CVs are stored. Default `./data`. |
 | `CAREERS_WEBHOOK_URL` | no | Server-side copy of each application (JSON + base64 CV) to a free endpoint. |
 | `CAREERS_WEBHOOK_SECRET` | with the webhook | Sent as `secret` in the webhook payload so the receiver can reject forgeries. The Apps Script receiver refuses everything until it has one. |
@@ -183,9 +184,11 @@ whose inline script the admin pages' CSP would block. The
 candidate privacy notice discloses the check. The in-memory login throttle (5 attempts per IP per
 15 minutes) only sees one server instance, so BotID is what stops distributed
 guessing, with the firewall rule below. On Vercel the IP comes from Vercel's own
-headers; self-hosted, it is the last `X-Forwarded-For` entry, so run the portal
-behind a proxy that appends it (nginx: `$proxy_add_x_forwarded_for`), or anyone can
-pick a new "IP" for every guess.
+headers; self-hosted, it is the `X-Forwarded-For` entry added by the outermost
+trusted proxy, counted from the end, so run the portal behind a proxy that appends it
+(nginx: `$proxy_add_x_forwarded_for`), or anyone can pick a new "IP" for every guess.
+With a CDN in front of nginx, set `CAREERS_TRUSTED_PROXIES=2` (default 1); otherwise
+everyone reaching the site through the same CDN edge shares one throttle.
 
 A Vercel Firewall rule, **Careers: rate limit sign-in and applications**, allows
 10 `POST`s per IP per hour, shared between `/careers/api/admin/login` and

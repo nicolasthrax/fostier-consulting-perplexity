@@ -78,6 +78,8 @@ export function ApplicationForm({
   const [showEmailFallback, setShowEmailFallback] = useState(false);
   const [doneId, setDoneId] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  // Read out when a picked file is refused: focus stays put then, so the visible error alone goes unheard.
+  const [cvAnnouncement, setCvAnnouncement] = useState("");
   const headingRef = useRef<HTMLHeadingElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const firstRender = useRef(true);
@@ -115,10 +117,12 @@ export function ApplicationForm({
     return errs;
   };
 
-  /** Moves to a step, dropping the last submission's error: it is about answers the candidate is now changing. */
+  /**
+   * Moves to a step, dropping the last submission's error when it was about answers the
+   * candidate is now changing. A server failure stays, so its email route stays in reach.
+   */
   const goTo = (i: number) => {
-    setSubmitError("");
-    setShowEmailFallback(false);
+    if (!showEmailFallback) setSubmitError("");
     setStep(i);
   };
 
@@ -138,6 +142,7 @@ export function ApplicationForm({
     if (!file) return;
     const e = validateCvMeta(file.name, file.size, lang);
     setErrors((er) => ({ ...er, cv: e ?? undefined }));
+    setCvAnnouncement(e ?? "");
     // A file that doesn't fit keeps the one already chosen.
     if (!e) setCv(file);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -372,7 +377,8 @@ export function ApplicationForm({
               onChange={(e) => pickFile(e.target.files?.[0])}
             />
           </div>
-          <div aria-live="polite">{err("cv")}</div>
+          {err("cv")}
+          <p aria-live="polite" className="sr-only">{cvAnnouncement}</p>
           <p id={fid("cv-sensitive")} className="mt-3 text-sm leading-relaxed text-muted">{t.cvSensitive}</p>
           {cv && (
             <div className="mt-4 flex items-center gap-3 rounded-sm border border-line bg-mist px-4 py-3">

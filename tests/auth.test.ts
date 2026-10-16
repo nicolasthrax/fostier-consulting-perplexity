@@ -205,6 +205,16 @@ describe("clientIp", () => {
     expect(clientIp(req({}))).toBe("local");
   });
 
+  it("off Vercel, counts CAREERS_TRUSTED_PROXIES entries from the end (a CDN in front of nginx)", () => {
+    vi.stubEnv("VERCEL", "");
+    vi.stubEnv("CAREERS_TRUSTED_PROXIES", "2");
+    // forged, client (added by the CDN), CDN edge (added by nginx)
+    expect(clientIp(req({ "X-Forwarded-For": "1.1.1.1, 203.0.113.7, 198.51.100.1" }))).toBe("203.0.113.7");
+    expect(clientIp(req({ "X-Forwarded-For": "203.0.113.7" }))).toBe("203.0.113.7");
+    vi.stubEnv("CAREERS_TRUSTED_PROXIES", "nonsense");
+    expect(clientIp(req({ "X-Forwarded-For": "1.1.1.1, 203.0.113.7" }))).toBe("203.0.113.7");
+  });
+
   it("on Vercel, uses the address Vercel sets", () => {
     vi.stubEnv("VERCEL", "1");
     expect(clientIp(req({ "X-Real-IP": "203.0.113.7", "X-Forwarded-For": "203.0.113.7" }))).toBe("203.0.113.7");
