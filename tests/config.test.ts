@@ -6,7 +6,9 @@ import {
   duplicatesOf,
   initialStatus,
   knockoutsFor,
+  cleanText,
   mailtoHref,
+  validateCvMeta,
   validateFields,
 } from "@/lib/careers/config";
 import { record, validInput } from "./fixtures";
@@ -14,6 +16,14 @@ import { record, validInput } from "./fixtures";
 describe("validateFields", () => {
   it("accepts a complete, valid application", () => {
     expect(validateFields(validInput())).toEqual({});
+  });
+
+  it("caps the email and the URLs, which have no other length limit", () => {
+    expect(validateFields(validInput({ email: `${"a".repeat(64)}@${"b".repeat(185)}.com` })).email).toBeUndefined();
+    expect(validateFields(validInput({ email: `${"a".repeat(64)}@${"b".repeat(186)}.com` })).email).toEqual(expect.any(String));
+    const long = `https://example.com/${"x".repeat(1000)}`;
+    expect(validateFields(validInput({ portfolioUrl: long })).portfolioUrl).toEqual(expect.any(String));
+    expect(validateFields(validInput({ linkedinUrl: `https://www.linkedin.com/in/${"x".repeat(1000)}` })).linkedinUrl).toEqual(expect.any(String));
   });
 
   it("accepts a phone number with country code and spaces", () => {
@@ -164,5 +174,29 @@ describe("mailtoHref", () => {
     const href = mailtoHref("jane@gmail.com?bcc=x%40evil.com&body=hi");
     expect(href).toBe("mailto:jane@gmail.com%3Fbcc%3Dx%2540evil.com%26body%3Dhi");
     expect(new URL(href).search).toBe("");
+  });
+});
+
+describe("cleanText", () => {
+  it("removes control characters and bidi overrides, and trims", () => {
+    expect(cleanText(" Élodie\u0000 Martin\u202E ")).toBe("Élodie Martin");
+    expect(cleanText("cv\u202Efdp.exe.pdf")).toBe("cvfdp.exe.pdf");
+  });
+
+  it("keeps ordinary text, Chinese and joiners", () => {
+    expect(cleanText("陈小明 Chloé-Anne O'Brien")).toBe("陈小明 Chloé-Anne O'Brien");
+    expect(cleanText("می\u200Cخواهم")).toBe("می\u200Cخواهم");
+  });
+});
+
+describe("validateCvMeta", () => {
+  it("accepts PDF and Word files", () => {
+    expect(validateCvMeta("cv.pdf", 100)).toBeNull();
+    expect(validateCvMeta("CV.DOCX", 100)).toBeNull();
+  });
+
+  it("refuses a name without an extension, even one spelled like it", () => {
+    expect(validateCvMeta("pdf", 100)).toEqual(expect.any(String));
+    expect(validateCvMeta("docx", 100)).toEqual(expect.any(String));
   });
 });

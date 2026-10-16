@@ -128,18 +128,25 @@ export const sessionCookie = (value: string, maxAge: number) => ({
  * the same site; Origin names the exact host. Browsers send Origin (or at least
  * Sec-Fetch-Site) on these requests; a client sending neither isn't a browser, so it
  * can't be riding on an admin's cookie.
+ *
+ * X-Forwarded-Host counts as this site's host, for proxies that only set that header: a
+ * page on another site can't send it (it would need a CORS preflight, never granted here).
+ * In production the Origin must also be HTTPS (the __Host- cookie needs it anyway),
+ * except on localhost, so a plain-HTTP page on this host can't act either.
  */
 export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return (request.headers.get("sec-fetch-site") ?? "same-origin") === "same-origin";
-  let host: string;
+  let url: URL;
   try {
-    host = new URL(origin).host;
+    url = new URL(origin);
   } catch {
     return false; // includes Origin: null
   }
+  const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+  if (url.protocol !== "https:" && !(url.protocol === "http:" && (local || !PRODUCTION))) return false;
   const own = [request.headers.get("x-forwarded-host"), request.headers.get("host"), new URL(request.url).host];
-  return own.includes(host);
+  return own.includes(url.host);
 }
 
 /** The signed-in admin's name, or null. */
@@ -151,17 +158,46 @@ export async function currentAdmin() {
 export const isAdmin = async () => (await currentAdmin()) !== null;
 
 /**
+ * Proxies in front of a self-hosted portal that append to X-Forwarded-For, from
+ * CAREERS_TRUSTED_PROXIES (default 1: one nginx). Behind a CDN and nginx, set 2, or every
+ * visitor through the same CDN edge would share one login throttle.
+ */
+function trustedProxies() {
+  const n = Number(process.env.CAREERS_TRUSTED_PROXIES ?? 1);
+  return Number.isInteger(n) && n >= 1 ? n : 1;
+}
+
+/**
+ * The client's IP for the login throttle. Vercel sets X-Forwarded-For itself (a client's
+ * own value is dropped), so its first entry is the client. Elsewhere a client can send its
+ * own header, so the entry added by the outermost trusted proxy is used, counting from the
+ * end: run a self-hosted portal behind proxies that append it (nginx's
+ * $proxy_add_x_forwarded_for).
+ */
+export function clientIp(request: Request) {
+  const forwarded = (request.headers.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (process.env.VERCEL) return request.headers.get("x-real-ip") || forwarded[0] || "local";
+  return forwarded[Math.max(0, forwarded.length - trustedProxies())] || "local";
+}
+
+/**
  * Naive in-memory throttle for login attempts, per IP: it only sees one instance,
  * so BotID on the login route (see app/careers/api/admin/login) does the heavy lifting.
  */
+const MAX_ATTEMPTS = 5;
+const THROTTLE_MS = 15 * 60 * 1000;
+/** Past this many IPs, expired entries are dropped, so many addresses can't grow the map without limit. */
+const PRUNE_AT = 1000;
 const attempts = new Map<string, { count: number; until: number }>();
 export function loginThrottled(ip: string) {
   const a = attempts.get(ip);
-  return !!a && a.count >= 5 && a.until > Date.now();
+  return !!a && a.count >= MAX_ATTEMPTS && a.until > Date.now();
 }
 export function recordLoginFailure(ip: string) {
+  const now = Date.now();
+  if (attempts.size >= PRUNE_AT) for (const [k, v] of attempts) if (v.until < now) attempts.delete(k);
   const a = attempts.get(ip);
-  const fresh = !a || a.until < Date.now();
-  attempts.set(ip, { count: fresh ? 1 : a!.count + 1, until: Date.now() + 15 * 60 * 1000 });
+  const fresh = !a || a.until < now;
+  attempts.set(ip, { count: fresh ? 1 : a!.count + 1, until: now + THROTTLE_MS });
 }
 export const clearLoginFailures = (ip: string) => attempts.delete(ip);

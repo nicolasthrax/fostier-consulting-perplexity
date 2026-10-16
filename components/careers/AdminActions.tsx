@@ -54,6 +54,7 @@ export function AdminActions({
     setBusy(true);
     const res = await fetch(`${API_BASE}/admin/applications/${id}`, { method: "DELETE" }).catch(() => null);
     setBusy(false);
+    if (res?.status === 401) return router.push(adminBase);
     if (!res?.ok) return setError("The application couldn't be deleted. Try again.");
     router.push(adminBase);
     router.refresh();

@@ -37,6 +37,10 @@ const en = {
     none: "There are no open positions right now.",
     questions: "Questions? Write to",
   },
+  notFound: {
+    title: "This page doesn't exist",
+    body: "The position may have been filled, or the link is incomplete. Our open positions are listed here:",
+  },
   job: {
     back: "All positions",
     apply: "Apply for this position",
@@ -257,6 +261,10 @@ const fr: Copy = {
       "Nous accompagnons les résidents français à Hong Kong dans leurs finances, ainsi que les entreprises qui travaillent entre la France et la Chine. Les étudiants sont les bienvenus. Choisissez un poste ci-dessous.",
     none: "Aucun poste n'est ouvert pour le moment.",
     questions: "Des questions ? Écrivez à",
+  },
+  notFound: {
+    title: "Cette page n'existe pas",
+    body: "Le poste a peut-être été pourvu, ou le lien est incomplet. Nos postes ouverts sont ici :",
   },
   job: {
     back: "Tous les postes",

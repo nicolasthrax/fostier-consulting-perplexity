@@ -447,6 +447,19 @@ const EMAIL_RE = /^[\p{L}\p{N}.!#$*+/=^_`{|}~'-]+@[\p{L}\p{N}-]+(\.[\p{L}\p{N}-]
  */
 export const mailtoHref = (email: string) => `mailto:${encodeURIComponent(email.trim()).replace(/%40/g, "@")}`;
 
+/** Longest address the email standard (RFC 5321) allows. */
+export const EMAIL_MAX_LENGTH = 254;
+/** Longest LinkedIn or portfolio URL: real ones are far shorter, and every record is in one index the admin loads. */
+export const URL_MAX_LENGTH = 1000;
+
+/**
+ * Control characters and bidi overrides: never typed in a real answer, but they can hide
+ * text or reverse it on the admin board (a CV named "cv\u202Efdp.exe" shows as "cvexe.pdf").
+ */
+const INVISIBLE_RE = /[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
+/** A candidate's text with those characters removed and the ends trimmed. */
+export const cleanText = (value: string) => value.replace(INVISIBLE_RE, "").trim();
+
 const PHONE_RE = /^\+?[0-9 ()\-.]{6,20}$/;
 /** Separators alone ("------") pass PHONE_RE, so the digits are counted too. */
 const PHONE_MIN_DIGITS = 6;
@@ -471,13 +484,13 @@ export function validateFields(
 
   if (v("fullName").length < 2) e.fullName = m.fullName;
   else if (v("fullName").length > 120) e.fullName = m.fullNameLong;
-  if (!EMAIL_RE.test(v("email"))) e.email = m.email;
+  if (!EMAIL_RE.test(v("email")) || v("email").length > EMAIL_MAX_LENGTH) e.email = m.email;
   if (!PHONE_RE.test(v("phone")) || v("phone").replace(/\D/g, "").length < PHONE_MIN_DIGITS) e.phone = m.phone;
   // Optional: many students don't have a LinkedIn profile.
   const linkedin = v("linkedinUrl");
-  if (linkedin && (!isHttpUrl(linkedin) || !/(^|\.)linkedin\.com$/i.test(new URL(linkedin).hostname))) e.linkedinUrl = m.linkedin;
+  if (linkedin && (linkedin.length > URL_MAX_LENGTH || !isHttpUrl(linkedin) || !/(^|\.)linkedin\.com$/i.test(new URL(linkedin).hostname))) e.linkedinUrl = m.linkedin;
   const portfolio = v("portfolioUrl");
-  if (portfolio && !isHttpUrl(portfolio)) e.portfolioUrl = m.portfolio;
+  if (portfolio && (portfolio.length > URL_MAX_LENGTH || !isHttpUrl(portfolio))) e.portfolioUrl = m.portfolio;
 
   if (!workAuthorizationOptions.some((o) => o.value === v("workAuthorization"))) e.workAuthorization = m.workAuthorization;
   if (!commissionOptions.some((o) => o.value === v("commissionOnly"))) e.commissionOnly = m.commissionOnly;
@@ -491,7 +504,8 @@ export function validateFields(
 /** Returns an error message, or null when the file is acceptable. */
 export function validateCvMeta(name: string, size: number, lang: CareersLocale = "en"): string | null {
   const m = careersCopy[lang].errors;
-  const ext = name.split(".").pop()?.toLowerCase();
+  // A name without a dot ("pdf") has no extension.
+  const ext = name.includes(".") ? name.split(".").pop()?.toLowerCase() : undefined;
   if (ext !== "pdf" && ext !== "docx") return m.cvType;
   if (size === 0) return m.cvEmpty;
   if (size > MAX_CV_BYTES) return m.cvSize;

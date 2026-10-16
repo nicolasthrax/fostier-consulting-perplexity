@@ -1,9 +1,11 @@
 # Recruitment portal
 
-A self-contained, zero-cost application portal. It is linked from the site
-footer ("Carrières" / "Careers" / "招聘"), but kept out of the sitemap and
-search results: every response carries `X-Robots-Tag: noindex, nofollow` and
-the page head has `<meta name="robots" content="noindex, nofollow">`.
+A self-contained, zero-cost application portal, linked from the site footer
+("Carrières" / "Careers" / "招聘"). The landing and job pages are indexable and
+listed in the sitemap. The application forms and the candidate notice are
+`noindex` (their links are followed), and the admin, the API, redirects and 404s
+carry `X-Robots-Tag: noindex, nofollow, noarchive` (see `careersRobots()` in
+`middleware.ts`).
 
 | Path | What |
 | --- | --- |
@@ -24,6 +26,7 @@ the page head has `<meta name="robots" content="noindex, nofollow">`.
 | `CAREERS_ADMIN_PASSWORD` | no | Older single shared password (8+ chars), signing in as `admin`. With neither variable set, the admin is disabled. |
 | `CAREERS_SESSION_SECRET` | for admin | Signs the sign-in cookies (32+ random characters, e.g. `openssl rand -base64 32`). Without it, cookies are signed with the passwords and the admin board shows a warning. Changing it signs everyone out. See [Admin security](#admin-security). |
 | `CAREERS_PORTAL_SLUG` | no | Serve the portal at an unguessable path, e.g. `join-7f3k2q`. `/careers` pages then 404. Don't use `fr`, `en` or `zh`. Read at build time: redeploy after changing it. |
+| `CAREERS_TRUSTED_PROXIES` | no | Self-hosted only: how many proxies in front of the portal append to `X-Forwarded-For` (default 1). Set 2 behind a CDN and nginx. See [Bot protection](#bot-protection). |
 | `CAREERS_DATA_DIR` | no | Where records and CVs are stored. Default `./data`. |
 | `CAREERS_WEBHOOK_URL` | no | Server-side copy of each application (JSON + base64 CV) to a free endpoint. |
 | `CAREERS_WEBHOOK_SECRET` | with the webhook | Sent as `secret` in the webhook payload so the receiver can reject forgeries. The Apps Script receiver refuses everything until it has one. |
@@ -48,7 +51,9 @@ Screening questions (step 3):
   dotted forms like "H.K.U.". The patterns are in
   [`lib/careers/universities.ts`](../lib/careers/universities.ts); HKU SPACE
   and other "… University of Hong Kong" names (CityU, EdUHK, Hang Seng…) don't match.
-- Work authorisation in Hong Kong. "Would need visa sponsorship" and "remote only" are flagged.
+- Work authorisation in Hong Kong. "Would need visa sponsorship", "remote only" and
+  "non-local student (student visa)" are flagged; student visas limit outside work, so a
+  person checks each case.
 - Comfortable with commission-only pay and no base salary? "No" is flagged and starts in **Rejected**.
 
 Other flagged answers are not rejected; they show as knockouts on the admin board.
@@ -67,7 +72,7 @@ row also has its own delete button).
 When the app runs on a Node server (`next start`, a VPS, Docker…):
 
 - `data/applications/applications.json` — candidate records and pipeline status
-- `data/cvs/<id>.pdf|docx` — uploaded CVs (type checked by extension *and* file signature, max 4 MB)
+- `data/cvs/<id>.pdf|docx` — uploaded CVs (type checked by extension *and* file signature, max 4 MB; a `.docx` must be a Word package, not any ZIP)
 - `data/applications/deletions.json` — the [deletion log](#deletion-log)
 
 `/data/` is git-ignored and files are written with `0600` permissions. Back the
@@ -166,7 +171,15 @@ never fails the application.
 the admin login (`CareersShell` loads its client on portal pages only;
 `checkBotId()` runs in both routes). A request classified as a bot gets a 403;
 on the form, the candidate is offered the email route instead. Every block is
-logged as `[careers] BotID blocked a request to …`. Locally, BotID always reports
+logged as `[careers] BotID blocked a request to …`. BotID only works on Vercel: on
+a self-hosted server (`next start`, a VPS, Docker) the check is skipped, with a
+warning in the log at the first request. On Vercel, a check that fails (an outage
+of BotID's service or a misconfiguration) is logged as `[careers] BotID check failed
+for …`. The form then refuses the application and offers the email route, so a flood
+of scripted applications can't use up the Blob store's monthly operations (Hobby
+blocks the store for 30 days past them). The admin login lets the request through,
+since the password, the throttle and the firewall rule still guard it, and blocking
+would lock every admin out for the outage. Locally, BotID always reports
 a human, so **test a Preview deployment after any change to the
 Content-Security-Policy** in `next.config.mjs` or `middleware.ts`: if the CSP stopped BotID's
 browser script from running, every real candidate would be blocked too. BotID is
@@ -174,7 +187,12 @@ started by `BotIdInit` from the page's own bundle, not botid's `<BotIdClient>`,
 whose inline script the admin pages' CSP would block. The
 candidate privacy notice discloses the check. The in-memory login throttle (5 attempts per IP per
 15 minutes) only sees one server instance, so BotID is what stops distributed
-guessing, with the firewall rule below.
+guessing, with the firewall rule below. On Vercel the IP comes from Vercel's own
+headers; self-hosted, it is the `X-Forwarded-For` entry added by the outermost
+trusted proxy, counted from the end, so run the portal behind a proxy that appends it
+(nginx: `$proxy_add_x_forwarded_for`), or anyone can pick a new "IP" for every guess.
+With a CDN in front of nginx, set `CAREERS_TRUSTED_PROXIES=2` (default 1); otherwise
+everyone reaching the site through the same CDN edge shares one throttle.
 
 A Vercel Firewall rule, **Careers: rate limit sign-in and applications**, allows
 10 `POST`s per IP per hour, shared between `/careers/api/admin/login` and
@@ -198,7 +216,8 @@ so a crafted file can't run scripts on the site's origin.
   any admin tab, the admin is signed out and the page reloads.
 - **Same-origin writes.** Status changes, notes, deletions, sign-in and sign-out
   are refused (403) when the browser's `Origin` isn't this site, so a page on
-  another site, or on another subdomain, can't act with an admin's cookie.
+  another site, or on another subdomain, can't act with an admin's cookie. In
+  production the `Origin` must also be HTTPS (localhost excepted).
 - **Content-Security-Policy.** The admin pages, which show what candidates typed,
   only run scripts carrying a per-request nonce (`middleware.ts`), so markup in a
   candidate's answers could never run there. The rest of the site has a lighter
@@ -211,6 +230,10 @@ so a crafted file can't run scripts on the site's origin.
   XFA forms in a PDF (only what isn't compressed). A flagged CV is still accepted;
   the candidate's page says what was found and how to open it safely. No warning
   doesn't mean a file is safe: open Word CVs in Protected View.
+- **Candidate answers** are capped (email 254 characters, LinkedIn and portfolio
+  URLs 1,000), since every record sits in one index the admin downloads. Control
+  characters and bidi overrides are removed from answers and CV file names, so a
+  name can't hide text or display a file as something else.
 - **Candidate email addresses** may only contain characters real addresses use,
   and the admin's `mailto:` link is encoded, so an address can't add a hidden
   `?bcc=` or a prefilled body.
