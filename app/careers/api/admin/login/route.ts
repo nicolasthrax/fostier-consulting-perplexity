@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   if (!adminEnabled()) return NextResponse.json({ error: "The admin is not configured." }, { status: 404 });
   if (!sameOrigin(request)) return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   // BotID stops scripted password guessing across every instance; the throttle below only sees this one.
-  if (await blockedAsBot("login")) return NextResponse.json({ error: "Sign-in blocked. Try again from a normal browser." }, { status: 403 });
+  if (await blockedAsBot("login", "allow")) return NextResponse.json({ error: "Sign-in blocked. Try again from a normal browser." }, { status: 403 });
   const ip = clientIp(request);
   if (loginThrottled(ip)) return NextResponse.json({ error: "Too many attempts. Try again in 15 minutes." }, { status: 429 });
 

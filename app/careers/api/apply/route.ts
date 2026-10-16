@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
   // BotID (see CareersShell): scripted submissions could otherwise fill the Blob store with 4 MB files
   // and use the form to send confirmation emails to any address. A person wrongly flagged can still apply by email.
-  if (await blockedAsBot("apply")) return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 403 });
+  if (await blockedAsBot("apply", "block")) return NextResponse.json({ error: m.saveFailed, fallbackEmail: true }, { status: 403 });
 
   // Honeypot: real candidates never see this field.
   // No reference: the success screen then shows none, rather than one no record has.

@@ -174,8 +174,12 @@ on the form, the candidate is offered the email route instead. Every block is
 logged as `[careers] BotID blocked a request to …`. BotID only works on Vercel: on
 a self-hosted server (`next start`, a VPS, Docker) the check is skipped, with a
 warning in the log at the first request. On Vercel, a check that fails (an outage
-or a misconfiguration) lets the request through and is logged as
-`[careers] BotID check failed for …`, so it can't lock out every candidate and admin. Locally, BotID always reports
+of BotID's service or a misconfiguration) is logged as `[careers] BotID check failed
+for …`. The form then refuses the application and offers the email route, so a flood
+of scripted applications can't use up the Blob store's monthly operations (Hobby
+blocks the store for 30 days past them). The admin login lets the request through,
+since the password, the throttle and the firewall rule still guard it, and blocking
+would lock every admin out for the outage. Locally, BotID always reports
 a human, so **test a Preview deployment after any change to the
 Content-Security-Policy** in `next.config.mjs` or `middleware.ts`: if the CSP stopped BotID's
 browser script from running, every real candidate would be blocked too. BotID is
