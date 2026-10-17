@@ -33,6 +33,37 @@ function ServiceDetail({ service, moreLabel }: { service: ExplorerService; moreL
   );
 }
 
+/** Desktop detail panel for the active service: an index card with a ruled link and the disclaimer in a footer band. */
+function Panel({ service, moreLabel }: { service: ExplorerService; moreLabel: string }) {
+  return (
+    <div className="rounded-sm border border-line bg-white">
+      <div className="px-9 pb-10 pt-8 sm:px-10">
+        <div aria-hidden="true" className="flex gap-1">
+          <span className="h-2.5 w-2.5 rounded-full bg-navy" />
+          <span className="h-2.5 w-2.5 rounded-full border border-line bg-white" />
+          <span className="h-2.5 w-2.5 rounded-full bg-fred" />
+        </div>
+        <p className="mt-6 font-serif text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-[2.6rem]">{service.title}</p>
+        <p className="mt-5 font-serif text-xl leading-snug text-navy">{service.benefit}</p>
+        <p className="mt-5 text-base leading-relaxed text-slate">{service.short}</p>
+        <Link
+          href={service.href}
+          className="focus-ring group mt-9 flex items-center justify-between border-y border-ink py-4 text-[15px] font-semibold text-navy transition-colors hover:text-fred-700"
+        >
+          <span>
+            {moreLabel}
+            <span className="sr-only"> — {service.title}</span>
+          </span>
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+        </Link>
+      </div>
+      <div className="bg-mist px-9 py-5 sm:px-10">
+        <p className="text-[13px] leading-relaxed text-muted">{service.disclaimer}</p>
+      </div>
+    </div>
+  );
+}
+
 function ServiceTitle({
   title,
   active,
@@ -145,17 +176,9 @@ export function ServicesExplorer({ services, moreLabel }: { services: ExplorerSe
           <div
             key={shown.slug}
             onAnimationEnd={onPanelAnimationEnd}
-            className={`relative overflow-hidden rounded-sm bg-mist p-8 pt-10 sm:p-10 sm:pt-12 ${
-              phase === "out" ? "panel-out" : phase === "in" ? "panel-in" : ""
-            }`}
+            className={phase === "out" ? "panel-out" : phase === "in" ? "panel-in" : ""}
           >
-            <div aria-hidden="true" className="par-avion par-avion-drift absolute inset-x-0 top-0 h-2" />
-            <p className="font-serif text-3xl leading-tight tracking-[-0.01em] text-navy sm:text-4xl">
-              {shown.title}
-            </p>
-            <div className="mt-5">
-              <ServiceDetail service={shown} moreLabel={moreLabel} />
-            </div>
+            <Panel service={shown} moreLabel={moreLabel} />
           </div>
         </div>
       </div>
