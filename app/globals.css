@@ -62,7 +62,8 @@ body {
   }
 
   /* Hero headline: each line rises from behind a mask. Pure CSS so LCP isn't gated on hydration. */
-  .rise-line { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
+  /* The mask bleeds .12em past both edges of the line box: at tight leading, CJK glyphs and descenders overflow the em box and would be clipped. */
+  .rise-line { display: inline-block; overflow: hidden; vertical-align: top; padding-block: .12em; margin-block: -.12em; }
   /* Chinese clauses: one per line, all sized down (never up) so the longest fits the column. */
   .rise-clauses { container-type: inline-size; }
   .rise-clauses .rise-line { display: block; white-space: nowrap; font-size: min(1em, 100cqi / var(--glyphs)); }
