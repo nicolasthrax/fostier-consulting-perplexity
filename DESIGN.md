@@ -26,7 +26,7 @@ something (the contact block is an envelope, the advisor portrait is a stamp).
 | Token     | Hex       | Use                                 |
 | --------- | --------- | ----------------------------------- |
 | `bleu` (`navy`) | `#002395` | brand, primary buttons, big blocks  |
-| `nuit`    | `#0A1650` | globe panel, dark surfaces          |
+| `nuit`    | `#0A1650` | dark surfaces                       |
 | `rouge` (`fred`) | `#ED2939` | flag red: stripes, icons, large type |
 | `fred-700` | `#C81C2B` | red for small text or under white text (AA) |
 | `ink`     | `#141A38` | headings                            |
@@ -58,8 +58,7 @@ purple/indigo, or blue→purple gradients. No cream/beige backgrounds.
 ## Motion
 
 Purposeful, not a fade-up on every block: the hero headline rises line by
-line, rules draw in, rows wipe colour, the globe arc flies Paris → Hong Kong
-as an airmail dash. Everything honours `prefers-reduced-motion`.
+line, rules draw in, rows wipe colour. Everything honours `prefers-reduced-motion`.
 
 ## Layout
 

@@ -8,8 +8,6 @@ import { localizedMetadata } from "@/lib/metadata";
 import { getPageTitles } from "@/lib/i18n/titles";
 import { site, whatsappUrl } from "@/lib/site";
 import { WeChatContactButton } from "@/components/WeChatContact";
-import { AdvisorMapPill } from "@/components/AdvisorMapPill";
-import { HeroGlobe } from "@/components/HeroGlobe";
 import { Reveal } from "@/components/Reveal";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { RiseTitle } from "@/components/RiseTitle";
@@ -72,17 +70,17 @@ export default async function HomePage(props: { params: Promise<{ lang: string }
   return (
     <>
       {/* ——— Hero ——— */}
-      <section className="relative overflow-hidden bg-white">
-        <div className="container-site grid items-center gap-14 pb-20 pt-12 sm:pt-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pb-28 lg:pt-20">
-          <div>
-            <RiseTitle
-              text={dict.hero.title}
-              className="h-serif text-[2.6rem] leading-[1.04] sm:text-[3.4rem] xl:text-[4rem]"
-            />
+      <section className="bg-white">
+        <div className="container-site pb-20 pt-14 sm:pt-20 lg:pb-28 lg:pt-28">
+          <RiseTitle
+            text={dict.hero.title}
+            className="h-serif text-[2.9rem] leading-[1] sm:text-[4.4rem] lg:text-[5.6rem] xl:text-[6.6rem]"
+          />
 
-            <p className="body-lead fade-in mt-7 max-w-xl [animation-delay:.45s]">{dict.hero.subtitle}</p>
+          <div className="fade-in mt-12 grid items-end gap-8 [animation-delay:.45s] lg:mt-16 lg:grid-cols-[1fr_auto] lg:gap-16">
+            <p className="body-lead max-w-xl">{dict.hero.subtitle}</p>
 
-            <div className="fade-in mt-9 flex flex-wrap items-center gap-3 [animation-delay:.6s]">
+            <div className="flex flex-wrap items-center gap-3">
               <a
                 href={whatsappUrl(dict.actions.whatsappMessage)}
                 target="_blank"
@@ -97,30 +95,24 @@ export default async function HomePage(props: { params: Promise<{ lang: string }
               </a>
               <WeChatContactButton locale={lang} />
             </div>
-
-            <div className="fade-in mt-10 flex flex-col gap-4 border-t border-line pt-6 text-[15px] [animation-delay:.75s] sm:flex-row sm:items-center sm:gap-8">
-              <Link href={`/${lang}/services`} className="focus-ring link-arrow">
-                {dict.actions.discoverServices}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a
-                href={dict.hero.ufePartnerUrl || site.ufePartnerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="focus-ring group inline-flex items-center gap-2.5 text-slate hover:text-navy"
-              >
-                <Image src="/brand/ufe-logo.svg" alt={logoAlt(lang, "UFE Hong Kong")} width={22} height={22} className="h-[22px] w-[22px] object-contain" />
-                <span className="link-underline">{dict.hero.ufePartnerBadge}</span>
-                <span className="sr-only"> ({ufeExpansion[lang]})</span>
-                <ArrowUpRight className="h-3.5 w-3.5 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </a>
-            </div>
           </div>
 
-          <div className="fade-in relative [animation-delay:.2s]">
-            <HeroGlobe className="rounded-sm">
-              <AdvisorMapPill locale={lang} />
-            </HeroGlobe>
+          <div className="fade-in mt-10 flex flex-col gap-4 border-t border-line pt-6 text-[15px] [animation-delay:.6s] sm:flex-row sm:items-center sm:gap-8">
+            <Link href={`/${lang}/services`} className="focus-ring link-arrow">
+              {dict.actions.discoverServices}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a
+              href={dict.hero.ufePartnerUrl || site.ufePartnerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="focus-ring group inline-flex items-center gap-2.5 text-slate hover:text-navy"
+            >
+              <Image src="/brand/ufe-logo.svg" alt={logoAlt(lang, "UFE Hong Kong")} width={22} height={22} className="h-[22px] w-[22px] object-contain" />
+              <span className="link-underline">{dict.hero.ufePartnerBadge}</span>
+              <span className="sr-only"> ({ufeExpansion[lang]})</span>
+              <ArrowUpRight className="h-3.5 w-3.5 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </a>
           </div>
         </div>
       </section>
